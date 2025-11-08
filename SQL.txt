@@ -1,1 +1,92 @@
-'mini_pjt_1', 'delete_all_orders_at_midnight', 'pjt1@%', 'SYSTEM', 'RECURRING', NULL, '1', 'DAY', '2025-11-09 00:00:00', NULL, 'ENABLED', '1', 'utf8mb4', 'utf8mb4_0900_ai_ci', 'utf8mb4_unicode_ci'
+CREATE TABLE MENU (
+    menu_id VARCHAR(50) NOT NULL,
+    menu_name VARCHAR(100) NOT NULL,
+    price INT NOT NULL,
+    CONSTRAINT PK_MENU PRIMARY KEY (menu_id)
+);
+
+CREATE TABLE MEMBER (
+    u_id VARCHAR(50) NOT NULL,
+    u_pw VARCHAR(100) NOT NULL,
+    username VARCHAR(50) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    menu_id VARCHAR(50) NULL,
+    order_num INT NULL,
+    
+    -- PK (기본 키) 제약조건
+    CONSTRAINT PK_MEMBER PRIMARY KEY (u_id),
+    
+    -- FK (외래 키) 제약조건 (영문 이름으로 변경)
+    CONSTRAINT FK_MENU_TO_MEMBER FOREIGN KEY (menu_id)
+    REFERENCES MENU (menu_id) -- '메뉴' 대신 'MENU' 테이블 참조
+);
+
+CREATE TABLE CART (
+    -- '장바구니ID' (PK, NUMBER -> INT)
+    cart_id INT NOT NULL,
+    
+    -- '회원아이디' (FK, VARCHAR)
+    u_id VARCHAR(100) NULL,
+    
+    -- '총가격' (NUMBER -> INT)
+    total_price INT NULL,
+    
+    -- '옵션선택' (Type -> VARCHAR)
+    options VARCHAR(255) NULL,
+    
+    -- '요청사항' (VARCHAR2 -> VARCHAR)
+    special_requests VARCHAR(500) NULL,
+    
+    -- Define Primary Key
+    CONSTRAINT PK_CART PRIMARY KEY (cart_id),
+    
+    -- Define Foreign Key (Assuming MEMBER(member_id) table)
+    CONSTRAINT FK_MEMBER_TO_CART FOREIGN KEY (u_id)
+        REFERENCES MEMBER(u_id)
+);
+
+CREATE TABLE ORDERS(
+	ORDER_ID VARCHAR(100) NOT NULL,
+    u_id VARCHAR(100) NULL,
+    cart_id INT NULL,
+    order_status VARCHAR(50) NULL,
+    total_price INT NULL,
+    pickup_method VARCHAR(50) NULL,
+    store_location VARCHAR(100) NULL,
+    CONSTRAINT PK_ORDERS PRIMARY KEY (order_id),
+    
+    CONSTRAINT FK_MEMBER_TO_ORDERS FOREIGN KEY (u_id)
+        REFERENCES MEMBER(u_id),
+        
+    CONSTRAINT FK_CART_TO_ORDERS FOREIGN KEY (cart_id)
+        REFERENCES CART(cart_id)
+);
+
+desc orders;
+
+ALTER TABLE ORDERS
+ADD COLUMN order_time VARCHAR(50) NULL,
+ADD COLUMN TOTAL_QUANTITY INT NULL;
+
+ALTER TABLE orders MODIFY COLUMN order_time DATETIME;
+
+select * from orders;
+
+delete from orders where order_id like 'TEST%';
+
+show variables like 'event_scheduler';
+
+DELIMITER $$
+
+CREATE EVENT delete_all_orders_at_midnight
+ON SCHEDULE
+    EVERY 1 DAY
+    STARTS (CURRENT_DATE + INTERVAL 1 DAY)
+DO
+    BEGIN
+        DELETE FROM ORDERS;
+    END$$
+    
+DELIMITER ;
+
+show events;
