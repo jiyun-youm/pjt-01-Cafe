@@ -49,7 +49,6 @@ body {
 .wrap {
     flex-grow: 1;
     overflow-y: auto;
-    /*background-color: #f7f3f2;*/
     background-color: transparent;
     position: relative;
     z-index: 1;
@@ -239,11 +238,10 @@ main.container {
 /* 이전 주문내역 */
 .previous-orders {
     padding: 15px;
-    /*background-color: #F7F3F2;*/
-    background-color: rgba(247, 243, 242, 0.8); /* 약 80% 불투명도 */
-    border-radius: 10px; /* 자연스럽게 보이도록 라운드 추가 */
-    margin: 10px 15px; /* .wrap에 붙지 않도록 좌우 마진 추가 */
-    position: relative; /* z-index 적용을 위해 */
+    background-color: rgba(247, 243, 242, 0.8);
+    border-radius: 10px;
+    margin: 10px 15px;
+    position: relative;
     z-index: 2;
 }
 .previous-orders-header {
@@ -305,7 +303,6 @@ main.container {
 
 /* 리워드 섹션 */
 .reward-section {
-    /*background-color: #F8C79D;*/
     background-color: rgba(248, 199, 157, 0.85); /* 약 85% 불투명도 */
     margin: 20px 15px;
     padding: 15px;
