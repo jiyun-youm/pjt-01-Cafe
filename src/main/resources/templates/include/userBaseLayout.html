@@ -21,7 +21,7 @@
                 </div>
                 <div style="display: flex; align-items: center; gap: 10px;">
 
-                    <a href="/mypick" style="text-decoration: none;" class="login-required">
+                    <a href="/home/mypick" style="text-decoration: none;" class="login-required">
                         <img src="/images/heart.png" width="23px" height="23px" alt="찜" style="vertical-align: middle;">
                     </a>
                     <span class="notification-icon" id="notification-trigger">
@@ -47,28 +47,28 @@
                     <span>홈</span>
                 </a>
 
-                <a th:href="@{/home/order_history}" class="login-required">
+                <a th:href="@{/home/order_history}" class="login-required1">
                     <div class="tab-icon-wrapper">
                         <span class="tab-icon"><img src="/images/list.png" th:src="@{/images/list.png}" alt="주문내역" width="35px" height="35px"></span>
                     </div>
                     <span>주문내역</span>
                 </a>
 
-                <a th:href="@{/menu/coffee}" class="active login-required">
+                <a th:href="@{/menu/coffee}" class="active login-required1">
                     <div class="tab-icon-wrapper">
                         <span class="tab-icon"><img src="/images/coffee.png" th:src="@{/images/coffee.png}" alt="주문하기" width="50px" height="50px"></span>
                     </div>
                     <span style="font-size: 15px; position: relative; top: -23px;">주문하기</span>
                 </a>
 
-                <a th:href="@{/home/cart}" class="login-required">
+                <a th:href="@{/home/cart}" class="login-required1">
                     <div class="tab-icon-wrapper">
                         <span class="tab-icon"><img src="/images/cart.png" th:src="@{/images/cart.png}" alt="장바구니" width="40px" height="40px"></span>
                     </div>
                     <span>장바구니</span>
                 </a>
                 <!-- 로그인 되어있으면 계정관리 -->
-                <a th:href="@{/account}" class="login-required" th:unless="${session.loginMember == null}">
+                <a th:href="@{/account}" class="login-required1" th:unless="${session.loginMember == null}">
                     <div class="tab-icon-wrapper">
                         <span class="tab-icon"><img src="/images/mypage.png" th:src="@{/images/mypage.png}" alt="계정관리" width="40px" height="40px"></span>
                     </div>
@@ -103,6 +103,20 @@
             <form id="modalLoginForm" class="login-form">
                 <input type="text" name="id" placeholder="ID" required>
                 <input type="password" name="password" placeholder="Password" required>
+
+                <!-- 소셜 로그인 아이콘 -->
+                <div class="social_login">
+                    <a href="#">
+                        <img src="/images/naver.png" th:src="@{/images/naver.png}" alt="Naver Login" class="sns-icon">
+                    </a>
+                    <a href="#">
+                        <img src="/images/kakako.png" th:src="@{/images/kakako.png}" alt="Kakao Login" class="sns-icon">
+                    </a>
+                    <a href="#">
+                        <img src="/images/google.png" th:src="@{/images/google.png}" alt="Google Login" class="sns-icon">
+                    </a>
+                </div>
+                <!-- --- 소셜 로그인 아이콘 끝 --- -->
 
                 <div class="button-group">
                     <button type="button" id="switch-to-signup-trigger" class="btn">Sign Up</button>

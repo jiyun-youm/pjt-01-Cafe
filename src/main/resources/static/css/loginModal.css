@@ -75,3 +75,22 @@
 .login-modal-content .link a:hover {
     text-decoration: underline;
 }
+
+.social_login {
+    display: flex; /* 가로 배치 */
+    flex-direction: row; /* 가로 배치 */
+    justify-content: center; /* 가운데 정렬 */
+    align-items: center; /* 가운데 정렬 */
+    gap: 20px; /* 아이콘 간격 */
+    margin: 20px 0; /* 위 아래 여백 */
+    width: 100%;
+}
+
+.social_login .sns-icon {
+    width: 60px;   /* 아이콘 크기 작게 */
+    height: 60px;  /*  아이콘 크기 작게 */
+    border-radius: 50%; /* 원형 */
+    object-fit: cover;
+    cursor: pointer;
+    /*transition: transform 0.2s, box-shadow 0.2s;*/
+}
