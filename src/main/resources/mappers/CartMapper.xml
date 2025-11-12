@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.miniproject.cafe.Mapper.CartMapper">
+
+    <!-- 장바구니 생성 -->
+    <insert id="insertCart" parameterType="CartVO">
+        INSERT INTO CART(MEMBER_ID,
+                         TOTAL_PRICE)
+        VALUES(#{memberId},
+               #{totalPrice})
+    </insert>
+
+    <!-- 장바구니 조회 -->
+
+
+
+
+</mapper>
