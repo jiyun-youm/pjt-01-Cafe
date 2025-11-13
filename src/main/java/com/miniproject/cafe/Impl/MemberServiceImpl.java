@@ -5,6 +5,7 @@ import com.miniproject.cafe.Service.MemberService;
 import com.miniproject.cafe.VO.MemberVO;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,8 +15,8 @@ public class MemberServiceImpl implements MemberService {
     @Autowired
     private MemberMapper memberMapper;
 
-    // @Autowired
-    // private PasswordEncoder passwordEncoder; // (삭제)
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
@@ -31,20 +32,27 @@ public class MemberServiceImpl implements MemberService {
         if (memberMapper.isEmailDuplicate(vo.getEmail())) {
             return "EMAIL_DUPLICATE";
         }
+        String rawPassword = vo.getPassword();
+        String encodedPassword = passwordEncoder.encode(rawPassword);
+        vo.setPassword(encodedPassword);
+        vo.setProvider("general");
+
         memberMapper.registerMember(vo);
         return "SUCCESS";
     }
 
     @Override
     public boolean loginMember(MemberVO vo, HttpSession session) {
-        MemberVO foundMember = memberMapper.loginMember(vo);
+        MemberVO storedMember = memberMapper.loginMember(vo);
 
-        if (foundMember != null) {
-            session.setAttribute("loginMember", foundMember);
-            return true;
-        } else {
-            return false; // ID 또는 비밀번호 불일치
+        if (storedMember != null) {
+            // 사용자가 입력한 평문 비밀번호와 DB에 저장된 암호화된 비밀번호를 비교
+            if (passwordEncoder.matches(vo.getPassword(), storedMember.getPassword())) {
+                session.setAttribute("loginMember", storedMember); // 비밀번호 일치 (로그인 성공)
+                return true;
+            }
         }
+        return false; //비밀번호 불일치 또는 회원 없음
     }
 
     @Override

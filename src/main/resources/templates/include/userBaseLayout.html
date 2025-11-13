@@ -106,13 +106,13 @@
 
                 <!-- 소셜 로그인 아이콘 -->
                 <div class="social_login">
-                    <a href="#">
+                    <a href="/oauth2/authorization/naver">
                         <img src="/images/naver.png" th:src="@{/images/naver.png}" alt="Naver Login" class="sns-icon">
                     </a>
-                    <a href="#">
+                    <a href="/oauth2/authorization/kakao">
                         <img src="/images/kakako.png" th:src="@{/images/kakako.png}" alt="Kakao Login" class="sns-icon">
                     </a>
-                    <a href="#">
+                    <a href="/oauth2/authorization/google">
                         <img src="/images/google.png" th:src="@{/images/google.png}" alt="Google Login" class="sns-icon">
                     </a>
                 </div>
@@ -161,6 +161,26 @@
     </div>
     <script th:inline="javascript">
         let IS_LOGGED_IN = [[${session.loginMember != null}]];
+
+        // 2단계에서 Model을 통해 전달받은 성공/실패 데이터
+        let loginSuccessType = /*[[${loginSuccessType}]]*/ null;
+        let memberName = /*[[${loginMemberName}]]*/ null;
+        let oauthErrorMessage = /*[[${oauthErrorMessage}]]*/ null; // (기존 에러 메시지)
+
+        // --- [ 알림 로직 ] ---
+
+        if (loginSuccessType === 'SIGNUP') {
+            // 1. 가입 성공
+            alert(memberName + "님! 가입을 축하합니다!");
+        } else if (loginSuccessType === 'LOGIN' && memberName) {
+            // 2. 로그인 성공
+            alert(memberName + "님 로그인 되셨습니다.");
+        }
+
+        // 3. 실패 (성공 메시지가 없을 때만 실패 메시지를 보여줌)
+        else if (oauthErrorMessage) {
+            alert(oauthErrorMessage);
+        }
     </script>
 
     <script src="/js/main.js"></script>
