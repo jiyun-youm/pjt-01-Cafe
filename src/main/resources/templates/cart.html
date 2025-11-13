@@ -18,88 +18,65 @@
                     <button class="delete-btn" id="deleteSelectedBtn">선택삭제</button>
                 </div>
                 <div class="item-list screen-1-content">
-                    <div class="cart-item" data-price="3000">
-                        <label class="checkbox-container">
-                            <input type="checkbox" class="item-checkbox-input" checked>
-                            <span class="checkmark item-checkbox"></span>
-                        </label>
-                        <img src="/images/image2.png" alt="ICE 아메리카노" class="item-img">
-                        <div class="item-details">
-                            <span class="item-temp">ICE</span>
-                            <span class="item-name">아메리카노</span>
-                            <span class="item-price-display">9,000원</span>
-                        </div>
-                        <div class="item-controls">
-                            <button class="control-btn minus-btn">-</button>
-                            <span class="item-quantity" data-quantity="3">3</span>
-                            <button class="control-btn plus-btn">+</button>
-                        </div>
-                        <button class="item-remove">×</button>
-                    </div>
+                    <!-- Map 형태의 데이터를 Thymeleaf로 출력 -->
+                    <div class="item-list screen-1-content">
+                        <!-- Thymeleaf로 장바구니 아이템 출력 -->
+                        <div th:each="item : ${cartItems}" class="cart-item"
+                             th:data-price="${item.MENU_PRICE + (item.SHOT_COUNT * 500) + (item.VANILLA_SYRUP_COUNT * 500) + (item.WHIPPED_CREAM_COUNT * 500)}">
 
-                    <div class="cart-item" data-price="3600">
-                        <label class="checkbox-container">
-                            <input type="checkbox" class="item-checkbox-input" checked>
-                            <span class="checkmark item-checkbox"></span>
-                        </label>
-                        <img src="/images/image2.png" alt="ICE 아메리카노 (옵션)" class="item-img">
-                        <div class="item-details">
-                            <span class="item-temp">ICE</span>
-                            <span class="item-name">아메리카노</span>
-                            <span class="item-price-display">3,600원</span>
-                            <p class="item-options">텀블러 사용 | 샷 추가(+600원)</p>
-                        </div>
-                        <div class="item-controls">
-                            <button class="control-btn minus-btn">-</button>
-                            <span class="item-quantity" data-quantity="1">1</span>
-                            <button class="control-btn plus-btn">+</button>
-                        </div>
-                        <button class="item-remove">×</button>
-                    </div>
+                            <label class="checkbox-container">
+                                <input type="checkbox" class="item-checkbox-input" checked>
+                                <span class="checkmark item-checkbox"></span>
+                            </label>
 
-                    <div class="cart-item" data-price="3000">
-                        <label class="checkbox-container">
-                            <input type="checkbox" class="item-checkbox-input" checked>
-                            <span class="checkmark item-checkbox"></span>
-                        </label>
-                        <img src="/images/image2.png" alt="HOT 아메리카노" class="item-img">
-                        <div class="item-details">
-                            <span class="item-temp hot">HOT</span>
-                            <span class="item-name">아메리카노</span>
-                            <span class="item-price-display">3,000원</span>
-                        </div>
-                        <div class="item-controls">
-                            <button class="control-btn minus-btn">-</button>
-                            <span class="item-quantity" data-quantity="1">1</span>
-                            <button class="control-btn plus-btn">+</button>
-                        </div>
-                        <button class="item-remove">×</button>
-                    </div>
+                            <!-- 상품 이미지 -->
+                            <img th:src="@{/images/{imageName}(imageName=${item.MENU_IMG})}"
+                                 th:alt="${item.MENU_NAME}" class="item-img">
 
-                    <div class="cart-item" data-price="3000">
-                        <label class="checkbox-container">
-                            <input type="checkbox" class="item-checkbox-input" checked>
-                            <span class="checkmark item-checkbox"></span>
-                        </label>
-                        <img src="/images/cafelatte.png" alt="ICE 카페라떼" class="item-img">
-                        <div class="item-details">
-                            <span class="item-temp">ICE</span>
-                            <span class="item-name">카페라떼</span>
-                            <span class="item-price-display">3,000원</span>
-                        </div>
-                        <div class="item-controls">
-                            <button class="control-btn minus-btn">-</button>
-                            <span class="item-quantity" data-quantity="1">1</span>
-                            <button class="control-btn plus-btn">+</button>
-                        </div>
-                        <button class="item-remove">×</button>
-                    </div>
+                            <div class="item-details">
+                                <!-- ICE/HOT 표시 -->
+                                <span class="item-temp" th:classappend="${item.TEMP == 'HOT'} ? 'hot' : ''"
+                                      th:text="${item.TEMP}">ICE</span>
 
-                    <div class="total-price-bar">
-                        <span class="total-label">메뉴 가격</span>
-                        <span class="total-amount" id="totalCartPrice">18,600원</span>
+                                <!-- 메뉴명 -->
+                                <span class="item-name" th:text="${item.MENU_NAME}">아메리카노</span>
+
+                                <!-- 가격 (기본가 + 옵션가) * 수량 -->
+                                <span class="item-price-display"
+                                      th:text="${#numbers.formatInteger((item.MENU_PRICE + (item.SHOT_COUNT * 500) + (item.VANILLA_SYRUP_COUNT * 500) + (item.WHIPPED_CREAM_COUNT * 500)) * item.QUANTITY, 1, 'COMMA')} + '원'">
+                                    3,000원
+                                </span>
+
+                                <!-- 옵션 표시 (가격 포함) -->
+                                <p class="item-options"
+                                   th:if="${item.TUMBLER_USE == true or item.SHOT_COUNT > 0 or item.VANILLA_SYRUP_COUNT > 0 or item.WHIPPED_CREAM_COUNT > 0}">
+                                    <span th:if="${item.TUMBLER_USE == true}">텀블러 사용 | </span>
+                                    <span th:if="${item.SHOT_COUNT > 0}">샷 추가([[${item.SHOT_COUNT}]])(+[[${item.SHOT_COUNT * 500}]]원) | </span>
+                                    <span th:if="${item.VANILLA_SYRUP_COUNT > 0}">바닐라 시럽([[${item.VANILLA_SYRUP_COUNT}]])(+[[${item.VANILLA_SYRUP_COUNT * 500}]]원) | </span>
+                                    <span th:if="${item.WHIPPED_CREAM_COUNT > 0}">휘핑크림([[${item.WHIPPED_CREAM_COUNT}]])(+[[${item.WHIPPED_CREAM_COUNT * 500}]]원)</span>
+                                </p>
+                            </div>
+
+                            <div class="item-controls">
+                                <button class="control-btn minus-btn">-</button>
+                                <!-- 수량 -->
+                                <span class="item-quantity" th:data-quantity="${item.QUANTITY}"
+                                      th:text="${item.QUANTITY}">1</span>
+                                <button class="control-btn plus-btn">+</button>
+                            </div>
+
+                            <button class="item-remove">×</button>
+                        </div>
+
+                        <!-- 총 가격 -->
+                        <div class="total-price-bar">
+                            <span class="total-label">메뉴 가격</span>
+                            <span class="total-amount" id="totalCartPrice"
+                                  th:text="${#numbers.formatInteger(totalPrice, 1, 'COMMA')} + '원'">
+                                0원
+                            </span>
+                        </div>
                     </div>
-                </div>
 
                 <div class="order-details">
                     <div class="delivery-toggle">
@@ -155,16 +132,17 @@
                     <div class="final-summary">
                         <div class="summary-line">
                             <span class="label">상품 금액</span>
-                            <span class="value" id="productPrice">18,600원</span>
+                            <span class="value" id="productPrice">0원</span>
                         </div>
                         <div class="summary-line">
                             <span class="label">배달비</span>
-                            <span class="value" id="deliveryFee">2,000원</span>
+                            <span class="value" id="deliveryFee">0원</span>
                         </div>
                         <div class="summary-line final-total">
                             <span class="label total-label">총 가격</span>
-                            <span class="value total-amount" id="finalTotalPrice">20,600원</span>
+                            <span class="value total-amount" id="finalTotalPrice">0원</span>
                         </div>
+                        <button class="payment-btn">결제하기</button>
                     </div>
                 </div>
             </main>
