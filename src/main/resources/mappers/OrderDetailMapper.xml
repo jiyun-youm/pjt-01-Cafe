@@ -26,15 +26,14 @@
                )
     </insert>
 
-    <select id="getAllMenu" resultType="MenuVO" >
+    <select id="getMenuById" resultType="MenuVO" parameterType="string" >
         SELECT
             MENU_NAME AS menuName,
             MENU_IMG AS menuImg,
             MENU_PRICE AS menuPrice,
             MENU_DEFINITION AS menuDefinition
         FROM MENU
-        WHERE MENU_NAME=#{menuName}
-        ORDER BY MENU_ID ASC
+        WHERE MENU_ID=#{menuId}
 
     </select>
 

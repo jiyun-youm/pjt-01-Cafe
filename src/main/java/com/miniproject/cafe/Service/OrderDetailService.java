@@ -7,5 +7,6 @@ import java.util.List;
 
 public interface OrderDetailService {
     List<MenuVO> getAllMenu();
+    MenuVO findById(String id);
     int orderDetail(OrderDetailVO orderDetailVO);
 }

@@ -1,6 +1,6 @@
 package com.miniproject.cafe.Controller;
 
-import ch.qos.logback.core.model.Model;
+import org.springframework.ui.Model;
 import com.miniproject.cafe.Impl.MenuServiceImpl;
 import com.miniproject.cafe.Service.OrderDetailService;
 import com.miniproject.cafe.VO.MenuVO;
@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.awt.*;
+import java.util.*;
+import java.util.List;
 
 @Controller
 @RequestMapping("/home")
@@ -26,8 +28,9 @@ public class OrderDetailController {
     private MenuServiceImpl menuServiceImpl;
 
     @GetMapping("/order_detail")
-    public String order_Detail(Model model) {
-        List<MenuVO> menuDetail=orderDetailService.getAllMenu();
+    public String order_Detail(Model model, String id) {
+        MenuVO menuDetail = orderDetailService.findById(id);
+//        List<MenuVO> menuDetail=orderDetailService.getAllMenu();
         model.addAttribute("menuDetail", menuDetail);
         return "order_detail";
     }
