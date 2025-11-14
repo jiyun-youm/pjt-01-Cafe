@@ -1,212 +1,288 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- 1. 알림 팝업 로직 ---
-    let notificationTrigger = document.getElementById('notification-trigger');
-    let notificationPopup = document.getElementById('notification-popup');
-
-    if (notificationTrigger && notificationPopup) {
-        notificationTrigger.addEventListener('click', (event) => {
-            event.stopPropagation(); // 이벤트 버블링 중단
-            notificationPopup.classList.toggle('show');
-        });
-
-        // 팝업 외부 클릭 시 팝업 닫기
-        document.addEventListener('click', (event) => {
-            if (notificationPopup.classList.contains('show') && !notificationTrigger.contains(event.target)) {
-                notificationPopup.classList.remove('show');
-            }
-        });
-    }
-
-
-    // --- 2. 로그인/회원가입 모달 공통 로직 ---
-
-    // 모달 요소
+    // --- 모달 요소 가져오기 ---
     let loginModalOverlay = document.getElementById('login-modal-overlay');
     let signupModalOverlay = document.getElementById('signup-modal-overlay');
 
-    // 모달 닫기 트리거
-    let loginModalClose = document.getElementById('login-modal-close');   // 로그인 모달 닫기(X)
-    let signupModalClose = document.getElementById('signup-modal-close'); // 회원가입 모달 닫기(X)
-
-    // 모달 전환 트리거
-    let switchToSignupTrigger = document.getElementById('switch-to-signup-trigger'); // 로그인 -> 회원가입
-
-    // (추가) "로그인" 탭 (비로그인시 나타남)
     let loginModalTrigger = document.getElementById('login-modal-trigger');
+    let switchToSignupTrigger = document.getElementById('switch-to-signup-trigger');
 
-    // 폼 요소
-    let modalLoginForm = document.getElementById('modalLoginForm');
-    let modalSignupForm = document.getElementById('modalSignupForm');
+    let loginModalClose = document.getElementById('login-modal-close');
+    let signupModalClose = document.getElementById('signup-modal-close');
 
+    // --- 폼 요소 가져오기 ---
+    let loginForm = document.getElementById('modalLoginForm');
+    let signupForm = document.getElementById('modalSignupForm');
 
-    // --- 3. '로그인 필수' 인터셉터 로직 ---
+    // --- 알림 팝업 요소 ---
+    let notificationTrigger = document.getElementById('notification-trigger');
+    let notificationPopup = document.getElementById('notification-popup');
+    
+    // --- 이메일 중복 확인 버튼 ---
+    let checkEmailButton = document.getElementById('check-email-button');
+    let signupEmailInput = document.getElementById('signup-email');
 
-    // (IS_LOGGED_IN 변수는 userBaseLayout.html에서 <script> 태그로 주입됨)
-    if (typeof IS_LOGGED_IN !== 'undefined' && !IS_LOGGED_IN) {
-        // 로그인이 안 된 상태 (IS_LOGGED_IN === false)
-        let loginRequiredLinks = document.querySelectorAll('.login-required');
+    // 알림 아이콘 클릭 시
+    if (notificationTrigger) {
+        notificationTrigger.addEventListener('click', (e) => {
+            e.preventDefault();
+            notificationPopup.classList.toggle('show');
+        });
+    }
 
-        if (loginRequiredLinks.length > 0) {
-            loginRequiredLinks.forEach(link => {
-                link.addEventListener('click', (event) => {
-                    event.preventDefault();
-                    if (loginModalOverlay) {
-                        loginModalOverlay.classList.add('show');
-                    }
-                });
+    // 문서 다른 곳 클릭 시 알림 팝업 닫기
+    document.addEventListener('click', (e) => {
+        if (notificationPopup && !notificationTrigger.contains(e.target) && !notificationPopup.contains(e.target)) {
+            notificationPopup.classList.remove('show');
+        }
+    });
+
+    // --- 비로그인 시 (로그인 모달 관련) ---
+    if (!IS_LOGGED_IN) {
+
+        // '로그인' 탭 클릭 -> 로그인 모달 열기
+        if (loginModalTrigger) {
+            loginModalTrigger.addEventListener('click', (e) => {
+                e.preventDefault();
+                loginModalOverlay.classList.add('show');
             });
         }
-    }
-    // --- 인터셉터 로직 끝 ---
 
-
-    // --- 4. 모달 전환 로직 ---
-
-    // (추가) [열기] 하단 '로그인' 탭 클릭 시 -> 로그인 모달 열기
-    if (loginModalTrigger) {
-        loginModalTrigger.addEventListener('click', () => {
-            if (loginModalOverlay) {
-                loginModalOverlay.classList.add('show');
-            }
-        });
-    }
-
-    // [전환] 로그인 모달의 'Sign Up' 버튼 클릭 시 -> 회원가입 모달 열기
-    if (switchToSignupTrigger) {
-        switchToSignupTrigger.addEventListener('click', () => {
-            if (loginModalOverlay) loginModalOverlay.classList.remove('show');
-            if (signupModalOverlay) signupModalOverlay.classList.add('show');
-        });
-    }
-
-
-    // --- 5. 모달 닫기 공통 로직 ---
-
-    // 로그인 모달 'X' 버튼
-    if (loginModalClose) {
-        loginModalClose.addEventListener('click', () => {
-            if (loginModalOverlay) loginModalOverlay.classList.remove('show');
-        });
-    }
-
-    // 회원가입 모달 'X' 버튼
-    if (signupModalClose) {
-        signupModalClose.addEventListener('click', () => {
-            if (signupModalOverlay) signupModalOverlay.classList.remove('show');
-        });
-    }
-
-    // 로그인 모달 배경 클릭 시 닫기
-    if (loginModalOverlay) {
-        loginModalOverlay.addEventListener('click', (event) => {
-            if (event.target === loginModalOverlay) {
+        // 로그인 모달 'Sign Up' 버튼 클릭 -> 회원가입 모달 열기
+        if (switchToSignupTrigger) {
+            switchToSignupTrigger.addEventListener('click', () => {
                 loginModalOverlay.classList.remove('show');
-            }
-        });
-    }
+                signupModalOverlay.classList.add('show');
+                clearErrorMessages(loginForm); // 폼 에러 초기화
+            });
+        }
 
-    // 회원가입 모달 배경 클릭 시 닫기
-    if (signupModalOverlay) {
-        signupModalOverlay.addEventListener('click', (event) => {
-            if (event.target === signupModalOverlay) {
+        // 로그인 모달 닫기 버튼
+        if (loginModalClose) {
+            loginModalClose.addEventListener('click', () => {
+                loginModalOverlay.classList.remove('show');
+                clearErrorMessages(loginForm); // 폼 에러 초기화
+            });
+        }
+
+        // 회원가입 모달 닫기 버튼
+        if (signupModalClose) {
+            signupModalClose.addEventListener('click', () => {
                 signupModalOverlay.classList.remove('show');
-            }
-        });
-    }
+                clearErrorMessages(signupForm); // 폼 에러 초기화
+            });
+        }
 
+        if (checkEmailButton) {
+            checkEmailButton.addEventListener('click', async () => {
+                const email = signupEmailInput.value;
 
-    // --- 6. 폼 제출 로직 ---
+                clearErrorMessages(signupForm, 'email');
+                clearSuccessMessages(signupForm, 'email');
 
-    // (A) 로그인 폼 제출 (fetch 사용)
-    if (modalLoginForm) {
-        modalLoginForm.addEventListener('submit', async (event) => { // async 추가
-            event.preventDefault();
-            let idInput = modalLoginForm.querySelector('input[name="id"]').value;
-            let passwordInput = modalLoginForm.querySelector('input[name="password"]').value;
-
-            try {
-                let response = await fetch("/api/member/login", {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: idInput, password: passwordInput })
-                });
-
-                let result = await response.json();
-
-                if (response.ok) {
-                    // 로그인 성공 (Controller에서 200 OK 반환)
-                    alert(result.message); // "로그인 성공!"
-                    window.location.reload(); // 세션이 적용된 페이지로 새로고침
-                } else {
-                    // 로그인 실패 (Controller에서 401 Unauthorized 등 반환)
-                    alert(result.message); // "아이디 또는 비밀번호가..."
+                if (!email) {
+                    displayErrorMessage(signupForm, 'email', '이메일을 적어주세요.');
+                    return;
                 }
-            } catch (error) {
-                console.error("Login request failed:", error);
-                alert("로그인 요청 중 오류가 발생했습니다.");
-            }
-        });
-    }
 
-    // (B) 회원가입 폼 제출 (fetch 사용)
-    if (modalSignupForm) {
-        // sign.html에서 가져온 유효성 검사 로직
-        const regex = {
-            id: /^[a-z0-9]{5,20}$/,
-            password: /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,16}$/,
-            email: /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/
-        };
-
-        modalSignupForm.addEventListener('submit', async (e) => { // async 추가
-            e.preventDefault();
-
-            // (수정) 폼 입력 순서 변경에 맞춰 변수 순서 변경 (가독성)
-            const email = modalSignupForm.email.value.trim();
-            const id = modalSignupForm.id.value.trim();
-            const username = modalSignupForm.username.value.trim();
-            const pw = modalSignupForm.password.value;
-            const pwCheck = modalSignupForm.passwordCheck.value;
-
-            // --- 유효성 검사 ---
-            if (!regex.email.test(email)) return alert("이메일 형식이 잘못되었습니다.");
-            if (!regex.id.test(id)) return alert("ID 형식이 잘못되었습니다. (영문 소문자/숫자 5~20자)");
-            if (username.length < 2) return alert("사용자 이름을 2자 이상 입력해주세요.");
-            if (!regex.password.test(pw)) return alert("비밀번호 형식이 잘못되었습니다. (영문/숫자/특수문자 포함 8~16자)");
-            if (pw !== pwCheck) return alert("비밀번호가 일치하지 않습니다.");
-            // --- 유효성 검사 끝 ---
-
-            try {
-                let signupData = {
-                    id: id,
-                    password: pw,
-                    username: username,
-                    email: email
-                };
-
-                let response = await fetch("/api/member/signup", {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(signupData)
-                });
-
-                let result = await response.json();
-
-                if (response.ok) {
-                    // 회원가입 성공 (Controller에서 200 OK 반환)
-                    alert(result.message); // "회원가입 완료! 로그인해주세요."
-
-                    // (수정) 회원가입 모달 닫고 로그인 모달 열기
-                    if (signupModalOverlay) signupModalOverlay.classList.remove('show');
-                    if (loginModalOverlay) loginModalOverlay.classList.add('show');
-                } else {
-                    // 회원가입 실패 (Controller에서 409 Conflict 등 반환)
-                    alert(result.message); // "이미 사용 중인 ID입니다." 등
+                if (!email.includes('@')) {
+                    // 형식이 틀렸을 때
+                    displayErrorMessage(signupForm, 'email', '올바른 이메일 주소를 입력해주세요.');
+                    return;
                 }
-            } catch (error) {
-                console.error("Signup request failed:", error);
-                alert("회원가입 요청 중 오류가 발생했습니다.");
+
+                // 3. API 호출 (이후 로직은 동일)
+                try {
+                    const response = await fetch(`/api/member/check-email?email=${encodeURIComponent(email)}`);
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        // 사용 가능
+                        displaySuccessMessage(signupForm, 'email', result.message);
+                    } else {
+                        // 중복 (사용 불가)
+                        displayErrorMessage(signupForm, 'email', result.message);
+                    }
+                } catch (error) {
+                    console.error('이메일 중복 확인 실패:', error);
+                    displayErrorMessage(signupForm, 'email', '확인 중 오류가 발생했습니다.');
+                }
+            });
+        }
+
+        // [추가] 이메일 입력창 내용 변경 시, 중복확인 메시지 초기화
+        if (signupEmailInput) {
+            signupEmailInput.addEventListener('input', () => {
+                clearErrorMessages(signupForm, 'email');
+                clearSuccessMessages(signupForm, 'email');
+            });
+        }
+
+
+        // 회원가입 폼 제출 (AJAX)
+        if (signupForm) {
+            signupForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                // 기존 에러/성공 메시지 모두 삭제
+                clearErrorMessages(signupForm);
+                clearSuccessMessages(signupForm);
+
+                // 폼 데이터를 JSON
+                const formData = new FormData(signupForm);
+                const data = Object.fromEntries(formData.entries());
+
+                // 프론트엔드 유효성 검사 (빈 값 체크)
+                let isValid = true; // 유효성 플래그
+
+                if (!data.email) {
+                    displayErrorMessage(signupForm, 'email', '이메일은 필수입니다.');
+                    isValid = false;
+                }
+                if (!data.username) {
+                    displayErrorMessage(signupForm, 'username', '이름(닉네임)은 필수입니다.');
+                    isValid = false;
+                }
+                if (!data.password) {
+                    displayErrorMessage(signupForm, 'password', '비밀번호는 필수입니다.');
+                    isValid = false;
+                }
+                if (!data.passwordCheck) {
+                    displayErrorMessage(signupForm, 'passwordCheck', '비밀번호 확인은 필수입니다.');
+                    isValid = false;
+                }
+
+                // 비밀번호 일치 여부도 미리 검사 (선택사항이지만 권장)
+                if (data.password && data.passwordCheck && data.password !== data.passwordCheck) {
+                    displayErrorMessage(signupForm, 'passwordCheck', '비밀번호가 일치하지 않습니다.');
+                    isValid = false;
+                }
+
+                // 4. 유효성 검사에 실패하면 서버 전송 차단
+                if (!isValid) {
+                    return; // fetch 요청을 보내지 않고 함수 종료
+                }
+
+                // 5. 서버로 fetch 요청 (유효성 검사를 통과한 경우에만 실행)
+                try {
+                    const response = await fetch('/api/member/signup', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        alert(result.message);
+                        signupModalOverlay.classList.remove('show');
+                        loginModalOverlay.classList.add('show');
+                        signupForm.reset();
+
+                    } else {
+                        displayErrorMessage(signupForm, result.field, result.message);
+                    }
+                } catch (error) {
+                    console.error('회원가입 요청 실패:', error);
+                    displayErrorMessage(signupForm, 'username', '요청 중 오류가 발생했습니다.'); // username은 예시
+                }
+            });
+        }
+
+        // 로그인 폼 제출 (AJAX)
+        if (loginForm) {
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                clearErrorMessages(loginForm);
+
+                let formData = new FormData(loginForm);
+                let data = Object.fromEntries(formData.entries());
+
+                try {
+                    let response = await fetch('/api/member/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+
+                    let result = await response.json();
+
+                    if (response.ok) {
+                        // 로그인 성공
+                        alert(result.message);
+                        window.location.reload(); // 페이지 새로고침
+                    } else {
+                        // 로그인 실패
+                        displayErrorMessage(loginForm, 'password', result.message); // 비밀번호 필드 아래에 에러 표시
+                    }
+                } catch (error) {
+                    console.error('로그인 요청 실패:', error);
+                    displayErrorMessage(loginForm, 'password', '로그인 중 오류 발생');
+                }
+            });
+        }
+
+    }
+
+    // --- 로그인 여부와 관계없이 'login-required' 링크 처리 ---
+    let loginRequiredLinks = document.querySelectorAll('.login-required');
+    loginRequiredLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            if (!IS_LOGGED_IN) {
+                e.preventDefault(); // 페이지 이동 방지
+                alert('로그인이 필요한 서비스입니다.');
+                if (loginModalOverlay) {
+                    loginModalOverlay.classList.add('show'); // 로그인 모달 열기
+                }
             }
         });
-    }
+    });
+
 });
+
+/* 폼 내부의 모든 .error-message 내용을 삭제 */
+function clearErrorMessages(formElement) {
+    formElement.querySelectorAll('.error-message').forEach(el => {
+        el.textContent = '';
+    });
+}
+/* 폼 내부의 .success-message 내용을 삭제 */
+function clearSuccessMessages(formElement, fieldName) {
+    const selector = fieldName
+        ? `.success-message[data-field="${fieldName}"]`
+        : '.success-message';
+    formElement.querySelectorAll(selector).forEach(el => {
+        el.textContent = '';
+    });
+}
+
+/* 특정 필드 아래에 에러 메시지를 표시 */
+function displayErrorMessage(formElement, fieldName, message) {
+    clearSuccessMessages(formElement, fieldName);
+    let errorEl = formElement.querySelector(`.error-message[data-field="${fieldName}"]`);
+    if (!errorEl) {
+        errorEl = formElement.querySelector('.error-message[data-field="unknown"]');
+        if (!errorEl) {
+            errorEl = formElement.querySelector('.error-message[data-field="username"]');
+        }
+    }
+    if (errorEl) {
+        errorEl.textContent = message;
+    } else {
+        alert(message);
+    }
+}
+
+/* 특정 필드 아래에 성공 메시지를 표시 */
+function displaySuccessMessage(formElement, fieldName, message) {
+    clearErrorMessages(formElement, fieldName);
+
+    let successEl = formElement.querySelector(`.success-message[data-field="${fieldName}"]`);
+    if (successEl) {
+        successEl.textContent = message;
+    } else {
+        alert(message);
+    }
+}

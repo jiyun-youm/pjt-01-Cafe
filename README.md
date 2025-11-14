@@ -19,3 +19,17 @@
 ```
 
 메인컨텐츠는 꼭 .wrap 안에 작성 부탁드립니다..!!
+
+
+# git 사용법
+
+### 모든 작업은 master 브렌치에서 하시는게 아니라 본인의 브렌치에서 모든 작업을 하셔야 합니다!!
+
+처음 모든 작업을 시작하실때 원격저장소에서 sync fork를 누르신 후 git pull origin master로 땡겨오신 다음, 자신의 브렌치를 로컬환경에서 만들어서 작업하시면 됩니다.
+
+## git push 전 해야할 일!
+
+git push를 하시기 전 원격저장소에서 똑같이 sync fork를 누르신 후 
+git stash로 작업하시던 결과물을 임시저장소에 저장하신 후, 
+git pull origin master로 땡겨오신 다음 git stash apply (git stash pop)으로 
+깃을 최신화 시키신 다음 git push origin 본인브렌치명 으로 하시면 됩니다.

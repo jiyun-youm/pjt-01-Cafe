@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>관리자 주문 목록 (Dynamic) - Java Cafe</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+
+<body>
+
+<th:block th:replace="~{./include/adminBaseLayout :: setContent( ~{:: .wrap} ) }">
+
+    <div class="wrap">
+        <div class="notification-icon" id="notification-trigger">
+            <div class="notification-popup" id="notification-popup">
+                <div class="popup-arrow"></div> <p>주문내역이 없습니다.</p>
+            </div>
+        </div>
+
+        <main class="main-content">
+            <h2 class="main-title">주문 목록</h2>
+
+            <div class="order-grid" id="order-grid-container">
+            </div>
+        </main>
+    </div>
+</th:block>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // --- 상수 및 변수 정의 ---
+
+        const API_BASE_URL = 'http://localhost:8383/api/orders';
+        const API_ENDPOINT_LIST = `${API_BASE_URL}/admin-list`;
+        const API_ENDPOINT_STATUS_UPDATE = `${API_BASE_URL}/status`;
+
+        const POLLING_INTERVAL = 3000;
+        let pollingTimer = null;
+
+        const orderGrid = document.getElementById('order-grid-container');
+        const notificationTrigger = document.getElementById('notification-trigger');
+        const notificationPopup = document.getElementById('notification-popup');
+
+
+        // API에서 주문 데이터를 가져와 화면에 렌더링
+        async function fetchAndRenderOrders() {
+            try {
+                const response = await fetch(API_ENDPOINT_LIST, { cache: 'no-store' });
+
+                if (!response.ok) {
+                    throw new Error(`[1] HTTP error! status: ${response.status}`);
+                }
+
+                const orders = await response.json();
+                renderOrders(orders);
+
+            } catch (error) {
+                console.error('주문 목록을 가져오는 데 실패했습니다:', error);
+                orderGrid.innerHTML = `<div class="order-grid-empty">주문 목록 로딩 오류. (${error.message})</div>`;
+            }
+        }
+
+        // 주문 배열을 받아 화면에 렌더링
+        function renderOrders(orders) {
+            orderGrid.innerHTML = '';
+
+            if (!orders || orders.length === 0) {
+                orderGrid.innerHTML = '<div class="order-grid-empty">현재 접수된 주문이 없습니다.</div>';
+            } else {
+                orders.forEach(order => {
+                    const cardHtml = createOrderCard(order);
+                    orderGrid.insertAdjacentHTML('beforeend', cardHtml);
+                });
+            }
+        }
+
+
+        // 주문 객체(order)를 받아 HTML 카드 문자열을 생성
+        function createOrderCard(order) {
+            // 1. 주문 유형(orderType)에 따른 CSS 클래스 결정
+            let cardTypeClass = 'type-default';
+            if (order.orderType === '매장') cardTypeClass = 'type-store';
+            else if (order.orderType === '포장') cardTypeClass = 'type-takeout';
+            else if (order.orderType === '배달') cardTypeClass = 'type-delivery';
+
+            // 2. 주문 아이템 목록(orderItemList)을 <li> 태그로 변환
+            const menuItemsHtml = (order.orderItemList && Array.isArray(order.orderItemList))
+                ? order.orderItemList.map(item => `
+                    <li>${item.menuItemName || '알 수 없는 메뉴'} <span>${item.quantity || 0}</span></li>
+                `).join('')
+                : '';
+
+            // 3. orderTime (DATETIME)을 "HH시 mm분"으로 포맷팅
+            let formattedTime = '00:00';
+            if (order.orderTime) {
+                try {
+                    const date = new Date(order.orderTime);
+                    const hours = String(date.getHours()).padStart(2, '0');
+                    const minutes = String(date.getMinutes()).padStart(2, '0');
+                    formattedTime = `${hours}시 ${minutes}분`;
+                } catch (e) {
+                    console.error("시간 포맷팅 오류", e);
+                    formattedTime = "시간오류";
+                }
+            }
+
+            // 4. [수정] 포맷팅 대상을 order.orderId -> order.dailyOrderNum으로 변경
+            //    (dailyOrderNum은 OrderVO에 새로 추가된 Long 필드입니다)
+            const formattedDailyId = `#${String(order.dailyOrderNum || 0).padStart(4, '0')}`;
+
+            // 5. 카드 템플릿
+            //    [중요] .order-id에는 포맷팅된 '일일 번호' (formattedDailyId)를 표시
+            //    [중요] 버튼의 data-order-id에는 DB의 '실제 ID' (order.orderId)를 저장
+            return `
+                <div class="order-card ${cardTypeClass}" id="order-card-${order.orderId}">
+                    <div>
+                        <div class="card-header">
+                            <!-- [수정] 표시되는 ID를 일일 번호로 변경 -->
+                            <span class="order-id">${formattedDailyId}</span>
+                            <span class="order-time">${formattedTime}</span>
+                        </div>
+                        <ul class="menu-list">
+                            ${menuItemsHtml}
+                        </ul>
+                    </div>
+                    <div>
+                        <div class="card-footer-row">
+                            <span>총 수량</span>
+                            <span>${order.totalQuantity || 0}</span>
+                        </div>
+                        <div class="card-footer-total">
+                            <span>${order.orderType || '알 수 없음'}</span>
+                            <span>${(order.totalPrice || 0).toLocaleString('ko-KR')}원</span>
+                        </div>
+                    </div>
+
+                    <!--
+                      [중요]
+                      버튼의 data-order-id는 "완료/취소" API가 호출할
+                      DB의 실제 PK (예: 501)를 저장해야 합니다.
+                    -->
+                    <button class="card-menu-button" data-order-id="${order.orderId}">⋮</button>
+                    <div class="card-menu-dropdown" id="menu-dropdown-${order.orderId}">
+                        <button class="complete" data-status="주문완료">✔ 완료</button>
+                        <button class="cancel" data-status="주문취소">✖ 취소</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        /**
+         * 주문 상태 업데이트 (완료/취소)
+         */
+        async function handleUpdateStatus(orderId, status) {
+
+            clearInterval(pollingTimer); // 레이스 컨디션 방지
+
+            try {
+                const response = await fetch(`${API_ENDPOINT_STATUS_UPDATE}/${orderId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: status })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`[3] 서버 응답 오류: ${response.status}`);
+                }
+
+                // DB에서 확인된 최신 목록으로 새로고침
+                await fetchAndRenderOrders();
+
+            } catch (error) {
+                console.error('상태 변경 실패:', error);
+                alert(`[4] 상태 변경에 실패했습니다. (${error.message})\n목록을 새로고침합니다.`);
+                await fetchAndRenderOrders();
+            } finally {
+                startPolling(); // 타이머 재시작
+            }
+        }
+
+
+        // --- 이벤트 리스너 및 초기화 ---
+
+        // 1. 알림 팝업 토글
+        notificationTrigger.addEventListener('click', (event) => {
+            event.stopPropagation();
+            notificationPopup.classList.toggle('show');
+        });
+
+        // 2. 팝업 외부 클릭 시 팝업 닫기
+        document.addEventListener('click', (event) => {
+            if (notificationPopup.classList.contains('show') && !notificationTrigger.contains(event.target)) {
+                notificationPopup.classList.remove('show');
+            }
+
+            document.querySelectorAll('.card-menu-dropdown.show').forEach(dropdown => {
+                if (!dropdown.previousElementSibling.contains(event.target)) {
+                    dropdown.classList.remove('show');
+                }
+            });
+        });
+
+        // 3. 주문 그리드 이벤트 위임
+        orderGrid.addEventListener('click', (event) => {
+            const target = event.target;
+
+            // (A) ... 메뉴 버튼 클릭 시
+            if (target.classList.contains('card-menu-button')) {
+                event.stopPropagation();
+                // [중요] data-order-id는 DB의 실제 ID (Long)
+                const orderId = target.dataset.orderId;
+                const dropdown = document.getElementById(`menu-dropdown-${orderId}`);
+
+                document.querySelectorAll('.card-menu-dropdown.show').forEach(d => {
+                    if (d !== dropdown) d.classList.remove('show');
+                });
+                dropdown.classList.toggle('show');
+            }
+
+            // (B) 드롭다운 메뉴 (완료/취소) 클릭 시
+            if (target.matches('.card-menu-dropdown button')) {
+                event.stopPropagation();
+                const dropdown = target.closest('.card-menu-dropdown');
+                // [중요] data-order-id는 DB의 실제 ID (Long)
+                const orderId = dropdown.previousElementSibling.dataset.orderId;
+                const status = target.dataset.status;
+
+                dropdown.classList.remove('show');
+
+                handleUpdateStatus(orderId, status);
+            }
+        });
+
+        // 타이머 시작/정지 함수화
+        function startPolling() {
+            clearInterval(pollingTimer);
+            pollingTimer = setInterval(fetchAndRenderOrders, POLLING_INTERVAL);
+        }
+
+        // 4. 페이지 로드 시 즉시 주문 목록 가져오기
+        fetchAndRenderOrders();
+
+        // 5. (실시간 업데이트) 타이머 시작
+        startPolling();
+
+        console.log(`Admin Order Page script loaded. Polling every ${POLLING_INTERVAL / 1000} seconds.`);
+    });
+</script>
+
+</body>
+</html>

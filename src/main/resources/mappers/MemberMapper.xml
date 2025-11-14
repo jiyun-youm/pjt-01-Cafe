@@ -8,21 +8,23 @@
     <insert id="registerMember" parameterType="MemberVO">
         INSERT INTO member(
         ID,
+        EMAIL,
         PASSWORD,
         USERNAME,
-        EMAIL
-        ) VALUES (
+        PROVIDER)
+        VALUES (
         #{id},
+        #{email},
         #{password},
         #{username},
-        #{email}
+        #{provider}
         )
     </insert>
 
     <select id="loginMember" parameterType="MemberVO" resultType="MemberVO">
         SELECT *
         FROM MEMBER
-        WHERE ID = #{id} AND PASSWORD = #{password}
+        WHERE EMAIL = #{email}
     </select>
 
     <select id="isEmailDuplicate" parameterType="String" resultType="boolean">
@@ -36,4 +38,33 @@
         FROM MEMBER
         WHERE ID = #{id}
     </select>
+
+    <select id="findByEmail" resultType="com.miniproject.cafe.VO.MemberVO">
+        SELECT * FROM MEMBER
+        WHERE EMAIL = #{email}
+    </select>
+
+    <insert id="insertOAuthMember" parameterType="com.miniproject.cafe.VO.MemberVO">
+        INSERT INTO MEMBER(
+            ID,
+            EMAIL,
+            USERNAME,
+            PASSWORD,
+            PROVIDER
+        )
+        VALUES (
+                   #{id},
+                   #{email},
+                   #{username},
+                   #{password},
+                   #{provider}
+               )
+    </insert>
+
+    <update id="updateUser" parameterType="com.miniproject.cafe.VO.MemberVO">
+        UPDATE MEMBER
+        SET
+            USERNAME = #{username}
+        WHERE ID = #{id}
+    </update>
 </mapper>
