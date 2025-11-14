@@ -10,12 +10,14 @@
         ID,
         EMAIL,
         PASSWORD,
-        USERNAME)
+        USERNAME,
+        PROVIDER)
         VALUES (
         #{id},
         #{email},
         #{password},
-        #{username}
+        #{username},
+        #{provider}
         )
     </insert>
 

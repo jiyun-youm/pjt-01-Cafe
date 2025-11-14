@@ -4,34 +4,35 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let fixedDeliveryFee = 2000;
     let currentUserId = 1; // 실제로는 로그인된 사용자 ID로 설정, 현재는 임시
+    let isProcessingPayment = false;
 
-    // API 기본 URL
-    let API_BASE_URL = '/api/cart';
+    // API 기본 URL - 실제 존재하는 API로 변경
+    let API_BASE_URL = '/home/cart';
 
-    // API 호출 함수들
+    // 실제 존재하는 API만 사용
     function fetchCart(userId) {
-        return fetch(`${API_BASE_URL}/${userId}`)
+        return fetch(`${API_BASE_URL}/list/${userId}`)
             .then(response => response.json());
     }
 
-    function updateCartItemQuantity(cartItemId, quantity) {
+    function changeQuantityCartItem(cartItemId, quantity) {
         return fetch(`${API_BASE_URL}/items/${cartItemId}?quantity=${quantity}`, {
             method: 'PATCH'
         }).then(response => response.json());
     }
 
-    function removeCartItem(cartItemId) {
+    function deleteCartItem(cartItemId) {
         return fetch(`${API_BASE_URL}/items/${cartItemId}`, {
             method: 'DELETE'
-        }).then(response => response.json());
+        }).then(response => response.text());
     }
 
-    function removeSelectedItems(cartItemIds) {
-        let deletePromises = cartItemIds.map(cartItemId =>
-            removeCartItem(cartItemId)
-        );
-        return Promise.all(deletePromises);
-    }
+    // function deleteSelectedItems(cartItemIds) {
+    //     let deletePromises = cartItemIds.map(cartItemId =>
+    //         deleteCartItem(cartItemId)
+    //     );
+    //     return Promise.all(deletePromises);
+    // }
 
     // ------------------------------------------
     // A. 품목별 합산 가격 업데이트 함수
@@ -117,10 +118,13 @@ document.addEventListener('DOMContentLoaded', function() {
         if (selectAllCheckbox && remainingItems === 0) {
             selectAllCheckbox.checked = false;
         }
+
+        // 결제 버튼 상태 업데이트
+        updatePaymentButtonState();
     }
 
     // ------------------------------------------
-    // 2. 장바구니 항목 기능 (수량/삭제/체크박스) - API 연동 추가
+    // 2. 장바구니 항목 기능 (수량/삭제/체크박스) - UI만 동작
     // ------------------------------------------
     let cartContainer = document.querySelector('.item-list');
 
@@ -134,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 let quantitySpan = item.querySelector('.item-quantity');
                 let currentQuantity = parseInt(quantitySpan.dataset.quantity);
                 let newQuantity = currentQuantity;
-                let cartItemId = item.dataset.cartItemId; // cartItemId 가져오기
+                let cartItemId = item.dataset.cartItemId;
 
                 if (btn.classList.contains('plus-btn')) {
                     newQuantity += 1;
@@ -145,36 +149,43 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 if (newQuantity !== currentQuantity && cartItemId) {
-                    // API 호출로 수량 변경
-                    updateCartItemQuantity(cartItemId, newQuantity)
-                        .then(updatedCart => {
-                            // 성공 시 UI 업데이트
-                            quantitySpan.dataset.quantity = newQuantity;
-                            quantitySpan.textContent = newQuantity;
-                            updateItemPriceDisplay(item);
-                            updateCartTotal();
+                    // 🔥 API 호출로 DB 업데이트
+                    changeQuantityCartItem(cartItemId, newQuantity)
+                        .then(result => {
+                            if (result === "success") {
+                                quantitySpan.dataset.quantity = newQuantity;
+                                quantitySpan.textContent = newQuantity;
+                                updateItemPriceDisplay(item);
+                                updateCartTotal();
+                            } else {
+                                alert('수량 변경에 실패했습니다.');
+                            }
                         })
                         .catch(error => {
                             console.error('수량 변경 실패:', error);
                             alert('수량 변경에 실패했습니다.');
                         });
                 }
-
             } else if (btn.classList.contains('item-remove')) {
                 let cartItemId = item.dataset.cartItemId;
                 if (cartItemId) {
                     if (!confirm('정말 삭제하시겠습니까?')) return;
 
-                    removeCartItem(cartItemId)
-                        .then(() => {
-                            item.remove();
-                            updateCartTotal();
+                    deleteCartItem(cartItemId)
+                        .then((result) => {
+                            if (result === "success") {
+                                item.remove();
+                                updateCartTotal();
+                            } else {
+                                alert('삭제에 실패했습니다.');
+                            }
                         })
                         .catch(error => {
                             console.error('삭제 실패:', error);
                             alert('삭제에 실패했습니다.');
                         });
                 }
+
             } else if (btn.classList.contains('item-checkbox-input')) {
                 let selectAllCheckbox = document.getElementById('selectAll');
                 let allChecked = Array.from(document.querySelectorAll('.item-checkbox-input')).every(cb => cb.checked);
@@ -239,7 +250,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ------------------------------------------
-    // 5. 선택 삭제 기능 - API 연동 추가
+    // 5. 선택 삭제 기능 - UI만 동작
     // ------------------------------------------
     let deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
 
@@ -256,33 +267,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            let cartItemIds = Array.from(checkedItems).map(checkbox => {
-                return checkbox.closest('.cart-item').dataset.cartItemId;
-            }).filter(id => id); // 유효한 ID만 필터링
+            // 🔥 API 호출 없이 UI만 업데이트
+            checkedItems.forEach(function(checkbox) {
+                let cartItem = checkbox.closest('.cart-item');
+                if (cartItem) {
+                    cartItem.remove();
+                }
+            });
 
-            removeSelectedItems(cartItemIds)
-                .then(() => {
-                    // 성공 시 UI에서 제거
-                    checkedItems.forEach(function(checkbox) {
-                        let cartItem = checkbox.closest('.cart-item');
-                        if (cartItem) {
-                            cartItem.remove();
-                        }
-                    });
+            updateCartTotal();
 
-                    updateCartTotal();
+            let selectAllCheckbox = document.getElementById('selectAll');
+            if (selectAllCheckbox) {
+                selectAllCheckbox.checked = false;
+            }
 
-                    let selectAllCheckbox = document.getElementById('selectAll');
-                    if (selectAllCheckbox) {
-                        selectAllCheckbox.checked = false;
-                    }
-
-                    alert('선택된 항목이 삭제되었습니다.');
-                })
-                .catch(error => {
-                    console.error('삭제 실패:', error);
-                    alert('삭제에 실패했습니다.');
-                });
+            alert('선택된 항목이 삭제되었습니다.');
         });
     }
 
@@ -301,6 +301,311 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
 
+    // ------------------------------------------
+    // 7. 모바일 앱 결제하기 기능
+    // ------------------------------------------
+
+    function initializePaymentButton() {
+        let paymentButton = document.querySelector('.payment-btn');
+
+        if (paymentButton) {
+            // 모바일 터치 이벤트 최적화
+            paymentButton.addEventListener('click', handlePayment);
+            paymentButton.addEventListener('touchstart', function(e) {
+                e.preventDefault(); // 모바일에서 터치 시 기본 동작 방지
+            }, { passive: false });
+
+            // 장바구니 상태 실시간 감지
+            observeCartChanges();
+
+            // 초기 상태 업데이트
+            updatePaymentButtonState();
+        }
+    }
+
+    // 결제 처리 함수 - 모바일 최적화
+    async function handlePayment() {
+        if (isProcessingPayment) return;
+
+        let selectedItems = document.querySelectorAll('.cart-item .item-checkbox-input:checked');
+
+        // 유효성 검사
+        if (!validatePayment(selectedItems)) {
+            return;
+        }
+
+        // 결제 데이터 준비
+        let paymentData = preparePaymentData(selectedItems);
+
+        // 결제 처리
+        await processMobilePayment(paymentData);
+    }
+
+    // 결제 유효성 검사
+    function validatePayment(selectedItems) {
+        if (selectedItems.length === 0) {
+            showMobileAlert('결제할 상품을 선택해주세요.');
+            return false;
+        }
+
+        let deliveryType = document.querySelector('.delivery-btn.active-delivery');
+        if (!deliveryType) {
+            showMobileAlert('배달 또는 포장을 선택해주세요.');
+            return false;
+        }
+
+        let paymentMethod = document.querySelector('input[name="paymentMethod"]:checked');
+        if (!paymentMethod) {
+            showMobileAlert('결제수단을 선택해주세요.');
+            return false;
+        }
+
+        return true;
+    }
+
+    // 모바일 알림 표시
+    function showMobileAlert(message) {
+        // 모바일 네이티브 알림 스타일
+        let alertDiv = document.createElement('div');
+        alertDiv.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            z-index: 10000;
+            font-size: 14px;
+            text-align: center;
+            max-width: 80%;
+        `;
+        alertDiv.textContent = message;
+        document.body.appendChild(alertDiv);
+
+        setTimeout(() => {
+            document.body.removeChild(alertDiv);
+        }, 2000);
+    }
+
+    // 선택된 상품 데이터 수집
+    function getSelectedItemsData() {
+        let selectedItems = [];
+        let checkedItems = document.querySelectorAll('.cart-item .item-checkbox-input:checked');
+
+        checkedItems.forEach(function(checkbox) {
+            let item = checkbox.closest('.cart-item');
+            selectedItems.push({
+                cartItemId: item.dataset.cartItemId,
+                name: item.querySelector('.item-name').textContent,
+                temperature: item.querySelector('.item-temp').textContent,
+                price: parseInt(item.dataset.price),
+                quantity: parseInt(item.querySelector('.item-quantity').dataset.quantity),
+                options: item.querySelector('.item-options') ? item.querySelector('.item-options').textContent : ''
+            });
+        });
+
+        return selectedItems;
+    }
+
+    // 요청사항 데이터 수집
+    function getRequestData() {
+        let requests = [];
+        let checkedRequests = document.querySelectorAll('.request-option-checkbox:checked');
+
+        checkedRequests.forEach(function(checkbox) {
+            if (checkbox.id !== 'directInputCheck') {
+                let label = checkbox.closest('label').textContent.trim();
+                requests.push(label);
+            }
+        });
+
+        // 직접입력 내용 추가
+        let directInput = document.getElementById('requestInput');
+        if (directInput && directInput.value.trim() !== '') {
+            requests.push(directInput.value.trim());
+        }
+
+        return requests;
+    }
+
+    // 최종 결제 금액 계산
+    function calculateFinalTotal() {
+        let productTotal = 0;
+        let checkedItems = document.querySelectorAll('.cart-item .item-checkbox-input:checked');
+
+        checkedItems.forEach(function(checkbox) {
+            let item = checkbox.closest('.cart-item');
+            let itemPrice = parseInt(item.dataset.price);
+            let quantity = parseInt(item.querySelector('.item-quantity').dataset.quantity);
+            productTotal += itemPrice * quantity;
+        });
+
+        // 배달비 추가
+        let deliveryFee = 0;
+        let deliveryButton = document.querySelector('.delivery-btn[data-type="delivery"]');
+        if (deliveryButton && deliveryButton.classList.contains('active-delivery')) {
+            deliveryFee = fixedDeliveryFee;
+        }
+
+        return productTotal + deliveryFee;
+    }
+
+    // 결제 데이터 준비
+    function preparePaymentData(selectedItems) {
+        return {
+            items: getSelectedItemsData(),
+            deliveryType: document.querySelector('.delivery-btn.active-delivery').dataset.type,
+            paymentMethod: document.querySelector('input[name="paymentMethod"]:checked').value,
+            requests: getRequestData(),
+            totalAmount: calculateFinalTotal(),
+            timestamp: Date.now(),
+            device: 'mobile'
+        };
+    }
+
+    // 모바일 결제 처리
+    async function processMobilePayment(paymentData) {
+        isProcessingPayment = true;
+        let paymentButton = document.querySelector('.payment-btn');
+
+        try {
+            // UI 상태 변경
+            setPaymentButtonLoading(true);
+
+            // 모바일 앱 브릿지 호출 (가정)
+            if (window.MobileAppBridge) {
+                // 네이티브 앱 결제 호출
+                let result = await window.MobileAppBridge.processPayment(JSON.stringify(paymentData));
+                handlePaymentResult(result);
+            } else {
+                // 웹뷰 환경에서의 결제 처리
+                let result = await processWebViewPayment(paymentData);
+                handlePaymentResult(result);
+            }
+        } catch (error) {
+            console.error('결제 처리 오류:', error);
+            showMobileAlert('결제 처리 중 오류가 발생했습니다.');
+            setPaymentButtonLoading(false);
+            isProcessingPayment = false;
+        }
+    }
+
+    // 웹뷰 환경 결제 처리
+    async function processWebViewPayment(paymentData) {
+        // 모바일 앱 내 API 호출
+        const response = await fetch('/api/mobile/payment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Device-Type': 'mobile'
+            },
+            body: JSON.stringify(paymentData)
+        });
+
+        if (!response.ok) {
+            throw new Error('결제 요청 실패');
+        }
+
+        return await response.json();
+    }
+
+    // 결제 결과 처리
+    function handlePaymentResult(result) {
+        setPaymentButtonLoading(false);
+        isProcessingPayment = false;
+
+        if (result.success) {
+            // 결제 성공
+            showPaymentSuccess(result);
+        } else {
+            // 결제 실패
+            showMobileAlert(result.message || '결제에 실패했습니다.');
+        }
+    }
+
+    // 결제 성공 처리
+    function showPaymentSuccess(result) {
+        // 성공 애니메이션 또는 리다이렉트
+        let paymentButton = document.querySelector('.payment-btn');
+        paymentButton.textContent = '결제 완료!';
+        paymentButton.style.backgroundColor = '#4CAF50';
+
+        setTimeout(() => {
+            // 주문 완료 페이지로 이동 또는 앱 내 네비게이션
+            if (window.MobileAppBridge) {
+                window.MobileAppBridge.navigateToOrderComplete(result.orderId);
+            } else {
+                window.location.href = `/order/complete?orderId=${result.orderId}`;
+            }
+        }, 1000);
+    }
+
+    // 결제 버튼 로딩 상태 설정
+    function setPaymentButtonLoading(isLoading) {
+        let paymentButton = document.querySelector('.payment-btn');
+
+        if (isLoading) {
+            paymentButton.classList.add('loading');
+            paymentButton.disabled = true;
+            paymentButton.textContent = '결제 중...';
+        } else {
+            paymentButton.classList.remove('loading');
+            paymentButton.disabled = false;
+            paymentButton.textContent = '결제하기';
+        }
+    }
+
+    // 장바구니 변화 감지 (MutationObserver)
+    function observeCartChanges() {
+        const cartContainer = document.querySelector('.item-list');
+
+        if (cartContainer) {
+            const observer = new MutationObserver(() => {
+                updatePaymentButtonState();
+            });
+
+            observer.observe(cartContainer, {
+                childList: true,
+                subtree: true,
+                attributes: true,
+                attributeFilter: ['class', 'data-quantity']
+            });
+        }
+    }
+
+    // 결제 버튼 상태 업데이트
+    function updatePaymentButtonState() {
+        let paymentButton = document.querySelector('.payment-btn');
+        let selectedItems = document.querySelectorAll('.cart-item .item-checkbox-input:checked');
+
+        if (selectedItems.length === 0) {
+            paymentButton.disabled = true;
+            paymentButton.style.opacity = '0.6';
+        } else {
+            paymentButton.disabled = false;
+            paymentButton.style.opacity = '1';
+        }
+    }
+
+    // ------------------------------------------
+    // 초기화 실행
+    // ------------------------------------------
+
     // 페이지 로드 시 장바구니 데이터 불러오기
     loadCartData();
+
+    // 모바일 결제 버튼 초기화
+    initializePaymentButton();
+
+    // 모바일 백버튼 처리 (선택사항)
+    document.addEventListener('backbutton', function(event) {
+        if (isProcessingPayment) {
+            // 결제 중에는 백버튼 무시
+            event.preventDefault();
+            showMobileAlert('결제 진행 중입니다.');
+        }
+    }, false);
+
 });

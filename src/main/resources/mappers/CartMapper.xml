@@ -23,9 +23,10 @@
             CI.QUANTITY,
             MO.OPTION_ID,
             MO.TEMP,
-            MO.SHOT_COUNT,
             MO.TUMBLER_USE,
-            MO.ADD_PEARL,
+            MO.SHOT_COUNT,
+            MO.VANILLA_SYRUP_COUNT,
+            MO.WHIPPED_CREAM_COUNT,
             M.MENU_ID,
             M.MENU_NAME,
             M.MENU_PRICE,
@@ -43,11 +44,21 @@
                                MENU_OPTION_ID,
                                QUANTITY)
         VALUES (#{cartId},
-                #{manuOptionId},
+                #{menuOptionId},
                 #{quantity})
     </select>
 
+    <!-- 장바구니에서 개별삭제 -->
+    <delete id="deleteCartItem">
+        DELETE FROM CART_ITEM
+        WHERE CART_ITEM_ID = #{cartItemId}
+    </delete>
 
-
+    <!-- 메뉴 수량 변경 -->
+    <update id="changeQuantityCartItem">
+        UPDATE CART_ITEM
+        SET QUANTITY = #{quantity}
+        WHERE CART_ITEM_ID = #{cartItemId}
+    </update>
 
 </mapper>

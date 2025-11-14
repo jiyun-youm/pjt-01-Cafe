@@ -12,4 +12,14 @@ public class AdminController {
     public String adminOrders() {
         return "admin_orders";
     }
+
+    @GetMapping("/signup")
+    public String adminSignup() {
+        return "admin_signup";
+    }
+
+    @GetMapping("/login")
+    public String adminLogin() {
+        return "admin_login";
+    }
 }
