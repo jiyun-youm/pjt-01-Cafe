@@ -36,10 +36,10 @@
               <input type="hidden" name="amount" id="qtyInput" value="1">
               <button type="button" class="qty-btn" id="plus">+</button>
               </div>
-              <div class="price" id="price"
-                   th:text="${#numbers.formatInteger(menu.menuPrice, 0)} + '원'">
-                  0000원
-              </div>
+                  <div class="price" id="price"
+                       th:text="${#numbers.formatInteger(menu.menuPrice, 0)} + '원'"
+                       data-actual-price="${menu.menuPrice}">0000원
+                  </div>
               </div>
 
               <div class="actions">

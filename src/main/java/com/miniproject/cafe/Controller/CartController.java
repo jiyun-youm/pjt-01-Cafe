@@ -83,4 +83,48 @@ public class CartController {
         }
         return ResponseEntity.badRequest().body("change fail");
     }
+
+    // 장바구니에 추가
+    @PostMapping("/cart/add")
+    @ResponseBody
+    public Map<String, Object> addToCart(@RequestBody Map<String, Object> cartData,
+                                         HttpSession session) {
+        Map<String, Object> result = new HashMap<>();
+
+        MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
+        if (loginMember == null) {
+            result.put("success", false);
+            result.put("message", "로그인이 필요합니다.");
+            return result;
+        }
+
+        try {
+            String memberId = loginMember.getId();
+            String menuId = (String) cartData.get("menuId");
+            int quantity = Integer.parseInt(cartData.get("quantity").toString());
+            String temp = (String) cartData.get("temp");
+            boolean tumblerUse = Boolean.parseBoolean(cartData.get("tumblerUse").toString());
+            int shotCount = Integer.parseInt(cartData.get("shotCount").toString());
+            int vanillaSyrupCount = Integer.parseInt(cartData.get("vanillaSyrupCount").toString());
+            int whippedCreamCount = Integer.parseInt(cartData.get("whippedCreamCount").toString());
+
+            // CartService의 addToCart 메서드 호출 (다음에 구현)
+            int addResult = cartService.addToCart(memberId, menuId, quantity, temp,
+                    tumblerUse, shotCount, vanillaSyrupCount, whippedCreamCount);
+
+            if (addResult > 0) {
+                result.put("success", true);
+                result.put("message", "장바구니에 추가되었습니다.");
+            } else {
+                result.put("success", false);
+                result.put("message", "장바구니 추가에 실패했습니다.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            result.put("success", false);
+            result.put("message", "서버 오류가 발생했습니다.");
+        }
+
+        return result;
+    }
 }

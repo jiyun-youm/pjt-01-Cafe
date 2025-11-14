@@ -36,15 +36,14 @@
                             <div class="item-details">
                                 <!-- ICE/HOT 표시 -->
                                 <span class="item-temp" th:classappend="${item.TEMP == 'HOT'} ? 'hot' : ''"
-                                      th:text="${item.TEMP}">ICE</span>
+                                      th:text="${item.TEMP}">temp</span>
 
                                 <!-- 메뉴명 -->
-                                <span class="item-name" th:text="${item.MENU_NAME}">아메리카노</span>
+                                <span class="item-name" th:text="${item.MENU_NAME}">커피이름</span>
 
                                 <!-- 가격 (기본가 + 옵션가) * 수량 -->
                                 <span class="item-price-display"
                                       th:text="${#numbers.formatInteger((item.MENU_PRICE + (item.SHOT_COUNT * 500) + (item.VANILLA_SYRUP_COUNT * 500) + (item.WHIPPED_CREAM_COUNT * 500)) * item.QUANTITY, 1, 'COMMA')} + '원'">
-                                    3,000원
                                 </span>
 
                                 <!-- 옵션 표시 (가격 포함) -->

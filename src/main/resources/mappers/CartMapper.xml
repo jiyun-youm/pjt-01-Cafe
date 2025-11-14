@@ -5,15 +5,18 @@
 
 <mapper namespace="com.miniproject.cafe.Mapper.CartMapper">
 
-    <!-- 장바구니 생성 -->
+    <!-- 🔥 기존 CartVO를 사용하는 insertCart -->
     <insert id="insertCart" parameterType="CartVO">
-        INSERT INTO CART(MEMBER_ID,
-                         TOTAL_PRICE)
-        VALUES(#{memberId},
-               #{totalPrice})
+        INSERT INTO CART(MEMBER_ID, TOTAL_PRICE)
+        VALUES(#{memberId}, #{totalPrice})
     </insert>
 
-    <!-- 장바구니 조회 -->
+    <!-- 🔥 Map을 사용하는 insertCart는 다른 이름으로 변경 -->
+    <insert id="insertCartByMap" parameterType="map">
+        INSERT INTO CART (MEMBER_ID, TOTAL_PRICE)
+        VALUES (#{memberId}, 0)
+    </insert>
+
     <select id="getCartList" parameterType="String" resultType="map">
         SELECT
             C.CART_ID,
@@ -32,33 +35,49 @@
             M.MENU_PRICE,
             M.MENU_IMG
         FROM CART C
-            LEFT JOIN CART_ITEM CI ON C.CART_ID = CI.CART_ID
-            LEFT JOIN MENU_OPTION MO ON CI.MENU_OPTION_ID = MO.OPTION_ID
-            LEFT JOIN MENU M ON MO.MENU_ID = M.MENU_ID
-        WHERE c.MEMBER_ID = #{memberId}
+                 LEFT JOIN CART_ITEM CI ON C.CART_ID = CI.CART_ID
+                 LEFT JOIN MENU_OPTION MO ON CI.MENU_OPTION_ID = MO.OPTION_ID
+                 LEFT JOIN MENU M ON MO.MENU_ID = M.MENU_ID
+        WHERE C.MEMBER_ID = #{memberId}
     </select>
 
-    <!-- 장바구니에 담기 -->
     <insert id="addCartItem" parameterType="CartItemVO">
-        INSERT INTO CART_ITEM (CART_ID,
-                               MENU_OPTION_ID,
-                               QUANTITY)
-        VALUES (#{cartId},
-                #{menuOptionId},
-                #{quantity})
+        INSERT INTO CART_ITEM (CART_ID, MENU_OPTION_ID, QUANTITY)
+        VALUES (#{cartId}, #{menuOptionId}, #{quantity})
     </insert>
 
-    <!-- 장바구니에서 개별삭제 -->
     <delete id="deleteCartItem">
         DELETE FROM CART_ITEM
         WHERE CART_ITEM_ID = #{cartItemId}
     </delete>
 
-    <!-- 메뉴 수량 변경 -->
     <update id="changeQuantityCartItem">
         UPDATE CART_ITEM
         SET QUANTITY = #{quantity}
         WHERE CART_ITEM_ID = #{cartItemId}
     </update>
+
+    <!-- 회원 장바구니 조회 -->
+    <select id="findCartByMemberId" parameterType="String" resultType="Long">
+        SELECT CART_ID FROM CART WHERE MEMBER_ID = #{memberId}
+    </select>
+
+    <!-- 메뉴 옵션 조회 -->
+    <select id="findMenuOption" parameterType="map" resultType="Long">
+        SELECT OPTION_ID
+        FROM MENU_OPTION
+        WHERE MENU_ID = #{menuId}
+          AND TEMP = #{temp}
+          AND TUMBLER_USE = #{tumblerUse}
+          AND SHOT_COUNT = #{shotCount}
+          AND VANILLA_SYRUP_COUNT = #{vanillaSyrupCount}
+          AND WHIPPED_CREAM_COUNT = #{whippedCreamCount}
+    </select>
+
+    <!-- 메뉴 옵션 생성 -->
+    <insert id="insertMenuOption" parameterType="map" useGeneratedKeys="true" keyProperty="optionId">
+        INSERT INTO MENU_OPTION (MENU_ID, TEMP, TUMBLER_USE, SHOT_COUNT, VANILLA_SYRUP_COUNT, WHIPPED_CREAM_COUNT)
+        VALUES (#{menuId}, #{temp}, #{tumblerUse}, #{shotCount}, #{vanillaSyrupCount}, #{whippedCreamCount})
+    </insert>
 
 </mapper>
