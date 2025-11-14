@@ -28,8 +28,9 @@ public class OrderDetailController {
     private MenuServiceImpl menuServiceImpl;
 
     @GetMapping("/order_detail")
-    public String order_Detail(Model model, String id) {
-        MenuVO menuDetail = orderDetailService.findById(id);
+    public String order_Detail(Model model, @RequestParam("menuId") String menuId) {
+        System.out.println(menuId);
+        MenuVO menuDetail = orderDetailService.findById(menuId);
 //        List<MenuVO> menuDetail=orderDetailService.getAllMenu();
         model.addAttribute("menuDetail", menuDetail);
         return "order_detail";

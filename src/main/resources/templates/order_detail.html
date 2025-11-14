@@ -7,8 +7,8 @@
         <img th:src="@{|/images/img/${menuDetail.menuImg}|}"
              th:alt="${menuDetail.menuName}">
       </div>
-      <h1 th:text="${menu.menuName}">메뉴 이름</h1>
-      <p class="desc" th:utext="${menu.menuDefinition}">메뉴 설명</p>
+      <h1 th:text="${menuDetail.menuName}">메뉴 이름</h1>
+      <p class="desc" th:utext="${menuDetail.menuDefinition}">메뉴 설명</p>
       <form name="orderDetailForm" action="orderComplete" method="post">
         <div class="section">
           <div class="menu-info" id="detailBtn">메뉴 상세 정보 <span>›</span></div>
@@ -36,7 +36,7 @@
               <button type="button" class="qty-btn" id="plus">+</button>
               </div>
               <div class="price" id="price"
-                   th:text="${#numbers.formatInteger(menu.menuPrice, 0)} + '원'">
+                   th:text="${#numbers.formatInteger(menuDetail.menuPrice, 0)} + '원'">
                     0000원
                 </div>
               </div>
@@ -80,7 +80,7 @@
       </form>
   </div>
 </th:block>
-  <script src="/js/orderdetail.js"></script>
+<script src="/js/orderdetail.js"></script>
 </html>
 
 

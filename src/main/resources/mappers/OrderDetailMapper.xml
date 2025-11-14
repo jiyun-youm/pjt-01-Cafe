@@ -26,7 +26,7 @@
                )
     </insert>
 
-    <select id="getMenuById" resultType="MenuVO" parameterType="string" >
+    <select id="findById" resultType="MenuVO" parameterType="String" >
         SELECT
             MENU_NAME AS menuName,
             MENU_IMG AS menuImg,

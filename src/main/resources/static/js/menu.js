@@ -54,9 +54,18 @@ function toggleLike(element, event) {
     localStorage.setItem(LIKE_KEY, JSON.stringify(likedMenus));
 }
 
-    // 메뉴 클릭 이벤트
-    function selectMenu(menuItemElement) {
-        const menuId = menuItemElement.getAttribute("data-menu-id");
-        // 메뉴 상세 페이지로 이동
-        window.location.href = `/home/order_detail`;
-    }
+    // // 메뉴 클릭 이벤트
+    // function selectMenu(menuItemElement) {
+    //     const menuId = menuItemElement.getAttribute("data-menu-id");
+    //     // 메뉴 상세 페이지로 이동
+    //     window.location.href = `/home/order_detail`;
+    // }
+
+function selectMenu(element) {
+    const menuId = element.getAttribute('data-menu-id');
+
+    console.log(menuId)
+
+    window.location.href = `/home/order_detail?id=${menuId}`;
+}
+

@@ -6,7 +6,7 @@ import com.miniproject.cafe.VO.OrderDetailVO;
 import java.util.List;
 
 public interface OrderDetailService {
-    List<MenuVO> getAllMenu();
-    MenuVO findById(String id);
+    //List<MenuVO> getAllMenu();
+    MenuVO findById(String menuId);
     int orderDetail(OrderDetailVO orderDetailVO);
 }

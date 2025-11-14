@@ -19,14 +19,15 @@ public class OrderDetailServiceImpl implements OrderDetailService {
 
 
 
-    @Override
-    public List<MenuVO> getAllMenu() {
-        return List.of();
-    }
+//    @Override
+//    public List<MenuVO> getAllMenu() {
+//        return List.of();
+//    }
 
     @Override
-    public MenuVO findById(String id) {
-        return null;
+    public MenuVO findById(String menuId) {
+       // int menuId = Integer.parseInt(id); // id가 String이면 int로 변환
+        return orderDetailMapper.findById(menuId);
     }
 
     @Override
