@@ -511,3 +511,13 @@ main.container {
     font-weight: bold;
     cursor: pointer;
 }
+
+/*======== 자동로그인 ========== */
+.remember-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 8px 0 12px;
+    font-size: 14px;
+    color: #444;
+}
