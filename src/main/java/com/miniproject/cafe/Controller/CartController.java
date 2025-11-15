@@ -6,6 +6,7 @@ import com.miniproject.cafe.VO.MemberVO;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -22,14 +23,16 @@ public class CartController {
     private CartService cartService;
 
     @GetMapping("/cart")
-    public String cartPage(HttpSession session, Model model) {
-        MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
+    public String cartPage(Authentication auth, Model model) {
 
-        if (loginMember == null) {
-            return "redirect:/";
+        // 로그인 안 되어있으면 홈으로
+        if (auth == null || !auth.isAuthenticated()) {
+            return "redirect:/home/";
         }
 
-        String memberId = loginMember.getId();
+        // 로그인 된 유저 email(id)
+        String memberId = auth.getName();
+
         Map<String, Object> cartData = cartService.getCartList(memberId);
 
         if (cartData == null) {

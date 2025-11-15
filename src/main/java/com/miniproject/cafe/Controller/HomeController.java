@@ -1,6 +1,7 @@
 package com.miniproject.cafe.Controller;
 
 import jakarta.servlet.http.HttpSession;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,23 +13,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class HomeController {
 
     @GetMapping("/")
-    public String home(Model model, HttpSession session) {
-
-        String oauthError = (String) session.getAttribute("oauthErrorMessage");
-        if (oauthError != null) {
-            model.addAttribute("oauthErrorMessage", oauthError);
-            session.removeAttribute("oauthErrorMessage");
-        }
-        String successType = (String) session.getAttribute("loginSuccessType");
-        String userName = (String) session.getAttribute("loginMemberName");
-
-        if (successType != null) {
-            model.addAttribute("loginSuccessType", successType);
-            model.addAttribute("loginMemberName", userName);
-
-            session.removeAttribute("loginSuccessType");
-            session.removeAttribute("loginMemberName");
-        }
+    public String home(Model model, Authentication auth) {
+        boolean isLoggedIn = (auth != null && auth.isAuthenticated());
+        model.addAttribute("IS_LOGGED_IN", isLoggedIn);
         return "main";
     }
 

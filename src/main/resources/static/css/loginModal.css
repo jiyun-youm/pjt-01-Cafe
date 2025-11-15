@@ -12,6 +12,10 @@
     align-items: center;
 }
 
+.login-modal-overlay.show {
+    display: flex !important;
+}
+
 /* 모달 콘텐츠 */
 .login-modal-content {
     background: #fff;
@@ -45,7 +49,7 @@
 .login-form {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 10px;
 }
 
 .login-form input[type="text"],
@@ -125,6 +129,47 @@
     gap: 6px;
     font-size: 15px;
     margin-top: 5px;
+}
+
+.login-form .error-message:empty,
+.login-form .success-message:empty {
+    display: none;
+}
+
+/* 혹시 내용이 채워질 경우를 대비한 스타일 */
+.login-form .error-message,
+.login-form .success-message {
+    font-size: 13px;
+    margin-top: -10px; /* gap(15px)을 무시하고 위로 당김 */
+    margin-bottom: 5px; /* 다음 요소와 간격 */
+    padding: 0 5px;
+}
+
+/* (예시) 실제 메시지가 표시될 때 스타일 */
+.form-field-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: -5px;
+}
+
+.login-form .error-message:empty,
+.login-form .success-message:empty {
+    display: none;
+}
+
+.login-form .error-message,
+.login-form .success-message {
+    font-size: 13px;
+    margin-top: 3px;
+    margin-bottom: -3px;
+    padding: 0 5px;
+}
+
+.login-form .error-message {
+    color: red;
+}
+.login-form .success-message {
+    color: green;
 }
 
 /* 애니메이션 */

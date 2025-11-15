@@ -45,16 +45,8 @@ public class OrderDetailController {
         return "redirect:/home/order_detail";
     }
 
-    @GetMapping("/main")
-    public String home() {
-        return "redirect:/home/main";
-    }
-//
-//    @GetMapping("/orderDetail")
-//    public String orderDetail() {
-//        return "/order_detail"; //
+//    @GetMapping("/main")
+//    public String home() {
+//        return "redirect:/home/main";
 //    }
-
-
-
 }
