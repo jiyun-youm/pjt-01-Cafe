@@ -160,6 +160,24 @@ body{
 .add { background: #8b5e34; }
 .order { background: #5a3b1a; }
 
+/* 하단 네비게이션 */
+footer {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: #f4ede6;
+    display: flex; justify-content: space-around;
+    border-top: 1px solid #ccc;
+    padding: 8px 0;
+    max-width: 430px;
+    width: 100%;
+    margin: 0 auto;
+}
+footer div {
+    text-align: center;
+    font-size: 12px;
+    color: #555;
+}
+
 /* 모달 공통 */
 .modal-bg {
     position: fixed;

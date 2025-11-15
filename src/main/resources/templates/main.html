@@ -2,59 +2,92 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Java Coffee</title>
+
+    <!-- 로그인 여부 JS 전달 -->
+    <script th:inline="javascript">
+        const IS_LOGGED_IN = [[${#authorization.expr('isAuthenticated()')}]];
+    </script>
+
+    <script th:if="${loginErrorMessage}">
+        alert('[[${loginErrorMessage}]]');
+    </script>
+
+    <script th:if="${loginSuccessType != null}">
+        alert('[[${loginMemberName}]]님 환영합니다!');
+    </script>
+
+    <script th:if="${param.oauthError}">
+        alert(`[[${param.oauthError}]]`);
+    </script>
 </head>
+
 <th:block th:replace="~{./include/userBaseLayout :: setContent( ~{:: .wrap} ) }">
+
     <div class="wrap">
+
+        <!-- 서버에서 전달받는 단일 메시지 -->
         <script th:if="${msg}">
             alert(`[[${msg}]]`);
         </script>
+
+        <!-- 메인 배너 -->
         <div class="main-banner">
             <img src="/images/메인배너.png" alt="메인배너">
-            <!-- <span class="banner-pagination">1/2</span>--> <!-- 캐러셀 안쓸거라 제거 -->
         </div>
 
         <main class="container">
+
+            <!-- 이전 주문내역 -->
             <section class="previous-orders">
                 <div class="previous-orders-header">
                     <h2 class="previous-orders-title">이전 주문내역</h2>
-                    <a href="order_history" class="previous-orders-more">더보기</a>
+
+                    <!-- 🔥 고침: /home/order_history 로 이동 -->
+                    <a th:href="@{/home/order_history}" class="previous-orders-more login-required">더보기</a>
                 </div>
+
                 <div class="previous-orders-grid">
-                    <a href="#" class="previous-order-item">
+                    <a href="#" class="previous-order-item login-required">
                         <img src="/images/image2.png" alt="아메리카노">
                         <p class="item-name">아메리카노</p>
                     </a>
-                    <a href="#" class="previous-order-item">
+                    <a href="#" class="previous-order-item login-required">
                         <img src="/images/cafelatte.png" alt="카페라떼">
                         <p class="item-name">카페라떼</p>
                     </a>
-                    <a href="#" class="previous-order-item">
+                    <a href="#" class="previous-order-item login-required">
                         <img src="/images/capuchino.png" alt="카푸치노">
                         <p class="item-name">카푸치노</p>
                     </a>
-                    <a href="#" class="previous-order-item">
+                    <a href="#" class="previous-order-item login-required">
                         <img src="/images/vanillaLatte.png" alt="바닐라라떼">
                         <p class="item-name">바닐라라떼</p>
                     </a>
-                    <a href="#" class="previous-order-item">
+                    <a href="#" class="previous-order-item login-required">
                         <img src="/images/espresso.png" alt="에스프레소">
                         <p class="item-name">에스프레소</p>
                     </a>
                 </div>
             </section>
 
+            <!-- 스탬프/쿠폰 영역 -->
             <section class="reward-section">
                 <div class="reward-item">
                     <span class="icon stamp-icon"><i class="fa-solid fa-stamp"></i></span>
                     <span class="text">스탬프 0/10</span>
                 </div>
+
                 <div class="divider"></div>
+
                 <div class="reward-item">
                     <span class="icon coupon-icon">🎟️</span>
                     <span class="text">쿠폰 0</span>
                 </div>
             </section>
+
         </main>
+
     </div>
+
 </th:block>
 </html>

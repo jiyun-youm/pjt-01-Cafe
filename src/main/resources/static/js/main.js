@@ -1,28 +1,25 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- 모달 요소 가져오기 ---
     let loginModalOverlay = document.getElementById('login-modal-overlay');
     let signupModalOverlay = document.getElementById('signup-modal-overlay');
 
     let loginModalTrigger = document.getElementById('login-modal-trigger');
     let switchToSignupTrigger = document.getElementById('switch-to-signup-trigger');
-
     let loginModalClose = document.getElementById('login-modal-close');
     let signupModalClose = document.getElementById('signup-modal-close');
 
-    // --- 폼 요소 가져오기 ---
     let loginForm = document.getElementById('modalLoginForm');
     let signupForm = document.getElementById('modalSignupForm');
 
-    // --- 알림 팝업 요소 ---
     let notificationTrigger = document.getElementById('notification-trigger');
     let notificationPopup = document.getElementById('notification-popup');
-    
-    // --- 이메일 중복 확인 버튼 ---
+
     let checkEmailButton = document.getElementById('check-email-button');
     let signupEmailInput = document.getElementById('signup-email');
 
-    // 알림 아이콘 클릭 시
+    /* ===========================
+       🔔 알림 팝업
+    ============================*/
     if (notificationTrigger) {
         notificationTrigger.addEventListener('click', (e) => {
             e.preventDefault();
@@ -30,17 +27,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 문서 다른 곳 클릭 시 알림 팝업 닫기
     document.addEventListener('click', (e) => {
-        if (notificationPopup && !notificationTrigger.contains(e.target) && !notificationPopup.contains(e.target)) {
+        if (notificationPopup &&
+            !notificationTrigger.contains(e.target) &&
+            !notificationPopup.contains(e.target)) {
             notificationPopup.classList.remove('show');
         }
     });
 
-    // --- 비로그인 시 (로그인 모달 관련) ---
+
+    /* ===========================
+       🔐 로그인 되어있지 않으면 모달 열기
+    ============================*/
     if (!IS_LOGGED_IN) {
 
-        // '로그인' 탭 클릭 -> 로그인 모달 열기
+        // 로그인 버튼 클릭 → 모달 열기
         if (loginModalTrigger) {
             loginModalTrigger.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -48,69 +49,70 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // 로그인 모달 'Sign Up' 버튼 클릭 -> 회원가입 모달 열기
+        // 로그인 모달 → 회원가입 모달 전환
         if (switchToSignupTrigger) {
             switchToSignupTrigger.addEventListener('click', () => {
                 loginModalOverlay.classList.remove('show');
                 signupModalOverlay.classList.add('show');
-                clearErrorMessages(loginForm); // 폼 에러 초기화
+                clearErrorMessages(signupForm);
             });
         }
 
-        // 로그인 모달 닫기 버튼
         if (loginModalClose) {
             loginModalClose.addEventListener('click', () => {
                 loginModalOverlay.classList.remove('show');
-                clearErrorMessages(loginForm); // 폼 에러 초기화
+                clearErrorMessages(loginForm);
             });
         }
 
-        // 회원가입 모달 닫기 버튼
         if (signupModalClose) {
             signupModalClose.addEventListener('click', () => {
                 signupModalOverlay.classList.remove('show');
-                clearErrorMessages(signupForm); // 폼 에러 초기화
+                clearErrorMessages(signupForm);
             });
         }
 
+        /* ===========================
+           📧 이메일 중복확인
+        ============================*/
         if (checkEmailButton) {
             checkEmailButton.addEventListener('click', async () => {
+
                 const email = signupEmailInput.value;
 
+                // 헬퍼 함수 이름 오타 수정 (clearSuccessMessages)
                 clearErrorMessages(signupForm, 'email');
                 clearSuccessMessages(signupForm, 'email');
 
                 if (!email) {
-                    displayErrorMessage(signupForm, 'email', '이메일을 적어주세요.');
+                    displayErrorMessage(signupForm, 'email', '이메일을 입력하세요.');
                     return;
                 }
 
                 if (!email.includes('@')) {
-                    // 형식이 틀렸을 때
-                    displayErrorMessage(signupForm, 'email', '올바른 이메일 주소를 입력해주세요.');
+                    displayErrorMessage(signupForm, 'email', '올바른 이메일 형식이 아닙니다.');
                     return;
                 }
 
-                // 3. API 호출 (이후 로직은 동일)
                 try {
                     const response = await fetch(`/api/member/check-email?email=${encodeURIComponent(email)}`);
+
                     const result = await response.json();
 
                     if (response.ok) {
-                        // 사용 가능
                         displaySuccessMessage(signupForm, 'email', result.message);
                     } else {
-                        // 중복 (사용 불가)
                         displayErrorMessage(signupForm, 'email', result.message);
                     }
+
                 } catch (error) {
-                    console.error('이메일 중복 확인 실패:', error);
-                    displayErrorMessage(signupForm, 'email', '확인 중 오류가 발생했습니다.');
+                    console.error(error);
+                    displayErrorMessage(signupForm, 'email', '중복확인 중 오류 발생');
                 }
             });
         }
 
-        // [추가] 이메일 입력창 내용 변경 시, 중복확인 메시지 초기화
+        // 이메일 입력 시 메시지 초기화
         if (signupEmailInput) {
             signupEmailInput.addEventListener('input', () => {
                 clearErrorMessages(signupForm, 'email');
@@ -118,58 +120,87 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
+        // ⬇️⬇️⬇️ [수정됨] 이 블록이 새로 추가되었습니다 ⬇️⬇️⬇️
+        /* ===========================
+           🔑 실시간 비밀번호 일치 검사
+        ============================*/
+        // 1. 회원가입 폼에서 비밀번호 관련 요소들을 선택합니다.
+        const passwordInput = document.getElementById('signup-password');
+        const passwordCheckInput = document.getElementById('signup-password-check');
 
-        // 회원가입 폼 제출 (AJAX)
+        // 2. 실시간 비밀번호 일치 검사 함수
+        function validatePasswords() {
+            // '비밀번호' 또는 '비밀번호 확인' 둘 다 값이 있을 때만 비교 시작
+            if (passwordInput.value && passwordCheckInput.value) {
+
+                if (passwordInput.value !== passwordCheckInput.value) {
+                    // 1. 일치하지 않을 때:
+                    clearSuccessMessages(signupForm, 'passwordCheck'); // ⬅️ 성공 메시지를 지우고
+                    displayErrorMessage(signupForm, 'passwordCheck', '비밀번호가 서로 일치하지 않습니다.'); // ⬅️ 에러 메시지를 띄움
+                } else {
+                    // 2. 일치할 때: (🔥 수정된 부분)
+                    clearErrorMessages(signupForm, 'passwordCheck'); // ⬅️ 에러 메시지를 지우고
+                    displaySuccessMessage(signupForm, 'passwordCheck', '비밀번호가 일치합니다.'); // ⬅️ 성공 메시지를 띄움
+                }
+
+            } else {
+                // 3. 둘 중 하나라도 비어있을 때:
+                clearErrorMessages(signupForm, 'passwordCheck'); // ⬅️ 모든 메시지를 지움
+                clearSuccessMessages(signupForm, 'passwordCheck');
+            }
+        }
+
+        if (passwordInput) {
+            passwordInput.addEventListener('input', validatePasswords);
+        }
+        if (passwordCheckInput) {
+            passwordCheckInput.addEventListener('input', validatePasswords);
+        }
+        /* ===========================
+           📝 회원가입 (AJAX 유지)
+        ============================*/
         if (signupForm) {
             signupForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
 
-                // 기존 에러/성공 메시지 모두 삭제
-                clearErrorMessages(signupForm);
-                clearSuccessMessages(signupForm);
+                // 폼 제출 시, 이메일 외 모든 에러 메시지를 지웁니다.
+                // (이메일은 중복확인 성공 메시지가 남아있어야 하므로)
+                signupForm.querySelectorAll('.error-message').forEach(el => {
+                    if (el.dataset.field !== 'email') {
+                        el.textContent = '';
+                    }
+                });
 
-                // 폼 데이터를 JSON
                 const formData = new FormData(signupForm);
                 const data = Object.fromEntries(formData.entries());
 
-                // 프론트엔드 유효성 검사 (빈 값 체크)
-                let isValid = true; // 유효성 플래그
+                let ok = true;
 
+                // [수정됨] 헬퍼 함수를 사용하도록 통일
                 if (!data.email) {
                     displayErrorMessage(signupForm, 'email', '이메일은 필수입니다.');
-                    isValid = false;
+                    ok = false;
                 }
                 if (!data.username) {
-                    displayErrorMessage(signupForm, 'username', '이름(닉네임)은 필수입니다.');
-                    isValid = false;
+                    displayErrorMessage(signupForm, 'username', '닉네임은 필수입니다.');
+                    ok = false;
                 }
                 if (!data.password) {
                     displayErrorMessage(signupForm, 'password', '비밀번호는 필수입니다.');
-                    isValid = false;
+                    ok = false;
                 }
-                if (!data.passwordCheck) {
-                    displayErrorMessage(signupForm, 'passwordCheck', '비밀번호 확인은 필수입니다.');
-                    isValid = false;
-                }
-
-                // 비밀번호 일치 여부도 미리 검사 (선택사항이지만 권장)
-                if (data.password && data.passwordCheck && data.password !== data.passwordCheck) {
+                // 이 검사는 실시간으로도 수행되지만, submit 시에도 최종 확인합니다.
+                if (data.password !== data.passwordCheck) {
                     displayErrorMessage(signupForm, 'passwordCheck', '비밀번호가 일치하지 않습니다.');
-                    isValid = false;
+                    ok = false;
                 }
 
-                // 4. 유효성 검사에 실패하면 서버 전송 차단
-                if (!isValid) {
-                    return; // fetch 요청을 보내지 않고 함수 종료
-                }
+                if (!ok) return;
 
-                // 5. 서버로 fetch 요청 (유효성 검사를 통과한 경우에만 실행)
                 try {
                     const response = await fetch('/api/member/signup', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(data)
                     });
 
@@ -181,108 +212,87 @@ document.addEventListener('DOMContentLoaded', () => {
                         loginModalOverlay.classList.add('show');
                         signupForm.reset();
 
+                        // 회원가입 성공 시 모든 메시지 초기화
+                        clearErrorMessages(signupForm);
+                        clearSuccessMessages(signupForm);
+
                     } else {
-                        displayErrorMessage(signupForm, result.field, result.message);
+                        // [수정됨] 서버에서 오는 에러 메시지를 data-field 기반으로 표시
+                        // (예: { "field": "email", "message": "이미 가입된 이메일입니다." })
+                        displayErrorMessage(signupForm, result.field || 'username', result.message);
                     }
+
                 } catch (error) {
-                    console.error('회원가입 요청 실패:', error);
-                    displayErrorMessage(signupForm, 'username', '요청 중 오류가 발생했습니다.'); // username은 예시
+                    console.error(error);
+                    displayErrorMessage(signupForm, 'username', '회원가입 오류');
                 }
             });
         }
-
-        // 로그인 폼 제출 (AJAX)
-        if (loginForm) {
-            loginForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                clearErrorMessages(loginForm);
-
-                let formData = new FormData(loginForm);
-                let data = Object.fromEntries(formData.entries());
-
-                try {
-                    let response = await fetch('/api/member/login', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(data)
-                    });
-
-                    let result = await response.json();
-
-                    if (response.ok) {
-                        // 로그인 성공
-                        alert(result.message);
-                        window.location.reload(); // 페이지 새로고침
-                    } else {
-                        // 로그인 실패
-                        displayErrorMessage(loginForm, 'password', result.message); // 비밀번호 필드 아래에 에러 표시
-                    }
-                } catch (error) {
-                    console.error('로그인 요청 실패:', error);
-                    displayErrorMessage(loginForm, 'password', '로그인 중 오류 발생');
-                }
-            });
-        }
-
     }
 
-    // --- 로그인 여부와 관계없이 'login-required' 링크 처리 ---
+
+    /* ===========================
+       🚧 로그인 안 되어 있을 때 보호 기능
+    ============================*/
     let loginRequiredLinks = document.querySelectorAll('.login-required');
+
     loginRequiredLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             if (!IS_LOGGED_IN) {
-                e.preventDefault(); // 페이지 이동 방지
-                alert('로그인이 필요한 서비스입니다.');
-                if (loginModalOverlay) {
-                    loginModalOverlay.classList.add('show'); // 로그인 모달 열기
-                }
+                e.preventDefault();
+                loginModalOverlay.classList.add('show');
             }
         });
     });
 
+
+    /* ===========================
+       🔥 로그인 실패 시 모달 자동 열기
+       ?error 파라미터 존재하면 실행
+    ============================*/
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.has("error")) {
+        if (loginModalOverlay) loginModalOverlay.classList.add("show");
+    }
+
 });
 
-/* 폼 내부의 모든 .error-message 내용을 삭제 */
-function clearErrorMessages(formElement) {
-    formElement.querySelectorAll('.error-message').forEach(el => {
-        el.textContent = '';
-    });
-}
-/* 폼 내부의 .success-message 내용을 삭제 */
-function clearSuccessMessages(formElement, fieldName) {
-    const selector = fieldName
-        ? `.success-message[data-field="${fieldName}"]`
-        : '.success-message';
-    formElement.querySelectorAll(selector).forEach(el => {
-        el.textContent = '';
-    });
-}
 
-/* 특정 필드 아래에 에러 메시지를 표시 */
-function displayErrorMessage(formElement, fieldName, message) {
-    clearSuccessMessages(formElement, fieldName);
-    let errorEl = formElement.querySelector(`.error-message[data-field="${fieldName}"]`);
-    if (!errorEl) {
-        errorEl = formElement.querySelector('.error-message[data-field="unknown"]');
-        if (!errorEl) {
-            errorEl = formElement.querySelector('.error-message[data-field="username"]');
-        }
-    }
-    if (errorEl) {
-        errorEl.textContent = message;
+/* -----------------------------
+   🔧 공용 메시지 헬퍼 함수
+------------------------------ */
+function clearErrorMessages(formElement, field = null) {
+    if (field) {
+        let target = formElement.querySelector(`.error-message[data-field="${field}"]`);
+        if (target) target.textContent = '';
     } else {
-        alert(message);
+        formElement.querySelectorAll('.error-message').forEach(el => el.textContent = '');
     }
 }
 
-/* 특정 필드 아래에 성공 메시지를 표시 */
-function displaySuccessMessage(formElement, fieldName, message) {
-    clearErrorMessages(formElement, fieldName);
-
-    let successEl = formElement.querySelector(`.success-message[data-field="${fieldName}"]`);
-    if (successEl) {
-        successEl.textContent = message;
+function clearSuccessMessages(formElement, field = null) {
+    if (field) {
+        let target = formElement.querySelector(`.success-message[data-field="${field}"]`);
+        if (target) target.textContent = '';
     } else {
-        alert(message);
+        formElement.querySelectorAll('.success-message').forEach(el => el.textContent = '');
     }
 }
+
+function displayErrorMessage(formElement, field, message) {
+    let target = formElement.querySelector(`.error-message[data-field="${field}"]`);
+    if (target) target.textContent = message;
+}
+
+function displaySuccessMessage(formElement, field, message) {
+    let target = formElement.querySelector(`.success-message[data-field="${field}"]`);
+    if (target) target.textContent = message;
+}
+
+function setVh() {
+    document.documentElement.style.setProperty('--vh', window.innerHeight * 0.01 + 'px');
+}
+
+setVh();
+window.addEventListener('resize', setVh);

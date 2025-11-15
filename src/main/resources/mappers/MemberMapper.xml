@@ -6,65 +6,29 @@
 <mapper namespace="com.miniproject.cafe.Mapper.MemberMapper">
 
     <insert id="registerMember" parameterType="MemberVO">
-        INSERT INTO member(
-        ID,
-        EMAIL,
-        PASSWORD,
-        USERNAME,
-        PROVIDER)
-        VALUES (
-        #{id},
-        #{email},
-        #{password},
-        #{username},
-        #{provider}
-        )
+        INSERT INTO member (ID, EMAIL, PASSWORD, USERNAME, PROVIDER)
+        VALUES (#{id}, #{email}, #{password}, #{username}, #{provider})
     </insert>
 
-    <select id="loginMember" parameterType="MemberVO" resultType="MemberVO">
-        SELECT *
-        FROM MEMBER
-        WHERE EMAIL = #{email}
-    </select>
-
     <select id="isEmailDuplicate" parameterType="String" resultType="boolean">
-        SELECT COUNT(*) > 0
-        FROM MEMBER
-        WHERE email = #{email}
+        SELECT COUNT(*) > 0 FROM MEMBER WHERE email = #{email}
     </select>
 
     <select id="isIdDuplicate" parameterType="String" resultType="boolean">
-        SELECT COUNT(*) > 0
-        FROM MEMBER
-        WHERE ID = #{id}
+        SELECT COUNT(*) > 0 FROM MEMBER WHERE id = #{id}
     </select>
 
-    <select id="findByEmail" resultType="com.miniproject.cafe.VO.MemberVO">
-        SELECT * FROM MEMBER
-        WHERE EMAIL = #{email}
+    <select id="findByEmail" parameterType="string" resultType="MemberVO">
+        SELECT * FROM MEMBER WHERE EMAIL = #{email}
     </select>
 
-    <insert id="insertOAuthMember" parameterType="com.miniproject.cafe.VO.MemberVO">
-        INSERT INTO MEMBER(
-            ID,
-            EMAIL,
-            USERNAME,
-            PASSWORD,
-            PROVIDER
-        )
-        VALUES (
-                   #{id},
-                   #{email},
-                   #{username},
-                   #{password},
-                   #{provider}
-               )
+    <insert id="insertOAuthMember" parameterType="MemberVO">
+        INSERT INTO MEMBER (ID, EMAIL, USERNAME, PASSWORD, PROVIDER)
+        VALUES (#{id}, #{email}, #{username}, #{password}, #{provider})
     </insert>
 
-    <update id="updateUser" parameterType="com.miniproject.cafe.VO.MemberVO">
-        UPDATE MEMBER
-        SET
-            USERNAME = #{username}
-        WHERE ID = #{id}
+    <update id="updateUser" parameterType="MemberVO">
+        UPDATE MEMBER SET USERNAME = #{username} WHERE ID = #{id}
     </update>
+
 </mapper>

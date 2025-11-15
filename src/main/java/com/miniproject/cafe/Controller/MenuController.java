@@ -51,17 +51,13 @@ public class MenuController {
         return "menu/newMenu";
     }
 
-    @GetMapping("/main")
-    public String home() {
-        return "redirect:/home/main";
-    }
-
-    @GetMapping("/mypick")
-    public String mypick() {
-        return "redirect:/home/mypick";
-    }
-    
-
-
-
+//    @GetMapping("/main")
+//    public String home() {
+//        return "redirect:/home/main";
+//    }
+//
+//    @GetMapping("/mypick")
+//    public String mypick() {
+//        return "redirect:/home/mypick";
+//    }
 }

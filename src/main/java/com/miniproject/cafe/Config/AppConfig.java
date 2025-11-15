@@ -1,4 +1,4 @@
-package com.miniproject.cafe.config;
+package com.miniproject.cafe.Config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

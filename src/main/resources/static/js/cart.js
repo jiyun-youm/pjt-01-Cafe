@@ -2,11 +2,18 @@
 
 document.addEventListener('DOMContentLoaded', function() {
 
-    let fixedDeliveryFee = 2000;
-    let currentUserId = 1; // 실제로는 로그인된 사용자 ID로 설정, 현재는 임시
-    let isProcessingPayment = false;
+    let mainElement = document.querySelector('.shopping-cart-combined');
+    let currentUserId = mainElement ? mainElement.getAttribute('data-member-id') : null;
 
-    // API 기본 URL - 실제 존재하는 API로 변경
+    if (!currentUserId) {
+        console.error('사용자 ID 없음 - 로그인 확인 필요');
+        alert('로그인이 필요합니다.');
+        window.location.href = '/';
+        return;
+    }
+
+    let fixedDeliveryFee = 2000;
+    let isProcessingPayment = false;
     let API_BASE_URL = '/home/cart';
 
     // 실제 존재하는 API만 사용
