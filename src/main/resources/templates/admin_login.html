@@ -1,35 +1,32 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>관리자 회원가입창 - Java Cafe</title>
+    <title>관리자 로그인 - Java Cafe</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/admin_signup.css">
+    <link rel="stylesheet" href="/css/admin_login.css">
 </head>
-
 <body>
 
 <th:block th:replace="~{./include/adminBaseLayout :: setContent( ~{:: .wrap} ) }">
 
     <div class="wrap">
-        <div class="signup-container">
-            <form onsubmit="return false;">
+        <div class="login-container">
+            <form action="/admin/login" method="post">
                 <label for="id">아이디</label>
-                <div class="id-check-group">
-                    <input type="text" id="id" placeholder="아이디를 입력하세요" required>
-                </div>
-                <div id="checkMessage" class="check-message"></div>
+                <input type="text" id="id" name="id" placeholder="아이디를 입력하세요" required>
 
                 <label for="password">비밀번호</label>
-                <input type="password" id="password" placeholder="비밀번호를 입력하세요" required>
-                <button type="submit">Login</button>
-            </form>
-        </div>
+                <input type="password" id="password" name="password" placeholder="비밀번호를 입력하세요" required>
 
+                <button type="submit">Login</button>
+                <button type="button" id="signupBtn" onclick="window.location.href='/admin/signup'">Sign Up</button>
+            </form>
+
+        </div>
     </div>
 </th:block>
 
-
-</body>
 <script src="/js/admin_login.js"></script>
+</body>
 </html>

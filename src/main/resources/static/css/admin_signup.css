@@ -102,15 +102,13 @@ a {
 
 
 .signup-container {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    margin: auto; /* 화면 중앙 정렬 */
+    width: 100%;
+    max-width: 800px; /* 너무 넓어지지 않도록 제한 */
     background-color: white;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     border-radius: 8px;
     overflow: hidden;
-    width: 800px;
 }
 
 

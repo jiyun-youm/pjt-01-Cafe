@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.miniproject.cafe.Mapper.AdminMapper">
+    <!-- 회원가입 -->
+    <insert id="insertAdmin" parameterType="AdminVO">
+        INSERT INTO ADMIN (
+            ID,
+            PASSWORD,
+            STORE_NAME)
+        VALUES (
+            #{id},
+            #{password},
+            #{storeName}
+               )
+    </insert>
+
+    <!-- 로그인 -->
+    <select id="loginAdmin" parameterType="AdminVO" resultType="AdminVO">
+        SELECT
+            ID,
+            PASSWORD,
+            STORE_NAME
+        FROM ADMIN
+        WHERE ID = #{id}
+    </select>
+
+    <!-- 아이디 중복체크 -->
+    <select id="checkId" parameterType="string" resultType="int">
+        SELECT COUNT(*)
+        FROM ADMIN
+        WHERE ID = #{id}
+    </select>
+</mapper>
