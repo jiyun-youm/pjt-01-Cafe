@@ -7,9 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 import java.util.List;
 
@@ -50,5 +50,20 @@ public class HomeController {
         model.addAttribute("likedMenus", likedMenus);
 
         return "mypick";
+    }
+
+    @PostMapping("/saveRegion")
+    @ResponseBody
+    public String saveRegion(@RequestBody Map<String, String> request, HttpSession session) {
+        String region = request.get("region");
+        session.setAttribute("selectedRegion", region);
+        return "saved";
+    }
+
+    @GetMapping("/getRegion")
+    @ResponseBody
+    public String getRegion(HttpSession session) {
+        Object region = session.getAttribute("selectedRegion");
+        return region != null ? region.toString() : null;
     }
 }

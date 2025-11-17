@@ -16,4 +16,5 @@ public class MenuVO {
     private String menuPrice;
     private int hotAvailable ;
     private String menuDefinition;
+    private String storeName;
 }
