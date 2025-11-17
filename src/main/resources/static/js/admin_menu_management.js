@@ -77,4 +77,22 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    let fileInput = document.getElementById('menuImage');
+    let imageBox = document.querySelector('.image-upload-box');
+
+    fileInput.addEventListener('change', (e) => {
+        let file = e.target.files[0];
+        if (file) {
+            let img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            img.style.width = "100%";
+            img.style.height = "100%";
+            img.style.objectFit = "cover";
+            imageBox.innerHTML = "";
+            imageBox.appendChild(img);
+        }
+    });
+
+
 });

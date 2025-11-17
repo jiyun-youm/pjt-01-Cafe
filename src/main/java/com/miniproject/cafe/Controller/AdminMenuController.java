@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -45,33 +46,45 @@ public class AdminMenuController {
 
     // 메뉴 등록 처리
     @PostMapping("/insertMenu")
-    public String insertMenu(MenuVO vo, HttpSession session) {
+    public String insertMenu(MenuVO vo,
+                             @RequestParam(value = "menuImgFile", required = false) MultipartFile file,
+                             HttpSession session) {
 
         String storeName = (String) session.getAttribute("storeName");
-        if (storeName == null) {
-            throw new RuntimeException("지점 정보가 없습니다. 다시 로그인해주세요.");
-        }
-        vo.setStoreName(storeName);
+        if (storeName == null) throw new RuntimeException("지점 정보가 없습니다. 다시 로그인해주세요.");
 
-        System.out.println("===== 신규 메뉴 등록 요청 =====");
-        System.out.println("메뉴명: " + vo.getMenuName());
-        System.out.println("가격: " + vo.getMenuPrice());
-        System.out.println("카테고리: " + vo.getCategory());
-        System.out.println("설명: " + vo.getMenuDefinition());
-        System.out.println("지점명: " + vo.getStoreName());
+        vo.setStoreName(storeName);
 
         String prefix = getStorePrefix(storeName);
         String lastId = menuService.getLastMenuIdByStore(storeName);
         String newMenuId = generateNextId(prefix, lastId);
         vo.setMenuId(newMenuId);
 
+        // 이미지 처리
+        if (file != null && !file.isEmpty()) {
+            String fileName = newMenuId + "_" + file.getOriginalFilename();
+            String filePath = "C:/upload/menuImg/";
+
+            try {
+                java.io.File dir = new java.io.File(filePath);
+                if (!dir.exists()) dir.mkdirs();
+
+                file.transferTo(new java.io.File(filePath + fileName));
+                vo.setMenuImg(fileName);
+            } catch (Exception e) {
+                e.printStackTrace();
+                vo.setMenuImg("default.png");
+            }
+        } else {
+            vo.setMenuImg("default.png");
+        }
+
         if (vo.getSalesStatus() == null) vo.setSalesStatus("판매중");
-        if (vo.getMenuImg() == null) vo.setMenuImg("default.png");
 
         menuService.insertMenu(vo);
-
         return "redirect:/admin/menu";
     }
+
 
     private String getStorePrefix(String storeName) {
         switch (storeName) {
