@@ -16,9 +16,6 @@
         alert('[[${loginMemberName}]]님 환영합니다!');
     </script>
 
-    <script th:if="${param.oauthError}">
-        alert(`[[${param.oauthError}]]`);
-    </script>
 </head>
 
 <th:block th:replace="~{./include/userBaseLayout :: setContent( ~{:: .wrap} ) }">
@@ -84,6 +81,18 @@
                     <span class="text">쿠폰 0</span>
                 </div>
             </section>
+
+            <div class="region">
+                <span class="region-label">구매할 지점을 선택하세요.</span>
+                <form action="region">
+                    <select name="userRegion" id="userRegion">
+                        <option value="selecting">선택</option>
+                        <option value="강남중앙점">자바빈카페 강남중앙점</option>
+                        <option value="역삼중앙점">자바빈카페 역삼중앙점</option>
+                        <option value="선릉중앙점">자바빈카페 선릉중앙점</option>
+                    </select>
+                </form>
+            </div>
 
         </main>
 

@@ -21,6 +21,7 @@
         ORDER BY MENU_ID ASC
     </select>
 
+    <!-- 카테고리별 조회 -->
     <select id="getMenuByCategory" parameterType="string" resultType="MenuVO">
         SELECT
             MENU_ID AS menuId,
@@ -29,13 +30,14 @@
             SALES_STATUS AS salesStatus,
             MENU_IMG AS menuImg,
             MENU_PRICE AS menuPrice,
-            HOT_AVAILABLE AS hotAvailable
+            HOT_AVAILABLE AS hotAvailable,
+            STORE_NAME AS storeName
         FROM MENU
         WHERE CATEGORY = #{category}
         ORDER BY MENU_ID ASC
     </select>
 
-    <!-- 단일 메뉴 조회 -->
+    <!-- 메뉴 ID 단일 조회 -->
     <select id="getMenuById" parameterType="string" resultType="MenuVO">
         SELECT
             MENU_ID AS menuId,
@@ -44,40 +46,46 @@
             SALES_STATUS AS salesStatus,
             MENU_IMG AS menuImg,
             MENU_PRICE AS menuPrice,
-            HOT_AVAILABLE AS hotAvailable
+            HOT_AVAILABLE AS hotAvailable,
+            STORE_NAME AS storeName
         FROM MENU
         WHERE MENU_ID = #{menuId}
     </select>
 
     <!-- 메뉴 추가 -->
     <insert id="insertMenu" parameterType="MenuVO">
-        INSERT INTO MENU (MENU_ID,
-                          MENU_NAME,
-                          CATEGORY,
-                          SALES_STATUS,
-                          MENU_IMG,
-                          MENU_PRICE,
-                          HOT_AVAILABLE)
-        VALUES (
-                #{menuId},
-                #{menuName},
-                #{category},
-                #{salesStatus},
-                #{menuImg},
-                #{menuPrice},
-                #{hotAvailable}
-               )
+        INSERT INTO MENU (
+            MENU_ID,
+            MENU_NAME,
+            CATEGORY,
+            SALES_STATUS,
+            MENU_IMG,
+            MENU_PRICE,
+            HOT_AVAILABLE,
+            STORE_NAME
+        ) VALUES (
+                     #{menuId},
+                     #{menuName},
+                     #{category},
+                     #{salesStatus},
+                     #{menuImg},
+                     #{menuPrice},
+                     #{hotAvailable},
+                     #{storeName}
+                 )
     </insert>
 
     <!-- 메뉴 수정 -->
     <update id="updateMenu" parameterType="MenuVO">
         UPDATE MENU
-        SET MENU_NAME = #{menuName},
+        SET
+            MENU_NAME = #{menuName},
             CATEGORY = #{category},
             SALES_STATUS = #{salesStatus},
             MENU_IMG = #{menuImg},
             MENU_PRICE = #{menuPrice},
-            HOT_AVAILABLE = #{hotAvailable}
+            HOT_AVAILABLE = #{hotAvailable},
+            STORE_NAME = #{storeName}
         WHERE MENU_ID = #{menuId}
     </update>
 
@@ -86,5 +94,13 @@
         DELETE FROM MENU
         WHERE MENU_ID = #{menuId}
     </delete>
+
+    <!-- 지점 + 카테고리 조회 -->
+    <select id="getMenuByRegionAndCategory" resultType="MenuVO">
+        SELECT *
+        FROM MENU
+        WHERE STORE_NAME = #{region}
+          AND CATEGORY = #{category}
+    </select>
 
 </mapper>

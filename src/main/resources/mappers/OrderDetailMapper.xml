@@ -6,7 +6,7 @@
 <mapper namespace="com.miniproject.cafe.Mapper.OrderDetailMapper">
 
     <!-- 주문 상세 저장 -->
-    <insert id="orderDetail" parameterType="OrderDetailVO" useGeneratedKeys="true" keyProperty="orderDetailId">
+    <insert id="orderDetail" parameterType="OrderDetailVO">
         INSERT INTO order_detail(
             ORDER_ID,
             MENU_ID,
@@ -31,27 +31,25 @@
 
     <!-- 단일 메뉴 조회 -->
     <select id="findById" resultType="MenuVO" parameterType="string">
-        SELECT
-            MENU_ID AS menuId,
-            MENU_NAME AS menuName,
-            MENU_IMG AS menuImg,
-            MENU_PRICE AS menuPrice,
-            MENU_DEFINITION AS menuDefinition,
-            CATEGORY AS category,
-            HOT_AVAILABLE AS hotAvailable
+        SELECT MENU_ID         AS menuId,
+               MENU_NAME       AS menuName,
+               MENU_IMG        AS menuImg,
+               MENU_PRICE      AS menuPrice,
+               MENU_DEFINITION AS menuDefinition,
+               CATEGORY        AS category,
+               HOT_AVAILABLE   AS hotAvailable
         FROM MENU
         WHERE MENU_ID = #{id}
     </select>
 
     <!-- 전체 메뉴 조회 -->
     <select id="getAllMenu" resultType="MenuVO">
-        SELECT
-            MENU_ID AS menuId,
-            MENU_NAME AS menuName,
-            MENU_IMG AS menuImg,
-            MENU_PRICE AS menuPrice,
-            MENU_DEFINITION AS menuDefinition,
-            CATEGORY AS category
+        SELECT MENU_ID         AS menuId,
+               MENU_NAME       AS menuName,
+               MENU_IMG        AS menuImg,
+               MENU_PRICE      AS menuPrice,
+               MENU_DEFINITION AS menuDefinition,
+               CATEGORY        AS category
         FROM MENU
     </select>
 

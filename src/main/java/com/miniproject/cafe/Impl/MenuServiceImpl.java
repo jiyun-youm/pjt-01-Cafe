@@ -43,4 +43,9 @@ public class MenuServiceImpl implements MenuService {
     public int deleteMenu(String menuId) {
         return menuMapper.deleteMenu(menuId);
     }
+
+    @Override
+    public List<MenuVO> getMenuByRegionAndCategory(String region, String category) {
+        return menuMapper.getMenuByRegionAndCategory(region, category);
+    }
 }

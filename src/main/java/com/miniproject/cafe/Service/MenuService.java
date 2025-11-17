@@ -9,7 +9,9 @@ public interface MenuService {
     List<MenuVO> getAllMenu();
     List<MenuVO> getMenuByCategory(String category);
     MenuVO getMenuById(String menuId);
-    int insertMenu(MenuVO menu); //메뉴추가
-    int updateMenu(MenuVO menu); //메뉴수정
-    int deleteMenu(String menuId); //메뉴삭제
+    int insertMenu(MenuVO menu);
+    int updateMenu(MenuVO menu);
+    int deleteMenu(String menuId);
+    List<MenuVO> getMenuByRegionAndCategory(String region, String category);
+
 }

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.miniproject.cafe.Mapper.AdminRevenueMapper">
+    <select id="getAllOrders" resultType="AdminRevenueVO">
+        SELECT
+            DATE(o.order_time) AS viewDate,
+            o.ORDER_ID AS orderId,
+            o.total_price AS orderAmount,
+            TIME(o.order_time) AS orderTime,
+            p.payment_method AS orderType
+        FROM orders o
+        LEFT JOIN payments p
+        ON o.order_id = p.order_id
+
+    </select>
+
+    <select id="getOrdersByDate" parameterType="String" resultType="AdminRevenueVO">
+        SELECT
+            DATE(o.order_time) AS viewDate,
+            o.order_id AS orderId,
+            o.total_price AS orderAmount,
+            TIME(o.order_time) AS orderTime,
+            p.payment_method AS orderType
+        FROM orders o
+            LEFT JOIN payments p
+        ON o.order_id = p.order_id
+        WHERE DATE(o.order_time) = #{date}
+        ORDER BY o.order_time DESC
+    </select>
+
+
+
+</mapper>
