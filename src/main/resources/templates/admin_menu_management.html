@@ -1,101 +1,91 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-    <head>
-        <meta charset="UTF-8">
-        <title>Java Coffee</title>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
-        <link rel="stylesheet" th:href="@{/css/admin_menu_management.css}">
-    </head>
-    <body>
-        <th:block th:replace="~{./include/adminBaseLayout :: setContent( ~{:: .wrap} ) }">
-            <div class="wrap">
-                <div class="admin-container">
-                    <main class="admin-main">
-                        <section class="menu-list-section">
-                            <h2>등록된 메뉴</h2>
-                            <div class="menu-actions">
-                                <button class="select-delete-btn">선택 메뉴 삭제</button>
-                            </div>
-                            <div class="table-scroll-container">
-                                <table class="menu-table">
-                                    <thead>
-                                    <tr>
-                                        <th class="text-center">선택</th>
-                                        <th class="text-center">메뉴 이름</th>
-                                        <th class="text-center">가격</th>
-                                        <th class="text-center">카테고리</th>
-                                        <th class="text-center">메뉴 삭제</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <tr data-menu-id="1">
-                                        <td><input type="checkbox"></td>
-                                        <td>아메리카노</td>
-                                        <td>3,000원</td>
-                                        <td>커피</td>
-                                        <td><button class="delete-btn">×</button></td>
-                                    </tr>
-                                    <tr data-menu-id="2">
-                                        <td><input type="checkbox"></td>
-                                        <td>디카페인 아메리카노</td>
-                                        <td>3,000원</td>
-                                        <td>커피</td>
-                                        <td><button class="delete-btn">×</button></td>
-                                    </tr>
-                                    <tr data-menu-id="3">
-                                        <td><input type="checkbox"></td>
-                                        <td>카페라떼</td>
-                                        <td>3,000원</td>
-                                        <td>커피</td>
-                                        <td><button class="delete-btn">×</button></td>
-                                    </tr>
-                                    <tr data-menu-id="4">
-                                        <td><input type="checkbox"></td>
-                                        <td>복숭아 아이스티</td>
-                                        <td>3,000원</td>
-                                        <td>논 커피</td>
-                                        <td><button class="delete-btn">×</button></td>
-                                    </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </section>
+<head>
+    <meta charset="UTF-8">
+    <title>Java Coffee</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/admin_menu_management.css}">
+</head>
+<body>
+<<th:block
+        th:replace="~{./include/adminBaseLayout :: setContent( ~{:: .wrap} ) }"
+        th:with="menuList=${menuList}">
+    <div class="wrap">
+        <div class="admin-container">
+            <main class="admin-main">
 
-                        <aside class="new-menu-section">
-                            <h2>새 메뉴 등록</h2>
-                            <form id="newMenuForm" class="new-menu-form">
-                                <label for="menuName">메뉴 이름</label>
-                                <input type="text" id="menuName" placeholder="예) 아메리카노" required>
+                <!-- 등록된 메뉴 영역 -->
+                <section class="menu-list-section">
+                    <h2>등록된 메뉴</h2>
+                    <div class="menu-actions">
+                        <button class="select-delete-btn">선택 메뉴 삭제</button>
+                    </div>
 
-                                <label for="menuPrice">가격</label>
-                                <input type="text" id="menuPrice" placeholder="숫자만 입력해주세요. 예) 3000" required>
+                    <div class="table-scroll-container">
+                        <table class="menu-table">
+                            <thead>
+                            <tr>
+                                <th class="text-center">선택</th>
+                                <th class="text-center">메뉴 이름</th>
+                                <th class="text-center">가격</th>
+                                <th class="text-center">카테고리</th>
+                                <th class="text-center">메뉴 삭제</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <!-- DB 메뉴 리스트 반복 출력 -->
+                            <tr th:each="menu : ${menuList}"
+                                th:data-menu-id="${menu.menuId}">
+                                <td><input type="checkbox" th:value="${menu.menuId}"></td>
+                                <td th:text="${menu.menuName}">메뉴명</td>
+                                <td th:text="${#numbers.formatInteger(menu.menuPrice, 3, 'COMMA')} + '원'">0원</td>
+                                <td th:text="${menu.category}">카테고리</td>
+                                <td>
+                                    <button class="delete-btn"
+                                            th:data-id="${menu.menuId}">×</button>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
 
-                                <label for="menuCategory">카테고리</label>
-                                <select id="menuCategory">
-                                    <option value="" disabled selected>카테고리 선택</option>
-                                    <option value="coffee">커피</option>
-                                    <option value="non_coffee">논 커피</option>
-                                    <option value="ade_juice">에이드/주스</option>
-                                    <option value="tea">티(Tea)</option>
-                                    <option value="smoothie_frappe">스무디/프라페</option>
-                                    <option value="dessert">디저트</option>
-                                </select>
+                <!-- 신규 메뉴 등록 폼 -->
+                <aside class="new-menu-section">
+                    <h2>새 메뉴 등록</h2>
+                    <form id="newMenuForm" class="new-menu-form" th:action="@{/admin/insertMenu}" method="post">
+                        <label for="menuName">메뉴 이름</label>
+                        <input type="text" id="menuName" name="menuName" placeholder="예) 아메리카노" required>
 
-                                <label for="menuDescription">메뉴 설명</label>
-                                <textarea id="menuDescription"></textarea>
+                        <label for="menuPrice">가격</label>
+                        <input type="text" id="menuPrice" name="menuPrice" placeholder="숫자만 입력해주세요. 예) 3000" required>
 
-                                <label>사진</label>
-                                <div class="image-upload-box">
-                                    <span class="material-icons">add</span>
-                                </div>
+                        <label for="menuCategory">카테고리</label>
+                        <select id="menuCategory" name="category" required>
+                            <option value="" disabled selected>카테고리 선택</option>
+                            <option value="coffee">커피</option>
+                            <option value="beverage">음료</option>
+                            <option value="newMenu">신메뉴</option>
+                            <option value="tea">티(Tea)</option>
+                            <option value="food">푸드</option>
+                        </select>
 
-                                <button type="submit" class="submit-btn">메뉴 등록</button>
-                            </form>
-                        </aside>
-                    </main>
-                </div>
-                <script src="/js/admin_menu_management.js"></script>
-            </div>
-        </th:block>
-    </body>
+                        <label for="menuDescription">메뉴 설명</label>
+                        <textarea id="menuDescription" name="menuDefinition"></textarea>
+
+                        <label>사진</label>
+                        <div class="image-upload-box">
+                            <span class="material-icons">add</span>
+                        </div>
+
+                        <button type="submit" class="submit-btn">메뉴 등록</button>
+                    </form>
+                </aside>
+
+            </main>
+        </div>
+        <script src="/js/admin_menu_management.js"></script>
+    </div>
+</th:block>
+</body>
 </html>
