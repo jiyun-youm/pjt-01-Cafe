@@ -12,6 +12,6 @@ public interface MenuService {
     int insertMenu(MenuVO menu);
     int updateMenu(MenuVO menu);
     int deleteMenu(String menuId);
-    List<MenuVO> getMenuByRegionAndCategory(String region, String category);
+    List<MenuVO> getMenuByStoreAndCategory(String storeName, String category);
 
 }

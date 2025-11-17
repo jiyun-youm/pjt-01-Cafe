@@ -66,57 +66,79 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    /* ===========================
-       📍 지역(지점) 선택 및 주문 버튼
-    ============================*/
+    async function initRegionSelect() {
+        if (!userRegion) return;
+
+        try {
+            const resp = await fetch("/home/getRegion");
+            const storeName = await resp.text();
+
+            if (storeName && storeName !== "null") {
+                userRegion.value = storeName;
+            } else {
+                userRegion.value = "selecting";
+            }
+        } catch (e) {
+            console.error("getRegion error:", e);
+        }
+    }
+
+    initRegionSelect(); // 실행
+
+
+    /* ============================================================
+       2. 지역 선택 시 세션에 저장 또는 삭제
+    ============================================================ */
     if (userRegion) {
-        userRegion.addEventListener('change', function () {
-            const region = this.value;
+        userRegion.addEventListener("change", () => {
+            const region = userRegion.value;
 
-            if (region === 'selecting') return;
-
-            fetch('/home/saveRegion', {
+            fetch("/home/saveRegion", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ region: region })
-            });
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ region })
+            }).catch(err => console.error(err));
         });
     }
 
-    /* 주문 하기 버튼 로직 */
+
+    /* ============================================================
+       3. 주문하기 버튼 (로그인 확인 + 지점 확인)
+    ============================================================ */
+
     async function moveToMenuBySession() {
         try {
-            const response = await fetch('/home/getRegion');
-            const region = await response.text();
+            const resp = await fetch("/home/getRegion");
+            const region = await resp.text();
 
-            if (!region || region === 'null' || region === 'selecting') {
+            if (!region || region === "null" || region === "selecting") {
                 alert("지점을 선택해주세요.");
-                window.location.href = "/home/";
                 return;
             }
-            window.location.href = `/menu/coffee?region=${region}`;
+
+            window.location.href = "/menu/coffee";
         } catch (e) {
-            console.error("Error:", e);
+            console.error("moveToMenu error:", e);
         }
     }
 
     if (orderBtn) {
-        orderBtn.addEventListener('click', async (e) => {
+        orderBtn.addEventListener("click", async (e) => {
             e.preventDefault();
 
-            // 1) 로그인 여부 먼저 확인
+            // 1) 로그인 여부 확인
             if (typeof IS_LOGGED_IN !== 'undefined' && !IS_LOGGED_IN) {
-                // 로그인 안 되어 있으면 모달만 띄우고 종료
+                const loginModalOverlay = document.getElementById("login-modal-overlay");
                 if (loginModalOverlay) loginModalOverlay.classList.add("show");
                 return;
             }
 
-            // 2) 로그인된 경우에만 지점 체크 로직 실행
+            // 2) 로그인 시 지점 확인 후 이동
             await moveToMenuBySession();
         });
     }
+
+
 
 
     /* ===========================

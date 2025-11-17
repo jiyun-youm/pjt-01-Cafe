@@ -96,10 +96,9 @@
     </delete>
 
     <!-- 지점 + 카테고리 조회 -->
-    <select id="getMenuByRegionAndCategory" resultType="MenuVO">
-        SELECT *
-        FROM MENU
-        WHERE STORE_NAME = #{region}
+    <select id="getMenuByStoreAndCategory">
+        SELECT * FROM MENU
+        WHERE STORE_NAME = #{storeName}
           AND CATEGORY = #{category}
     </select>
 

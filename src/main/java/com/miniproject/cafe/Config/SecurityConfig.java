@@ -38,6 +38,7 @@ public class SecurityConfig {
                         .requestMatchers("/", "/home", "/css/**", "/js/**", "/images/**").permitAll()
                         .requestMatchers("/api/member/**", "/oauth2/**").permitAll()
                         .requestMatchers("/menu/**").permitAll()
+                        .requestMatchers("/home/saveRegion", "/home/getRegion").permitAll()
 
                         // 로그인 필요 페이지들
                         .requestMatchers("/home/order_history", "/home/mypick", "/home/cart", "/account/**").authenticated()
@@ -47,7 +48,7 @@ public class SecurityConfig {
 
                 .formLogin(f -> f
                         // [핵심] 로그인 페이지를 루트("/")로 설정하여 경로 충돌 방지
-                        .loginPage("/home")
+                        .loginPage("/home/")
                         .loginProcessingUrl("/login")
                         .successHandler(formLoginSuccessHandler)
                         .failureHandler(formLoginFailureHandler)
@@ -55,7 +56,7 @@ public class SecurityConfig {
                 )
 
                 .oauth2Login(oauth2 -> oauth2
-                        .loginPage("/home")     // 반드시 /home 으로 고정
+                        .loginPage("/home/")     // 반드시 /home 으로 고정
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(customOAuth2UserService)
                         )
@@ -65,7 +66,7 @@ public class SecurityConfig {
 
                 .logout(logout -> logout
                         .logoutUrl("/logout")
-                        .logoutSuccessUrl("/home") // 로그아웃 후에도 루트로
+                        .logoutSuccessUrl("/home/") // 로그아웃 후에도 루트로
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
                 )

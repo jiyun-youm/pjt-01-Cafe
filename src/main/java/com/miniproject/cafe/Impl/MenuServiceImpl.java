@@ -45,7 +45,7 @@ public class MenuServiceImpl implements MenuService {
     }
 
     @Override
-    public List<MenuVO> getMenuByRegionAndCategory(String region, String category) {
-        return menuMapper.getMenuByRegionAndCategory(region, category);
+    public List<MenuVO> getMenuByStoreAndCategory(String storeName, String category) {
+        return menuMapper.getMenuByStoreAndCategory(storeName, category);
     }
 }

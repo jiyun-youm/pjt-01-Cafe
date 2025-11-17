@@ -11,11 +11,11 @@
 
         <!-- 카테고리 탭 -->
         <nav class="category-tab-bar">
-            <a th:href="@{/menu/newMenu(region=${region})}">신메뉴</a>
-            <a th:href="@{/menu/coffee(region=${region})}" class="active-category">커피</a>
-            <a th:href="@{/menu/beverage(region=${region})}">음료</a>
-            <a th:href="@{/menu/tea(region=${region})}">티/에이드</a>
-            <a th:href="@{/menu/food(region=${region})}">푸드</a>
+            <a th:href="@{/menu/newMenu}">신메뉴</a>
+            <a th:href="@{/menu/coffee}" class="active-category">커피</a>
+            <a th:href="@{/menu/beverage}">음료</a>
+            <a th:href="@{/menu/tea}">티/에이드</a>
+            <a th:href="@{/menu/food}">푸드</a>
         </nav>
 
         <main class="main-content">
@@ -27,35 +27,26 @@
                    class="menu-link">
 
                     <div class="menu-item" th:data-menu-id="${item.menuId}">
-
-                        <!-- 이미지 -->
                         <img th:src="@{'/images/img/' + ${item.menuImg}}"
                              th:alt="${item.menuName}"
                              class="menu-image">
 
-                        <!-- 메뉴 상세 -->
                         <div class="menu-details">
                             <div class="menu-name" th:text="${item.menuName}"></div>
 
-                            <!-- ICE / HOT 표시 -->
                             <span class="menu-temp">ICE</span>
 
-                            <!-- HOT 표시 조건 -->
                             <span class="menu-temp hot"
                                   th:if="${item.hotAvailable == 1}">
                                 HOT
                             </span>
 
-                            <!-- 가격 -->
                             <div class="menu-price"
-                                 th:data-price="${item.menuPrice}"
                                  th:text="${#numbers.formatInteger(item.menuPrice, 0)} + '원'">
                             </div>
                         </div>
 
-                        <!-- 찜 버튼 -->
-                        <span class="like-button"
-                              onclick="toggleLike(this, event)">♡</span>
+                        <span class="like-button" onclick="toggleLike(this, event)">♡</span>
 
                     </div>
                 </a>
@@ -64,6 +55,7 @@
         </main>
 
     </div>
+
 </th:block>
 
 <script src="/js/menu.js"></script>

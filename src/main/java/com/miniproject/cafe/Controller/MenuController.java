@@ -3,7 +3,7 @@ package com.miniproject.cafe.Controller;
 import com.miniproject.cafe.Service.MenuService;
 import com.miniproject.cafe.VO.MenuVO;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -13,79 +13,107 @@ import java.util.Map;
 
 @Controller
 @RequestMapping("/menu")
+@RequiredArgsConstructor
 public class MenuController {
 
-    @Autowired
-    private MenuService menuService;
+    private final MenuService menuService;
 
-    private String getValidRegion(String region) {
-        if (region == null || region.equals("selecting")) {
-            return "default";  // 기본 지점
+    private String getStoreNameFromSession(HttpSession session) {
+        String storeName = (String) session.getAttribute("storeName");
+
+        if (storeName == null || storeName.equals("selecting")) {
+            return null;
         }
-        return region;
+
+        return storeName;
     }
 
+    /** ------------------ 커피 --------------------- **/
     @GetMapping("/coffee")
-    public String coffee(@RequestParam(required = false) String region, Model model) {
+    public String coffee(Model model, HttpSession session) {
 
-        region = getValidRegion(region);
+        String storeName = getStoreNameFromSession(session);
 
-        List<MenuVO> items = menuService.getMenuByRegionAndCategory(region, "커피");
+        if (storeName == null) {
+            return "redirect:/home?msg=지점을+선택해주세요";
+        }
+
+        List<MenuVO> items = menuService.getMenuByStoreAndCategory(storeName, "커피");
 
         model.addAttribute("menuItems", items);
-        model.addAttribute("region", region);
+        model.addAttribute("storeName", storeName);
 
         return "menu/coffee";
     }
 
+    /** ------------------ 음료 --------------------- **/
     @GetMapping("/beverage")
-    public String beverage(@RequestParam(required = false) String region, Model model) {
+    public String beverage(Model model, HttpSession session) {
 
-        region = getValidRegion(region);
+        String storeName = getStoreNameFromSession(session);
 
-        List<MenuVO> items = menuService.getMenuByRegionAndCategory(region, "음료");
+        if (storeName == null) {
+            return "redirect:/home?msg=지점을+선택해주세요";
+        }
+
+        List<MenuVO> items = menuService.getMenuByStoreAndCategory(storeName, "음료");
 
         model.addAttribute("menuItems", items);
-        model.addAttribute("region", region);
+        model.addAttribute("storeName", storeName);
 
         return "menu/beverage";
     }
 
+    /** ------------------ 푸드 --------------------- **/
     @GetMapping("/food")
-    public String food(@RequestParam(required = false) String region, Model model) {
+    public String food(Model model, HttpSession session) {
 
-        region = getValidRegion(region);
+        String storeName = getStoreNameFromSession(session);
 
-        List<MenuVO> items = menuService.getMenuByRegionAndCategory(region, "푸드");
+        if (storeName == null) {
+            return "redirect:/home?msg=지점을+선택해주세요";
+        }
+
+        List<MenuVO> items = menuService.getMenuByStoreAndCategory(storeName, "푸드");
 
         model.addAttribute("menuItems", items);
-        model.addAttribute("region", region);
+        model.addAttribute("storeName", storeName);
 
         return "menu/food";
     }
 
+    /** ------------------ 티/에이드 --------------------- **/
     @GetMapping("/tea")
-    public String tea(@RequestParam(required = false) String region, Model model) {
+    public String tea(Model model, HttpSession session) {
 
-        region = getValidRegion(region);
+        String storeName = getStoreNameFromSession(session);
 
-        List<MenuVO> items = menuService.getMenuByRegionAndCategory(region, "티");
+        if (storeName == null) {
+            return "redirect:/home?msg=지점을+선택해주세요";
+        }
+
+        List<MenuVO> items = menuService.getMenuByStoreAndCategory(storeName, "티");
 
         model.addAttribute("menuItems", items);
-        model.addAttribute("region", region);
+        model.addAttribute("storeName", storeName);
 
         return "menu/tea";
     }
 
+    /** ------------------ 신메뉴 --------------------- **/
     @GetMapping("/newMenu")
-    public String newMenu(@RequestParam(required = false) String region, Model model) {
+    public String newMenu(Model model, HttpSession session) {
 
-        region = getValidRegion(region);
+        String storeName = getStoreNameFromSession(session);
 
-        List<MenuVO> items = menuService.getMenuByRegionAndCategory(region, "신메뉴");
+        if (storeName == null) {
+            return "redirect:/home?msg=지점을+선택해주세요";
+        }
+
+        List<MenuVO> items = menuService.getMenuByStoreAndCategory(storeName, "신메뉴");
 
         model.addAttribute("menuItems", items);
-        model.addAttribute("region", region);
+        model.addAttribute("storeName", storeName);
 
         return "menu/newMenu";
     }

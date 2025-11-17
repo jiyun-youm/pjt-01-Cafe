@@ -15,8 +15,8 @@ public interface MenuMapper {
     int insertMenu(MenuVO menu);
     int updateMenu(MenuVO menu);
     int deleteMenu(String menuId);
-    List<MenuVO> getMenuByRegionAndCategory(
-            @Param("region") String region,
+    List<MenuVO> getMenuByStoreAndCategory(
+            @Param("storeName") String storeName,
             @Param("category") String category
     );
 }
