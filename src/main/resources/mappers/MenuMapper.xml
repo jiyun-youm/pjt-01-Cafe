@@ -6,7 +6,7 @@
 <mapper namespace="com.miniproject.cafe.Mapper.MenuMapper">
 
     <!-- 전체 메뉴 조회 -->
-    <select id="getAllMenu" resultType="MenuVO">
+    <select id="getAllMenu" resultType="com.miniproject.cafe.VO.MenuVO">
         SELECT
             MENU_ID AS menuId,
             MENU_NAME AS menuName,
@@ -14,7 +14,9 @@
             SALES_STATUS AS salesStatus,
             MENU_IMG AS menuImg,
             MENU_PRICE AS menuPrice,
-            HOT_AVAILABLE AS hotAvailable
+            HOT_AVAILABLE AS hotAvailable,
+            MENU_DEFINITION AS menuDefinition,
+            store_name AS storeName
         FROM MENU
         ORDER BY MENU_ID ASC
     </select>
