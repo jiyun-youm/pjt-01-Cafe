@@ -3,69 +3,51 @@ package com.miniproject.cafe.Impl;
 import com.miniproject.cafe.Mapper.AdminMapper;
 import com.miniproject.cafe.Service.AdminService;
 import com.miniproject.cafe.VO.AdminVO;
-import com.miniproject.cafe.VO.MemberVO;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class AdminServiceImpl implements AdminService {
 
-    @Autowired
-    private final AdminMapper adminMapper;
-
-    @Autowired
+    private final AdminMapper mapper;
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    @Transactional
-    public String registerMember(MemberVO vo) {
-        if (vo.getPassword() == null || vo.getPasswordCheck() == null || !vo.getPassword().equals(vo.getPasswordCheck())) {
-            return "PASSWORD_MISMATCH";
+    public void register(AdminVO vo) {
+
+        if (mapper.checkId(vo.getId()) > 0) {
+            throw new RuntimeException("이미 존재하는 아이디입니다.");
         }
 
-        if (AdminMapper.isIdDuplicate(vo.getId())) {
-            return "ID_DUPLICATE";
-        }
-
-        if (AdminMapper.isEmailDuplicate(vo.getEmail())) {
-            return "EMAIL_DUPLICATE";
-        }
-        String rawPassword = vo.getPassword();
-        String encodedPassword = passwordEncoder.encode(rawPassword);
-        vo.setPassword(encodedPassword);
-        vo.setProvider("general");
-
-        AdminMapper.registerMember(vo);
-        return "SUCCESS";
+        vo.setPassword(passwordEncoder.encode(vo.getPassword()));
+        mapper.insertAdmin(vo);
     }
 
     @Override
-    public boolean loginMember(MemberVO vo, HttpSession session) {
-        MemberVO storedMember = AdminMapper.loginMember(vo);
+    public AdminVO login(String id, String password) {
 
-        if (storedMember != null) {
-            // 사용자가 입력한 평문 비밀번호와 DB에 저장된 암호화된 비밀번호를 비교
-            if (passwordEncoder.matches(vo.getPassword(), storedMember.getPassword())) {
-                session.setAttribute("loginMember", storedMember); // 비밀번호 일치 (로그인 성공)
-                return true;
-            }
+        AdminVO vo = new AdminVO();
+        vo.setId(id);
+
+        AdminVO dbVO = mapper.loginAdmin(vo);
+        if (dbVO == null) {
+            throw new RuntimeException("아이디가 존재하지 않습니다.");
         }
-        return false; //비밀번호 불일치 또는 회원 없음
+
+        if (!passwordEncoder.matches(password, dbVO.getPassword())) {
+            throw new RuntimeException("비밀번호가 일치하지 않습니다.");
+        }
+
+        return dbVO;
     }
 
     @Override
-    public boolean isIdDuplicate(String id) {
-        return AdminMapper.isIdDuplicate(id);
-    }
-
-    @Override
-    public boolean isEmailDuplicate(String email) {
-        return AdminMapper.isEmailDuplicate(email);
+    public int checkId(String id) {
+        return mapper.checkId(id);
     }
 
 }

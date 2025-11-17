@@ -4,9 +4,8 @@ import com.miniproject.cafe.VO.AdminVO;
 
 public interface AdminService {
 
-    boolean signup(AdminVO admin);
+    void register(AdminVO vo);          // 회원가입
+    AdminVO login(String id, String password);  // 로그인
 
-    AdminVO login(AdminVO admin);
-
-    boolean isIdDuplicate(String id);
+    int checkId(String id);
 }
