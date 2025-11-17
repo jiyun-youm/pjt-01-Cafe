@@ -6,8 +6,7 @@
 <mapper namespace="com.miniproject.cafe.Mapper.OrderDetailMapper">
 
     <!-- 주문 상세 저장 -->
-<<<<<<< Updated upstream
-    <insert id="orderDetail" parameterType="OrderDetailVO" useGeneratedKeys="true" keyProperty="orderDetailId">
+    <insert id="orderDetail" parameterType="OrderDetailVO">
         INSERT INTO order_detail(
             ORDER_ID,
             MENU_ID,
@@ -28,27 +27,6 @@
                   #{vanillaSyrup},
                   #{cream}
               )
-=======
-    <insert id="orderDetail" parameterType="OrderDetailVO">
-        INSERT INTO order_detail(ORDER_DETAIL_ID,
-                                 ORDER_ID,
-                                 MENU_ID,
-                                 MEMBER_ID,
-                                 AMOUNT,
-                                 TUMBLER,
-                                 SHOT,
-                                 VANILLA_SYRUP,
-                                 CREAM)
-        VALUES (#{orderDetailId},
-                #{orderId},
-                #{menuId},
-                #{memberId},
-                #{amount},
-                #{tumbler},
-                #{shot},
-                #{vanillaSyrup},
-                #{cream})
->>>>>>> Stashed changes
     </insert>
 
     <!-- 단일 메뉴 조회 -->

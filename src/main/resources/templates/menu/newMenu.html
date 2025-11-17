@@ -7,11 +7,11 @@
     <div class="wrap">
 
         <nav class="category-tab-bar">
-            <a th:href="@{/menu/newMenu}" class="active-category">신메뉴</a>
-            <a th:href="@{/menu/coffee}">커피</a>
-            <a th:href="@{/menu/beverage}">음료</a>
-            <a th:href="@{/menu/tea}">티/에이드</a>
-            <a th:href="@{/menu/food}">푸드</a>
+            <a th:href="@{/menu/newMenu(region=${region})}" class="active-category">신메뉴</a>
+            <a th:href="@{/menu/coffee(region=${region})}">커피</a>
+            <a th:href="@{/menu/beverage(region=${region})}">음료</a>
+            <a th:href="@{/menu/tea(region=${region})}">티/에이드</a>
+            <a th:href="@{/menu/food(region=${region})}">푸드</a>
         </nav>
 
         <main class="main-content">

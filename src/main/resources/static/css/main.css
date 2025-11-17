@@ -66,6 +66,10 @@ body {
     bottom: 0;
     left: 0;
     width: 100%; /* .mobile-frame에 꽉 차도록 */
+    /*max-width: none;      !* 모바일 프레임 제한 제거 *!*/
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    z-index: 100;
 }
 
 /* =================================
@@ -77,7 +81,7 @@ body {
     background-color: transparent; /* <- transparent로 변경 */
     position: relative; /* 자식 요소의 z-index가 제대로 작동하게 함 */
     z-index: 2; /* .mobile-frame::before 위에 오도록 (main.container가 감싸므로) */
-    padding-bottom: 70px; /* 탭 바 높이(70px)만큼 패딩을 줘서 컨텐츠가 가려지지 않게 함 */
+    padding-bottom: 120px; /* 탭 바 높이(120px)만큼 패딩을 줘서 컨텐츠가 가려지지 않게 함 */
 }
 
 main.container {
@@ -546,4 +550,46 @@ main.container {
     margin: 8px 0 12px;
     font-size: 14px;
     color: #444;
+}
+
+.region {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 35px;
+    gap: 12px;
+}
+
+.region-label {
+    font-size: 16px;
+    font-weight: 600;
+    color: #5a4636; /* 따뜻한 카페 브라운 */
+}
+
+/* SELECT 기본 스타일 */
+.region select {
+    width: 220px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid #c8b6a6;
+    background: #faf8f5;
+    font-size: 15px;
+    color: #4a4036;
+    outline: none;
+
+    /* 기본 화살표 제거 */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+
+    /* 커스텀 화살표 */
+    background-image: url('/images/arrow-down.svg');
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 14px;
+}
+
+.region select:focus {
+    border-color: #a08978;
+    background-color: #fff;
 }
