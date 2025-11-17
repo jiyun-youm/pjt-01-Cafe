@@ -6,9 +6,8 @@
 <mapper namespace="com.miniproject.cafe.Mapper.OrderDetailMapper">
 
     <!-- 주문 상세 저장 -->
-    <insert id="orderDetail" parameterType="OrderDetailVO">
+    <insert id="orderDetail" parameterType="OrderDetailVO" useGeneratedKeys="true" keyProperty="orderDetailId">
         INSERT INTO order_detail(
-            ORDER_DETAIL_ID,
             ORDER_ID,
             MENU_ID,
             MEMBER_ID,
@@ -19,7 +18,6 @@
             CREAM
         )
         VALUES(
-                  #{orderDetailId},
                   #{orderId},
                   #{menuId},
                   #{memberId},

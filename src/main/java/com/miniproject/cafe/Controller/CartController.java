@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -24,18 +25,39 @@ public class CartController {
 
     @GetMapping("/cart")
     public String cartPage(Authentication auth, Model model) {
-
-        // 로그인 안 되어있으면 홈으로
         if (auth == null || !auth.isAuthenticated()) {
             return "redirect:/home/";
         }
 
-        // 로그인 된 유저 email(id)
         String memberId = auth.getName();
+        Map<String, Object> cartData;
 
-        Map<String, Object> cartData = cartService.getCartList(memberId);
+        try {
+            cartData = cartService.getCartList(memberId);
 
-        if (cartData == null) {
+            // ✅ 빈 데이터 필터링
+            if (cartData != null && cartData.get("cartItems") != null) {
+                List<Map<String, Object>> cartItems = (List<Map<String, Object>>) cartData.get("cartItems");
+                List<Map<String, Object>> validItems = new ArrayList<>();
+
+                for (Map<String, Object> item : cartItems) {
+                    // 실제 메뉴 데이터가 있는지 확인 (MENU_PRICE가 0보다 큰지)
+                    if (item.get("MENU_PRICE") != null &&
+                            Integer.parseInt(item.get("MENU_PRICE").toString()) > 0) {
+                        validItems.add(item);
+                    }
+                }
+                cartData.put("cartItems", validItems);
+            }
+
+            if (cartData == null) {
+                cartData = new HashMap<>();
+                cartData.put("cartItems", new ArrayList<>());
+                cartData.put("totalPrice", 0);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
             cartData = new HashMap<>();
             cartData.put("cartItems", new ArrayList<>());
             cartData.put("totalPrice", 0);
@@ -91,18 +113,17 @@ public class CartController {
     @PostMapping("/cart/add")
     @ResponseBody
     public Map<String, Object> addToCart(@RequestBody Map<String, Object> cartData,
-                                         HttpSession session) {
+                                         Authentication auth) {
         Map<String, Object> result = new HashMap<>();
 
-        MemberVO loginMember = (MemberVO) session.getAttribute("loginMember");
-        if (loginMember == null) {
+        if (auth == null || !auth.isAuthenticated()) {
             result.put("success", false);
             result.put("message", "로그인이 필요합니다.");
             return result;
         }
 
         try {
-            String memberId = loginMember.getId();
+            String memberId = auth.getName();
             String menuId = (String) cartData.get("menuId");
             int quantity = Integer.parseInt(cartData.get("quantity").toString());
             String temp = (String) cartData.get("temp");

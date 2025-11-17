@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function changeQuantityCartItem(cartItemId, quantity) {
         return fetch(`${API_BASE_URL}/items/${cartItemId}?quantity=${quantity}`, {
             method: 'PATCH'
-        }).then(response => response.json());
+        }).then(response => response.text());
     }
 
     function deleteCartItem(cartItemId) {
@@ -34,25 +34,39 @@ document.addEventListener('DOMContentLoaded', function() {
         }).then(response => response.text());
     }
 
-    // function deleteSelectedItems(cartItemIds) {
-    //     let deletePromises = cartItemIds.map(cartItemId =>
-    //         deleteCartItem(cartItemId)
-    //     );
-    //     return Promise.all(deletePromises);
-    // }
-
     // ------------------------------------------
-    // A. 품목별 합산 가격 업데이트 함수
+    // A. 품목별 가격 계산 (단순화)
     // ------------------------------------------
     function updateItemPriceDisplay(itemElement) {
-        let itemPricePerUnit = parseInt(itemElement.dataset.price);
-        let itemQuantity = parseInt(itemElement.querySelector('.item-quantity').dataset.quantity);
-        let itemTotalPrice = itemPricePerUnit * itemQuantity;
+        let basePrice = parseInt(itemElement.dataset.basePrice) || 0;
+        let optionPrice = parseInt(itemElement.dataset.optionPrice) || 0;
+        let quantity = parseInt(itemElement.querySelector('.item-quantity').dataset.quantity) || 0;
+
+        // ✅ 단순 계산: (기본가 + 옵션가) * 수량
+        let itemTotalPrice = (basePrice + optionPrice) * quantity;
+
+        console.log('아이템 가격 계산:', basePrice, '+', optionPrice, '*', quantity, '=', itemTotalPrice);
 
         let priceDisplayElement = itemElement.querySelector('.item-price-display');
-
         if (priceDisplayElement) {
             priceDisplayElement.textContent = `${itemTotalPrice.toLocaleString('ko-KR')}원`;
+        }
+    }
+
+    function checkEmptyCart() {
+        const items = document.querySelectorAll('.cart-item');
+        const emptyMsg = document.querySelector('.empty-cart-message');
+        const actionBar = document.querySelector('.action-bar');
+        const itemList = document.querySelector('.item-list');
+
+        if (items.length === 0) {
+            document.querySelector('.action-bar').style.display = 'none';
+            document.querySelector('.item-list').style.display = 'none';
+            emptyMsg.style.display = 'block';
+        } else {
+            emptyMsg.style.display = 'none';
+            if (actionBar) actionBar.style.display = 'block';
+            if (itemList) itemList.style.display = 'block';
         }
     }
 
@@ -94,6 +108,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // 안전한 정수 변환 함수
+    function safeParseInt(value, defaultValue = 0) {
+        if (value === null || value === undefined) return defaultValue;
+        let num = parseInt(value);
+        return isNaN(num) ? defaultValue : num;
+    }
+
     // 장바구니 총 가격을 계산하고 UI를 업데이트하는 함수
     function updateCartTotal() {
         let total = 0;
@@ -102,18 +123,21 @@ document.addEventListener('DOMContentLoaded', function() {
         items.forEach(function(item) {
             let isChecked = item.querySelector('.item-checkbox-input').checked;
 
-            updateItemPriceDisplay(item);
-
             if (isChecked) {
-                let itemPricePerUnit = parseInt(item.dataset.price);
-                let itemQuantity = parseInt(item.querySelector('.item-quantity').dataset.quantity);
-                total += itemPricePerUnit * itemQuantity;
+                let basePrice = parseInt(item.dataset.basePrice) || 0;
+                let optionPrice = parseInt(item.dataset.optionPrice) || 0;
+                let quantity = parseInt(item.querySelector('.item-quantity').dataset.quantity) || 0;
+
+                let itemTotal = (basePrice + optionPrice) * quantity;
+                console.log('총합에 추가:', itemTotal);
+                total += itemTotal;
             }
         });
 
+        console.log('🎯 최종 총합:', total);
+
         let formattedTotal = total.toLocaleString('ko-KR');
         let cartTotalElement = document.getElementById('totalCartPrice');
-
         if (cartTotalElement) {
             cartTotalElement.textContent = `${formattedTotal}원`;
         }
@@ -159,7 +183,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // 🔥 API 호출로 DB 업데이트
                     changeQuantityCartItem(cartItemId, newQuantity)
                         .then(result => {
-                            if (result === "success") {
+                            if (result === "change success") {
                                 quantitySpan.dataset.quantity = newQuantity;
                                 quantitySpan.textContent = newQuantity;
                                 updateItemPriceDisplay(item);
@@ -180,9 +204,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     deleteCartItem(cartItemId)
                         .then((result) => {
-                            if (result === "success") {
-                                item.remove();
-                                updateCartTotal();
+                            if (result === "delete success") {
+                                // ✅ 페이지 새로고침
+                                window.location.reload();
                             } else {
                                 alert('삭제에 실패했습니다.');
                             }
@@ -192,7 +216,6 @@ document.addEventListener('DOMContentLoaded', function() {
                             alert('삭제에 실패했습니다.');
                         });
                 }
-
             } else if (btn.classList.contains('item-checkbox-input')) {
                 let selectAllCheckbox = document.getElementById('selectAll');
                 let allChecked = Array.from(document.querySelectorAll('.item-checkbox-input')).every(cb => cb.checked);
@@ -257,7 +280,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ------------------------------------------
-    // 5. 선택 삭제 기능 - UI만 동작
+    // 5. 선택 삭제 기능 - DB 연동
     // ------------------------------------------
     let deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
 
@@ -274,23 +297,88 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // 🔥 API 호출 없이 UI만 업데이트
+            // 🔥 각 항목별로 개별 삭제 API 호출
+            let deletePromises = [];
+            let itemsToRemove = [];
+
             checkedItems.forEach(function(checkbox) {
                 let cartItem = checkbox.closest('.cart-item');
-                if (cartItem) {
-                    cartItem.remove();
+                let cartItemId = cartItem.dataset.cartItemId;
+
+                if (cartItemId) {
+                    itemsToRemove.push(cartItem);
+                    deletePromises.push(deleteCartItem(cartItemId));
                 }
             });
 
-            updateCartTotal();
+            // 🔥 모든 삭제 요청이 완료되면 UI 업데이트
+            Promise.all(deletePromises)
+                .then(results => {
+                    let successCount = results.filter(result => result === "delete success").length;
 
-            let selectAllCheckbox = document.getElementById('selectAll');
-            if (selectAllCheckbox) {
-                selectAllCheckbox.checked = false;
-            }
+                    if (successCount === itemsToRemove.length) {
+                        // ✅ 모든 삭제 성공
+                        itemsToRemove.forEach(item => item.remove());
+                        updateCartTotal();
 
-            alert('선택된 항목이 삭제되었습니다.');
+                        let selectAllCheckbox = document.getElementById('selectAll');
+                        if (selectAllCheckbox) {
+                            selectAllCheckbox.checked = false;
+                        }
+
+                        alert('선택된 항목이 삭제되었습니다.');
+                        window.location.reload();
+                    } else {
+                        alert('일부 항목 삭제에 실패했습니다.');
+                    }
+                })
+                .catch(error => {
+                    console.error('선택 삭제 실패:', error);
+                    alert('삭제에 실패했습니다.');
+                });
         });
+    }
+
+    // ✅ 장바구니가 비었는지 확인하고 empty 메시지를 표시하는 함수
+    function checkAndShowEmptyCartMessage() {
+        let cartItems = document.querySelectorAll('.cart-item');
+        let cartContainer = document.querySelector('.item-list');
+        let actionBar = document.querySelector('.action-bar');
+        let emptyMessage = document.querySelector('.empty-cart-message');
+
+        if (cartItems.length === 0) {
+            // 장바구니 항목이 없으면 action-bar와 item-list 숨기기
+            if (actionBar) actionBar.style.display = 'none';
+            if (cartContainer) cartContainer.style.display = 'none';
+
+            // empty 메시지 표시
+            if (emptyMessage) {
+                emptyMessage.style.display = 'block';
+            }
+        } else {
+            // 장바구니 항목이 있으면 action-bar와 item-list 표시
+            if (actionBar) actionBar.style.display = 'block';
+            if (cartContainer) cartContainer.style.display = 'block';
+
+            // empty 메시지 숨기기
+            if (emptyMessage) {
+                emptyMessage.style.display = 'none';
+            }
+        }
+    }
+
+    // ✅ 개별 삭제 시에도 호출되도록 수정
+    function deleteCartItem(cartItemId) {
+        return fetch(`${API_BASE_URL}/items/${cartItemId}`, {
+            method: 'DELETE'
+        }).then(response => response.text())
+            .then(result => {
+                if (result === "delete success") {
+                    // 삭제 성공 시 empty 메시지 확인
+                    setTimeout(checkAndShowEmptyCartMessage, 100);
+                }
+                return result;
+            });
     }
 
     // ------------------------------------------
