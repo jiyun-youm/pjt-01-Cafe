@@ -39,7 +39,7 @@ public class CartController {
         if (currentStore == null || currentStore.trim().isEmpty()) {
             return "redirect:/home/";
         }
-
+        System.out.println("🛒 [CartController] 세션값: [" + currentStore + "]");
         model.addAttribute("storeName", currentStore);
 
         // 5. 사용자 ID 가져오기

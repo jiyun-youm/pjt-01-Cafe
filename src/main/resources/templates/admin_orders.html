@@ -39,17 +39,13 @@
     <a th:if="${isLoggedIn}" href="/admin/logout" class="footer-nav-item">로그아웃</a>
     <a th:unless="${isLoggedIn}" href="/admin/login" class="footer-nav-item">로그인</a>
 </footer>
-<script th:inline="javascript">
-    let storeName = /*[[${session.admin != null ? session.admin.storeName : ''}]]*/ '';
-</script>
-
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
 
         // --- 상수 및 변수 정의 ---
 
-        const API_BASE_URL = 'http://localhost:8383/api/orders';
+        const API_BASE_URL = '/api/orders';
         const API_ENDPOINT_LIST = `${API_BASE_URL}/admin-list?storeName=${storeName}`;
         const API_ENDPOINT_STATUS_UPDATE = `${API_BASE_URL}/status`;
 
