@@ -33,11 +33,12 @@
             M.MENU_ID,
             M.MENU_NAME,
             COALESCE(M.MENU_PRICE, 0) as MENU_PRICE,
-            M.MENU_IMG
+            M.MENU_IMG,
+            M.CATEGORY
         FROM CART C
-                 LEFT JOIN CART_ITEM CI ON C.CART_ID = CI.CART_ID
-                 LEFT JOIN MENU_OPTION MO ON CI.MENU_OPTION_ID = MO.OPTION_ID
-                 LEFT JOIN MENU M ON MO.MENU_ID = M.MENU_ID
+        LEFT JOIN CART_ITEM CI ON C.CART_ID = CI.CART_ID
+        LEFT JOIN MENU_OPTION MO ON CI.MENU_OPTION_ID = MO.OPTION_ID
+        LEFT JOIN MENU M ON MO.MENU_ID = M.MENU_ID
         WHERE C.MEMBER_ID = #{memberId}
         ORDER BY CI.CART_ITEM_ID DESC
     </select>

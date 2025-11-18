@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/admin")
@@ -24,10 +25,12 @@ public class AdminController {
     }
 
     @GetMapping("/orders")
-    public String adminOrders(HttpSession session) {
+    public String adminOrders(HttpSession session, Model model) {
         if (session.getAttribute("adminId") == null) {
             return "redirect:/admin/login";
         }
+        //로그인 상태 전달
+        model.addAttribute("isLoggedIn", session.getAttribute("adminId") != null);
         return "admin_orders";
     }
 
@@ -58,7 +61,11 @@ public class AdminController {
 
     // 로그인 화면
     @GetMapping("/login")
-    public String adminLogin() {
+    public String adminLogin(HttpSession session, Model model) {
+        // 세션에 adminId가 있으면 로그인 상태
+        boolean isLoggedIn = session.getAttribute("adminId") != null;
+        model.addAttribute("isLoggedIn", isLoggedIn);
+
         return "admin_login";
     }
 
@@ -66,7 +73,8 @@ public class AdminController {
     @PostMapping("/login")
     public String login(@RequestParam String id,
                         @RequestParam String password,
-                        HttpSession session) {
+                        HttpSession session,
+                        RedirectAttributes ra) {
 
         try {
             AdminVO admin = adminService.login(id, password);
@@ -74,9 +82,8 @@ public class AdminController {
             session.setAttribute("storeName", admin.getStoreName());
 
         } catch (RuntimeException e) {
-
-            // 로그인 실패 메시지도 sanitize 적용
-            return "redirect:/admin/login?error=" + sanitize(e.getMessage());
+            ra.addFlashAttribute("loginError", e.getMessage());
+            return "redirect:/admin/login";
         }
 
         return "redirect:/admin/orders";
@@ -88,5 +95,12 @@ public class AdminController {
     public String checkId(@RequestParam String id) {
         int count = adminService.checkId(id);
         return count > 0 ? "duplicate" : "available";
+    }
+
+    //로그아웃 처리
+    @GetMapping("/logout")
+    public String logout(HttpSession session) {
+        session.invalidate(); // 세션 초기화
+        return "redirect:/admin/login";
     }
 }

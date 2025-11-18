@@ -102,10 +102,23 @@
         optionModal.style.display = 'none'; // 모달 닫기
     };
 
-    document.getElementById('detailBtn').onclick = () => openModal(detailModal);
-    document.getElementById('shotBtn').onclick = () => openOption('샷 선택', ['샷 추가']);
-    document.getElementById('sweetBtn').onclick = () => openOption('당도 선택', ['바닐라 시럽 추가']);
-    document.getElementById('toppingBtn').onclick = () => openOption('토핑 선택', ['휘핑 크림 추가']);
+    const detailBtn = document.getElementById('detailBtn');
+    const shotBtn = document.getElementById('shotBtn');
+    const sweetBtn = document.getElementById('sweetBtn');
+    const toppingBtn = document.getElementById('toppingBtn');
+
+    if (detailBtn) {
+        detailBtn.onclick = () => openModal(detailModal);
+    }
+    if (shotBtn) {
+        shotBtn.onclick = () => openOption('샷 선택', ['샷 추가']);
+    }
+    if (sweetBtn) {
+        sweetBtn.onclick = () => openOption('당도 선택', ['바닐라 시럽 추가']);
+    }
+    if (toppingBtn) {
+        toppingBtn.onclick = () => openOption('토핑 선택', ['휘핑 크림 추가']);
+    }
 
     function openModal(modal) {
     modal.style.display = 'flex';
@@ -168,8 +181,15 @@
 
     function addToCart() {
         // 1. 현재 선택된 옵션들 수집
-        let selectedTemp = document.querySelector('.segmented-btn.active').dataset.value;
-        let tumblerUse = document.getElementById('tumbler').checked;
+        const activeTempBtn = document.querySelector('.segmented-btn.active');
+        let selectedTemp = 'ice'; // 푸드 메뉴를 위해 기본값 설정
+
+        // segmented 버튼이 실제로 존재하는 경우에만 값 설정
+        if (activeTempBtn && activeTempBtn.dataset.value) {
+            selectedTemp = activeTempBtn.dataset.value;
+        }
+
+        let tumblerUse = document.getElementById('tumbler') ? document.getElementById('tumbler').checked : false;
         let shotCount = appliedOptionCounts['샷 추가'] || 0;
         let vanillaSyrupCount = appliedOptionCounts['바닐라 시럽 추가'] || 0;
         let whippedCreamCount = appliedOptionCounts['휘핑 크림 추가'] || 0;
@@ -185,18 +205,18 @@
             return;
         }
 
-        // 3. 데이터 객체 생성
+        // 3. 데이터 객체 생성 - 푸드 메뉴도 'ice' 기본값 사용
         let cartData = {
             menuId: menuId,
             quantity: quantity,
-            temp: selectedTemp,
+            temp: selectedTemp, // 항상 값이 있도록
             tumblerUse: tumblerUse,
             shotCount: shotCount,
             vanillaSyrupCount: vanillaSyrupCount,
             whippedCreamCount: whippedCreamCount
         };
 
-        console.log('담기 데이터:', cartData); // 디버깅용
+        console.log('담기 데이터:', cartData);
 
         // 4. AJAX 요청
         fetch('/home/cart/add', {
@@ -215,7 +235,6 @@
             .then(result => {
                 if (result.success) {
                     alert('장바구니에 추가되었습니다.');
-                    // ✅ home/cart로 이동
                     window.location.href = '/home/cart';
                 } else {
                     alert('장바구니 추가에 실패했습니다: ' + result.message);

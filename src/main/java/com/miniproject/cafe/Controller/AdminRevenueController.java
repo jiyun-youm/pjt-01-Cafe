@@ -20,17 +20,28 @@ public class AdminRevenueController {
     private AdminRevenueService adminRevenueService;
 
     @GetMapping("/revenue")
-    public String adminRevenue(Model model,
+    public String adminRevenue(HttpSession session, Model model,
                                @RequestParam(required=false) String date) {
-        if(date == null || date.isEmpty()) {
-            List<AdminRevenueVO> orderDetailVO=adminRevenueService.getAllOrders();
-            model.addAttribute("orderDetailVO", orderDetailVO);
-            return "admin_revenue";   // 전체 조회
-        } else {
-            List<AdminRevenueVO> orderDetailVO=adminRevenueService.getOrdersByDate(date);
-            model.addAttribute("orderDetailVO", orderDetailVO);
-            return "admin_revenue";  // 특정 날짜 조회
+        // 로그인 상태 체크
+        boolean isLoggedIn = session.getAttribute("adminId") != null;
+        model.addAttribute("isLoggedIn", isLoggedIn);
+
+        // 로그인 안 되어 있으면 로그인 페이지로 이동
+        if (!isLoggedIn) {
+            return "redirect:/admin/login";
         }
+
+        // 주문 조회
+        if(date == null || date.isEmpty()) {
+            List<AdminRevenueVO> orderDetailVO = adminRevenueService.getAllOrders();
+            model.addAttribute("orderDetailVO", orderDetailVO);
+        } else {
+            List<AdminRevenueVO> orderDetailVO = adminRevenueService.getOrdersByDate(date);
+            model.addAttribute("orderDetailVO", orderDetailVO);
+        }
+
+        return "admin_revenue";
     }
+
 
 }

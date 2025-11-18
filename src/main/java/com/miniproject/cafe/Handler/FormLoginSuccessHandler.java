@@ -31,6 +31,7 @@ public class FormLoginSuccessHandler implements AuthenticationSuccessHandler {
         FlashMap flash = new FlashMap();
         flash.put("loginSuccessType", "general");
         flash.put("loginMemberName", member.getUsername());
+        request.getSession().setAttribute("member", member);
         new SessionFlashMapManager().saveOutputFlashMap(flash, request, response);
 
         response.sendRedirect("/home/");

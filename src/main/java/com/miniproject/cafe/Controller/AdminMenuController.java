@@ -26,6 +26,8 @@ public class AdminMenuController {
             return "redirect:/admin/login";
         }
 
+        model.addAttribute("isLoggedIn", session.getAttribute("adminId") != null);
+
         List<MenuVO> menuList = menuService.getMenuByStore(storeName);
 
         model.addAttribute("menuList", menuList);

@@ -1,0 +1,59 @@
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<th:block th:replace="~{./include/userBaseLayout :: setContent( ~{:: .wrap} ) }">
+
+    <link rel="stylesheet" th:href="@{/css/sign.css}">
+
+    <div class="wrap">
+        <div class="logo">
+            <img src="img/javabean_logo.png" alt="JavaBean Logo">
+        </div>
+
+        <form onsubmit="return false;">
+
+            <input type="text" placeholder="ID" required>
+            <input type="password" placeholder="Password" required>
+            <input type="password" placeholder="PasswordCheck" required>
+            <input type="text" placeholder="UserName" required>
+            <input type="email" placeholder="e-mail" required>
+            <button type="submit" class="btn">sign up</button>
+        </form>
+
+        <div class="link">
+            이미 계정이 있나요? <a href="login.html">로그인하기</a>
+        </div>
+
+
+        <script>
+
+            document.addEventListener("DOMContentLoaded", () => {
+                const form = document.getElementById("signupForm");
+
+                const regex = {
+                    id: /^[a-z0-9]{5,20}$/,
+                    password: /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,16}$/,
+                    email: /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/
+                };
+
+                form.addEventListener("submit", e => {
+                    e.preventDefault();
+
+                    const id = form.id.value.trim();
+                    const pw = form.password.value;
+                    const pwCheck = form.passwordCheck.value;
+                    const email = form.email.value.trim();
+
+                    if (!regex.id.test(id)) return alert("ID 형식이 잘못되었습니다.");
+                    if (!regex.password.test(pw)) return alert("비밀번호 형식이 잘못되었습니다.");
+                    if (pw !== pwCheck) return alert("비밀번호가 일치하지 않습니다.");
+                    if (!regex.email.test(email)) return alert("이메일 형식이 잘못되었습니다.");
+
+                    alert("회원가입 완료!");
+                    location.href = "loginMain.html";
+
+                });
+            });
+
+        </script>
+    </div>
+</th:block>
+</html>

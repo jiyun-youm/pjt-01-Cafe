@@ -7,98 +7,101 @@
     <link rel="stylesheet" href="/css/admin_menu_management.css">
 </head>
 <body>
-    <th:block
-            th:replace="~{./include/adminBaseLayout :: setContent( ~{:: .wrap} ) }"
-            th:with="menuList=${menuList}">
-        <div class="wrap">
-            <div class="admin-container">
-                <main class="admin-main">
+<th:block
+        th:replace="~{./include/adminBaseLayout :: setContent( ~{:: .wrap} ) }"
+        th:with="menuList=${menuList}">
+    <div class="wrap">
+        <div class="admin-container">
+            <main class="admin-main">
 
-                    <!-- 등록된 메뉴 영역 -->
-                    <section class="menu-list-section">
-                        <h2>등록된 메뉴</h2>
-                        <div class="menu-actions">
-                            <button class="select-delete-btn">선택 메뉴 삭제</button>
+                <!-- 등록된 메뉴 영역 -->
+                <section class="menu-list-section">
+                    <h2>등록된 메뉴</h2>
+                    <div class="menu-actions">
+                        <button class="select-delete-btn">선택 메뉴 삭제</button>
+                    </div>
+
+                    <div class="table-scroll-container">
+                        <table class="menu-table">
+                            <thead>
+                            <tr>
+                                <th class="text-center">선택</th>
+                                <th class="text-center">메뉴 이름</th>
+                                <th class="text-center">가격</th>
+                                <th class="text-center">카테고리</th>
+                                <th class="text-center">메뉴 삭제</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <!-- DB 메뉴 리스트 반복 출력 -->
+                            <tr th:each="menu : ${menuList}"
+                                th:data-menu-id="${menu.menuId}">
+                                <td><input type="checkbox" th:value="${menu.menuId}"></td>
+                                <td th:text="${menu.menuName}">메뉴명</td>
+                                <td th:text="${menu.menuPrice} + '원'"></td>
+                                <td th:text="${menu.category}">카테고리</td>
+                                <td>
+                                    <button class="delete-btn"
+                                            th:data-id="${menu.menuId}">×</button>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- 신규 메뉴 등록 폼 -->
+                <aside class="new-menu-section">
+                    <h2>새 메뉴 등록</h2>
+                    <form id="newMenuForm" class="new-menu-form"
+                          th:action="@{/admin/insertMenu}"
+                          method="post"
+                          enctype="multipart/form-data">
+                        <label for="menuName">메뉴 이름</label>
+                        <input type="text" id="menuName" name="menuName" placeholder="예) 아메리카노" required>
+
+                        <label for="menuPrice">가격</label>
+                        <input type="text" id="menuPrice" name="menuPrice" placeholder="숫자만 입력해주세요. 예) 3000" required>
+
+                        <label for="menuCategory">카테고리</label>
+                        <select id="menuCategory" name="category" required>
+                            <option value="" disabled selected>카테고리 선택</option>
+                            <option value="커피">커피</option>
+                            <option value="음료">음료</option>
+                            <option value="신메뉴">신메뉴</option>
+                            <option value="티">티(Tea)</option>
+                            <option value="푸드">푸드</option>
+                        </select>
+
+                        <label for="menuDescription">메뉴 설명</label>
+                        <textarea id="menuDescription" name="menuDefinition"></textarea>
+
+                        <label>사진</label>
+                        <div class="image-upload-box" onclick="document.getElementById('menuImage').click();">
+                            <span class="material-icons">add</span>
                         </div>
-
-                        <div class="table-scroll-container">
-                            <table class="menu-table">
-                                <thead>
-                                <tr>
-                                    <th class="text-center">선택</th>
-                                    <th class="text-center">메뉴 이름</th>
-                                    <th class="text-center">가격</th>
-                                    <th class="text-center">카테고리</th>
-                                    <th class="text-center">메뉴 삭제</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <!-- DB 메뉴 리스트 반복 출력 -->
-                                <tr th:each="menu : ${menuList}"
-                                    th:data-menu-id="${menu.menuId}">
-                                    <td><input type="checkbox" th:value="${menu.menuId}"></td>
-                                    <td th:text="${menu.menuName}">메뉴명</td>
-                                    <td th:text="${menu.menuPrice} + '원'"></td>
-                                    <td th:text="${menu.category}">카테고리</td>
-                                    <td>
-                                        <button class="delete-btn"
-                                                th:data-id="${menu.menuId}">×</button>
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </section>
-
-                    <!-- 신규 메뉴 등록 폼 -->
-                    <aside class="new-menu-section">
-                        <h2>새 메뉴 등록</h2>
-                        <form id="newMenuForm" class="new-menu-form"
-                              th:action="@{/admin/insertMenu}"
-                              method="post"
-                              enctype="multipart/form-data">
-                            <label for="menuName">메뉴 이름</label>
-                            <input type="text" id="menuName" name="menuName" placeholder="예) 아메리카노" required>
-
-                            <label for="menuPrice">가격</label>
-                            <input type="text" id="menuPrice" name="menuPrice" placeholder="숫자만 입력해주세요. 예) 3000" required>
-
-                            <label for="menuCategory">카테고리</label>
-                            <select id="menuCategory" name="category" required>
-                                <option value="" disabled selected>카테고리 선택</option>
-                                <option value="커피">커피</option>
-                                <option value="음료">음료</option>
-                                <option value="신메뉴">신메뉴</option>
-                                <option value="티">티(Tea)</option>
-                                <option value="푸드">푸드</option>
-                            </select>
-
-                            <label for="menuDescription">메뉴 설명</label>
-                            <textarea id="menuDescription" name="menuDefinition"></textarea>
-
-                            <label>사진</label>
-                            <div class="image-upload-box" onclick="document.getElementById('menuImage').click();">
-                                <span class="material-icons">add</span>
-                            </div>
-                            <input type="file" id="menuImage" name="menuImgFile" accept="image/*" style="display:none;">
+                        <input type="file" id="menuImage" name="menuImgFile" accept="image/*" style="display:none;">
 
 
 
-                            <button type="submit" class="submit-btn">메뉴 등록</button>
-                        </form>
-                    </aside>
+                        <button type="submit" class="submit-btn">메뉴 등록</button>
+                    </form>
+                </aside>
 
-                </main>
-            </div>
-            <script src="/js/admin_menu_management.js"></script>
+            </main>
         </div>
-    </th:block>
+        <script src="/js/admin_menu_management.js"></script>
+    </div>
+</th:block>
 
     <footer class="footer-nav">
-        <a href="menu" class="footer-nav-item active">메뉴 관리</a>
-        <a href="orders" class="footer-nav-item" >주문 관리</a>
-        <a href="revenue" class="footer-nav-item">매출 관리</a>
-        <a href="login" class="footer-nav-item ">로그인</a>
+        <a href="/admin/menu" class="footer-nav-item active">메뉴 관리</a>
+        <a href="/admin/orders" class="footer-nav-item">주문 관리</a>
+        <a href="/admin/revenue" class="footer-nav-item">매출 관리</a>
+
+        <a th:if="${isLoggedIn}" href="/admin/logout" class="footer-nav-item">로그아웃</a>
+        <a th:unless="${isLoggedIn}" href="/admin/login" class="footer-nav-item">로그인</a>
     </footer>
+
 </body>
 </html>

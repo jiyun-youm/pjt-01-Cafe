@@ -46,10 +46,14 @@
 
                             <div class="item-details">
                                 <span class="item-temp"
+                                      th:if="${item['CATEGORY'] != '푸드' and item['TEMP'] != null and item['TEMP'] != ''}"
                                       th:classappend="${item['TEMP'] == 'HOT' or item['TEMP'] == 'Hot' or item['TEMP'] == 'hot'} ? 'hot' : ''"
-                                      th:text="${#strings.toUpperCase(item['TEMP'])}">temp</span>
+                                      th:text="${#strings.toUpperCase(item['TEMP'])}">temp
+                                </span>
 
-                                <span class="item-name" th:text="${item['MENU_NAME']}">커피이름</span>
+                                <span class="item-name" th:text="${item['MENU_NAME']}">
+                                    커피이름
+                                </span>
 
                                 <span class="item-price-display"
                                       th:text="${#numbers.formatInteger(item['ITEM_TOTAL_PRICE'], 1, 'COMMA')} + '원'">
@@ -103,6 +107,7 @@
                             </span>
                         </div>
                     </div>
+                </div>
 
                 <div class="order-details">
                     <div class="delivery-toggle">

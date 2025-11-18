@@ -28,12 +28,21 @@
 </th:block>
 
 <footer class="footer-nav">
-    <a href="menu" class="footer-nav-item">메뉴 관리</a>
-    <a href="orders" class="footer-nav-item" >주문 관리</a>
-    <a href="revenue" class="footer-nav-item">매출 관리</a>
-    <a href="login" class="footer-nav-item active">로그인</a>
+    <a href="/admin/menu" class="footer-nav-item">메뉴 관리</a>
+    <a href="/admin/orders" class="footer-nav-item">주문 관리</a>
+    <a href="/admin/revenue" class="footer-nav-item">매출 관리</a>
+
+    <!-- 로그인 상태에 따라 버튼 변경 -->
+    <a th:if="${isLoggedIn}" href="/admin/logout" class="footer-nav-item">로그아웃</a>
+    <a th:unless="${isLoggedIn}" href="/admin/login" class="footer-nav-item active">로그인</a>
 </footer>
 
+
 <script src="/js/admin_login.js"></script>
+<th:block th:if="${loginError != null}">
+    <script>
+        alert("[[${loginError}]]");
+    </script>
+</th:block>
 </body>
 </html>
