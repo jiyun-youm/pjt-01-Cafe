@@ -9,6 +9,10 @@
 
 <body>
 
+<script th:inline="javascript">
+    let storeName = /*[[${session.admin != null ? session.admin.storeName : ''}]]*/ '';
+</script>
+
 <th:block th:replace="~{./include/adminBaseLayout :: setContent( ~{:: .wrap} ) }">
 
     <div class="wrap">
@@ -36,14 +40,13 @@
     <a th:unless="${isLoggedIn}" href="/admin/login" class="footer-nav-item">로그인</a>
 </footer>
 
-
 <script>
     document.addEventListener('DOMContentLoaded', () => {
 
         // --- 상수 및 변수 정의 ---
 
-        const API_BASE_URL = 'http://localhost:8383/api/orders';
-        const API_ENDPOINT_LIST = `${API_BASE_URL}/admin-list`;
+        const API_BASE_URL = '/api/orders';
+        const API_ENDPOINT_LIST = `${API_BASE_URL}/admin-list?storeName=${storeName}`;
         const API_ENDPOINT_STATUS_UPDATE = `${API_BASE_URL}/status`;
 
         const POLLING_INTERVAL = 3000;

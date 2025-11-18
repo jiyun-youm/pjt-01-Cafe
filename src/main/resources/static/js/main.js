@@ -108,38 +108,70 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function moveToMenuBySession() {
         try {
-            const resp = await fetch("/home/getRegion");
-            const region = await resp.text();
+            const response = await fetch('/home/getRegion');
 
-            if (!region || region === "null" || region === "selecting") {
-                alert("지점을 선택해주세요.");
-                return;
+            if (!response.ok) throw new Error("Network response was not ok");
+
+            const storeName = await response.text();
+
+            console.log("%c[DEBUG] 주문하기 버튼 클릭됨", "color: yellow; background: black; font-weight: bold;");
+            console.log("👉 서버 세션에서 가져온 storeName 값:", storeName);
+            console.log("👉 값의 타입:", typeof storeName);
+
+            if (storeName && storeName !== 'null' && storeName.trim() !== '' && storeName !== 'selecting') {
+                console.log("선택된 매장:", storeName);
+                window.location.href = '/menu/coffee';
+            } else {
+                alert("주문할 매장을 먼저 선택해주세요.");
+                window.location.href = '/home/';
             }
 
-            window.location.href = "/menu/coffee";
-        } catch (e) {
-            console.error("moveToMenu error:", e);
+        } catch (error) {
+            console.error("세션 확인 중 오류:", error);
+            alert("매장 정보를 확인하는 중 오류가 발생했습니다.");
+            window.location.href = '/home/';
+        }
+    }
+
+    function moveToMenuImmediate() {
+        // 1. HTML에 숨겨진 hidden input 찾기 (스크린샷에 있는 그 태그!)
+        const storeNameInput = document.getElementById('layoutStoreName');
+        const storeName = storeNameInput ? storeNameInput.value : null;
+
+        // 2. 값이 있는지 확인
+        if (storeName && storeName.trim() !== '' && storeName !== 'null') {
+            console.log("✅ 선택된 매장(화면):", storeName);
+            // 매장이 있으니 바로 메뉴판으로 이동
+            window.location.href = '/menu/coffee';
+        } else {
+            console.log("❌ 매장 정보 없음");
+            alert("주문할 매장을 먼저 선택해주세요.");
+            window.location.href = '/home/';
         }
     }
 
     if (orderBtn) {
-        orderBtn.addEventListener("click", async (e) => {
+        orderBtn.addEventListener("click", (e) => {
             e.preventDefault();
 
-            // 1) 로그인 여부 확인
+            // 1) 로그인 여부 확인 (기존 로직 유지)
             if (typeof IS_LOGGED_IN !== 'undefined' && !IS_LOGGED_IN) {
                 const loginModalOverlay = document.getElementById("login-modal-overlay");
-                if (loginModalOverlay) loginModalOverlay.classList.add("show");
+                if (loginModalOverlay) {
+                    loginModalOverlay.classList.add("show");
+                    const closeBtn = document.getElementById("login-modal-close");
+                    if(closeBtn) closeBtn.onclick = () => loginModalOverlay.classList.remove("show");
+                } else {
+                    alert("로그인이 필요합니다.");
+                    window.location.href = "/home/";
+                }
                 return;
             }
 
-            // 2) 로그인 시 지점 확인 후 이동
-            await moveToMenuBySession();
+            // 2) 로그인 통과 시 -> 화면 값 읽어서 바로 이동
+            moveToMenuImmediate();
         });
     }
-
-
-
 
     /* ===========================
        🔐 로그인/회원가입 모달 로직

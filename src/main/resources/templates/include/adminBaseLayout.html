@@ -10,5 +10,23 @@
 
     <th:block th:replace="${adminContent}"></th:block>
 
+    <script th:inline="javascript">
+        document.addEventListener("DOMContentLoaded", function() {
+            const adminSession = [[${session.admin}]];
+
+            console.log("%c[ADMIN SESSION CHECK] 페이지: " + document.title, "color: white; background: #d32f2f; font-size: 12px; padding: 4px; font-weight: bold;");
+
+            if (adminSession) {
+                console.log("✅ 로그인 상태: O");
+                console.log("👤 관리자 ID: ", adminSession.id);
+                console.log("🏠 담당 매장 (storeName): %c" + adminSession.storeName, "color: black; background: yellow; font-weight: bold; padding: 2px;");
+            } else {
+                console.log("❌ 로그인 상태: X (세션 없음)");
+            }
+
+            console.log("--------------------------------------------------");
+        });
+    </script>
+
 </th:block>
 </html>

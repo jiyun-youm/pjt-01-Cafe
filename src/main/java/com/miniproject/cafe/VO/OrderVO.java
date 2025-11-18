@@ -1,5 +1,6 @@
 package com.miniproject.cafe.VO;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,7 +21,13 @@ public class OrderVO {
     private int totalPrice;       // 총 금액
     private String orderType; // 주문 유형 (매장, 포장, 배달)
 
-    private String uId;
+    @JsonProperty("storeName")
+    private String storeName; //매장명
+    @JsonProperty("uId")
+    private String uId; //사용자아이디
+
+    private String username; //사용자명
+    
     private String orderStatus;
 
     private List<OrderItemVO> orderItemList;

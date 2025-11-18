@@ -1,5 +1,6 @@
 package com.miniproject.cafe.Controller;
 
+import jakarta.servlet.http.HttpSession;
 import org.springframework.ui.Model;
 import com.miniproject.cafe.Impl.MenuServiceImpl;
 import com.miniproject.cafe.Service.OrderDetailService;
@@ -28,14 +29,21 @@ public class OrderDetailController {
     private MenuServiceImpl menuServiceImpl;
 
     @GetMapping("/order_detail")
-    public String order_Detail(Model model,
+    public String order_Detail(HttpSession session, Model model,
                                @RequestParam("id") String id) {
+        String storeName = (String) session.getAttribute("storeName");
+
+        if (storeName == null || storeName.trim().isEmpty()) {
+            return "redirect:/home/";
+        }
+
         MenuVO menu = orderDetailService.findById(id);
 //        List<MenuVO> menuDetail=orderDetailService.getAllMenu();
         if(menu == null) {
             return "redirect:/home/";
         }
         model.addAttribute("menu", menu);
+        model.addAttribute("storeName", storeName);
         return "order_detail";
     }
 

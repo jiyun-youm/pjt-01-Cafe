@@ -3,6 +3,9 @@
 <link rel="stylesheet" href="/css/order_detail.css">
 <th:block th:replace="~{./include/userBaseLayout :: setContent( ~{:: .wrap} ) }">
     <div class="wrap">
+        <input type="hidden" id="detailStoreName" th:value="${storeName}">
+        <input type="hidden" id="detailMemberId"
+               th:value="${#authentication.name != 'anonymousUser' ? #authentication.name : 'guest'}">
         <div class="coffee-img">
             <img th:src="@{|/images/img/${menu.menuImg}|}"
                th:alt="${menu.menuName}">
@@ -10,6 +13,7 @@
         <h1 th:text="${menu.menuName}">메뉴 이름</h1>
         <p class="desc" th:utext="${menu.menuDefinition}">메뉴 설명</p>
         <form name="orderDetailForm" action="orderComplete" method="post">
+            <input type="hidden" id="menuId" th:value="${menu.menuId}">
             <div class="section">
                 <div class="menu-info" id="detailBtn">메뉴 상세 정보
                     <span>›</span>
@@ -94,7 +98,7 @@
         </form>
     </div>
 </th:block>
-    <script src="/js/orderdetail.js"></script>
+    <script src="/js/order_detail.js"></script>
 </html>
 
 

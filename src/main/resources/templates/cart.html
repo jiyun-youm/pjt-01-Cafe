@@ -8,6 +8,7 @@
     <div class="wrap">
         <div class="app-container">
             <main class="shopping-cart-combined" th:data-member-id="${memberId}">
+                <input type="hidden" id="currentStoreName" th:value="${storeName}">
                 <h1 class="screen-1-title">장바구니</h1>
 
                 <!-- ✅ 장바구니가 비어있을 때 -->
@@ -30,6 +31,7 @@
 
                     <div class="item-list screen-1-content">
                         <div th:each="item : ${cartItems}" class="cart-item"
+                             th:data-menu-id="${item['MENU_ID']}"
                              th:data-price="${item.MENU_PRICE + (item.SHOT_COUNT * 500) + (item.VANILLA_SYRUP_COUNT * 500) + (item.WHIPPED_CREAM_COUNT * 500)}"
                              th:data-cart-item-id="${item['CART_ITEM_ID']}"
                              th:data-base-price="${item['MENU_PRICE']}"
@@ -62,34 +64,29 @@
                                 <p class="item-options"
                                    th:if="${item['TUMBLER_USE'] == true or item['TUMBLER_USE'] == 1 or item['SHOT_COUNT'] > 0 or item['VANILLA_SYRUP_COUNT'] > 0 or item['WHIPPED_CREAM_COUNT'] > 0}">
 
-                                    <!-- 텀블러 사용 -->
-                                    <span th:if="${item['TUMBLER_USE'] == true or item['TUMBLER_USE'] == 1}">
-                                        텀블러 사용
-                                        <span th:if="${item['SHOT_COUNT'] > 0 or item['VANILLA_SYRUP_COUNT'] > 0 or item['WHIPPED_CREAM_COUNT'] > 0}"> | </span>
-                                    </span>
+                                <span th:if="${item['TUMBLER_USE'] == true or item['TUMBLER_USE'] == 1}">
+                                    텀블러 사용
+                                    <span th:if="${item['SHOT_COUNT'] > 0 or item['VANILLA_SYRUP_COUNT'] > 0 or item['WHIPPED_CREAM_COUNT'] > 0}"> | </span>
+                                </span>
 
-                                    <!-- 샷 추가 -->
-                                    <span th:if="${item['SHOT_COUNT'] > 0}">
-                                        샷 추가([[${item['SHOT_COUNT']}]])(+[[${item['SHOT_COUNT'] * 500}]]원)
-                                        <span th:if="${item['VANILLA_SYRUP_COUNT'] > 0 or item['WHIPPED_CREAM_COUNT'] > 0}"> | </span>
-                                    </span>
+                                <span th:if="${item['SHOT_COUNT'] > 0}">
+                                    샷 추가([[${item['SHOT_COUNT']}]])(+[[${item['SHOT_COUNT'] * 500}]]원)
+                                    <span th:if="${item['VANILLA_SYRUP_COUNT'] > 0 or item['WHIPPED_CREAM_COUNT'] > 0}"> | </span>
+                                </span>
 
-                                    <!-- 바닐라 시럽 -->
-                                    <span th:if="${item['VANILLA_SYRUP_COUNT'] > 0}">
-                                        바닐라 시럽([[${item['VANILLA_SYRUP_COUNT']}]])(+[[${item['VANILLA_SYRUP_COUNT'] * 500}]]원)
-                                        <span th:if="${item['WHIPPED_CREAM_COUNT'] > 0}"> | </span>
-                                    </span>
+                                <span th:if="${item['VANILLA_SYRUP_COUNT'] > 0}">
+                                    바닐라 시럽([[${item['VANILLA_SYRUP_COUNT']}]])(+[[${item['VANILLA_SYRUP_COUNT'] * 500}]]원)
+                                    <span th:if="${item['WHIPPED_CREAM_COUNT'] > 0}"> | </span>
+                                </span>
 
-                                    <!-- 휘핑크림 -->
-                                    <span th:if="${item['WHIPPED_CREAM_COUNT'] > 0}">
-                                        휘핑크림([[${item['WHIPPED_CREAM_COUNT']}]])(+[[${item['WHIPPED_CREAM_COUNT'] * 500}]]원)
-                                    </span>
+                                <span th:if="${item['WHIPPED_CREAM_COUNT'] > 0}">
+                                    휘핑크림([[${item['WHIPPED_CREAM_COUNT']}]])(+[[${item['WHIPPED_CREAM_COUNT'] * 500}]]원)
+                                </span>
                                 </p>
                             </div>
 
                             <div class="item-controls">
                                 <button class="control-btn minus-btn">-</button>
-                                <!-- 수량 -->
                                 <span class="item-quantity" th:data-quantity="${item.QUANTITY}"
                                       th:text="${item.QUANTITY}">1</span>
                                 <button class="control-btn plus-btn">+</button>
@@ -98,7 +95,6 @@
                             <button class="item-remove">×</button>
                         </div>
 
-                        <!-- 총 가격 -->
                         <div class="total-price-bar">
                             <span class="total-label">메뉴 가격</span>
                             <span class="total-amount" id="totalCartPrice"

@@ -13,38 +13,45 @@
 
     <div class="wrap">
         <div class="signup-container">
-
             <form id="signupForm" action="/admin/joinForm" method="post">
-
                 <!-- 아이디 -->
-                <label for="id">아이디</label>
-                <div class="id-check-group">
-                    <input type="text" id="id" name="id" placeholder="아이디를 입력하세요" required>
-                    <button type="button" class="check-btn" onclick="checkDuplicate()">중복 확인</button>
+                <div class="form-group">
+                    <label for="id">아이디</label>
+                    <div class="id-check-group">
+                        <input type="text" id="id" name="id" placeholder="아이디를 입력하세요" required>
+                        <button type="button" class="check-btn" onclick="checkDuplicate()">중복 확인</button>
+                    </div>
+                    <div id="checkMessage" class="check-message"></div>
                 </div>
-                <div id="checkMessage" class="check-message"></div>
 
                 <!-- 비밀번호 -->
-                <label for="password">비밀번호</label>
-                <input type="password" id="password" name="password" placeholder="비밀번호를 입력하세요" required>
+                <div class="form-group">
+                    <label for="password">비밀번호</label>
+                    <input type="password" id="password" name="password" placeholder="비밀번호를 입력하세요" required>
+                </div>
 
                 <!-- 비밀번호 확인 -->
-                <label for="password-check">비밀번호 확인</label>
-                <input type="password" id="password-check" placeholder="비밀번호 확인" required oninput="checkPasswordMatch()">
-                <div id="pwMessage" class="pw-message"></div>
+                <div class="form-group">
+                    <label for="password-check">비밀번호 확인</label>
+                    <input type="password" id="password-check" placeholder="비밀번호 확인" required oninput="checkPasswordMatch()">
+                    <div id="pwMessage" class="pw-message"></div>
+                </div>
 
                 <!-- 매장 선택 -->
-                <label for="storeName">Place</label>
-                <select id="storeName" name="storeName" required>
-                    <option value="">매장을 선택하세요</option>
-                    <option value="강남중앙점">강남중앙점</option>
-                    <option value="역삼중앙점">역삼중앙점</option>
-                    <option value="선릉중앙점">선릉중앙점</option>
-                </select>
+                <div class="form-group">
+                    <label for="storeName">Place</label>
+                    <div class="custom-select-wrapper">
+                        <select id="storeName" name="storeName" required>
+                            <option value="">매장을 선택하세요</option>
+                            <option value="강남중앙점">강남중앙점</option>
+                            <option value="역삼중앙점">역삼중앙점</option>
+                            <option value="선릉중앙점">선릉중앙점</option>
+                        </select>
+                    </div>
+                </div>
 
                 <button type="submit">Sign Up</button>
             </form>
-
         </div>
     </div>
 

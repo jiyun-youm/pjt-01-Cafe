@@ -5,63 +5,126 @@
 
 <mapper namespace="com.miniproject.cafe.Mapper.OrderMapper">
 
-    <!-- 일일 주문 번호 계산하는 서브쿼리절 -->
-    <select id="findAllAdminOrders" resultType="OrderVO">
-        SELECT
-        T.*
-        FROM (
-            <!-- 일일 주문 번호 계산 -->
-        SELECT
-        order_id,
-        u_id,
-        order_status,
-        total_price,
-        pickup_method as orderType,
-        order_time,
-        total_quantity,
+    <resultMap id="orderMap" type="com.miniproject.cafe.VO.OrderVO">
+        <id     property="orderId"      column="order_id" />
 
-        <!-- 날짜가 바뀔때마다 order_num 계산 -->
-        ROW_NUMBER() OVER (
-        PARTITION BY DATE(order_time)
-        ORDER BY order_time ASC
-        ) as daily_order_num
-        FROM
-        orders
-        ) AS T
-        WHERE
-        T.order_status IS NULL
-        ORDER BY
-        T.order_time DESC;
+        <result property="uId"          column="u_id" />
+
+        <result property="username"     column="username" />
+
+        <result property="orderStatus"  column="order_status" />
+        <result property="totalPrice"   column="total_price" />
+        <result property="orderType"    column="pickup_method" />
+        <result property="orderTime"    column="order_time" />
+        <result property="totalQuantity" column="total_quantity" />
+        <result property="storeName"    column="store_name" />
+        <result property="dailyOrderNum" column="daily_order_num" />
+
+        <collection property="orderItemList" ofType="com.miniproject.cafe.VO.OrderItemVO">
+            <id     property="orderItemId" column="order_detail_id"/>
+            <result property="orderId"     column="order_id"/>
+            <result property="menuId"      column="menu_id"/>
+            <result property="menuItemName" column="menu_name"/>
+            <result property="quantity"    column="item_amount"/>
+
+            <result property="temp"         column="temp" />
+            <result property="tumbler"      column="tumbler" />
+            <result property="shot"         column="shot" />
+            <result property="vanillaSyrup" column="vanilla_syrup" />
+            <result property="whippedCream" column="whipped_cream" />
+        </collection>
+    </resultMap>
+
+    <select id="findOrdersByStore" resultMap="orderMap">
+        SELECT
+            o.order_id,
+            o.u_id,            m.username,        o.order_status,
+            o.total_price,
+            o.pickup_method,
+            o.order_time,
+            o.store_name,
+            o.total_quantity,
+
+            -- 일일 주문 번호
+            ROW_NUMBER() OVER (PARTITION BY DATE(o.order_time) ORDER BY o.order_time ASC) as daily_order_num,
+
+            -- 상세 아이템 및 옵션 정보
+            od.order_detail_id,
+            od.menu_id,
+            m_menu.menu_name,
+            od.amount AS item_amount,
+
+            -- 옵션 컬럼들
+            od.temp,
+            od.tumbler,
+            od.shot,
+            od.vanilla_syrup,
+            od.whipped_cream
+
+        FROM orders o
+                 -- 상세 내역 조인
+                 LEFT JOIN order_detail od ON o.order_id = od.order_id
+            -- 메뉴 이름 조인
+                 LEFT JOIN menu m_menu ON od.menu_id = m_menu.menu_id
+            -- ⭐ [핵심 수정] orders의 u_id와 member의 id를 조인
+                 LEFT JOIN member m ON o.u_id = m.id
+
+        WHERE o.store_name = #{storeName}
+          AND o.order_status = '주문접수'
+
+        ORDER BY o.order_time DESC
     </select>
 
-
-    <insert id="insertOrder" parameterType="OrderVO"
+    <insert id="insertOrder" parameterType="com.miniproject.cafe.VO.OrderVO"
             useGeneratedKeys="true" keyProperty="orderId">
         INSERT INTO orders (
-            u_id,
-            order_status,
+            u_id,             order_status,
             total_price,
             pickup_method,
             order_time,
-            total_quantity
+            total_quantity,
+            store_name
         )
         VALUES (
-                   #{uId},
-                   #{orderStatus},
+                   #{uId},           #{orderStatus},
                    #{totalPrice},
                    #{orderType},
                    #{orderTime},
-                   #{totalQuantity}
+                   #{totalQuantity},
+                   #{storeName}
                )
     </insert>
 
+    <insert id="insertOrderDetails" parameterType="java.util.List">
+        INSERT INTO order_detail (
+        order_id,
+        menu_id,
+        amount,
+        temp,
+        tumbler,
+        shot,
+        vanilla_syrup,
+        whipped_cream
+        )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.orderId},
+            #{item.menuId},
+            #{item.quantity},
+            #{item.temp},
+            #{item.tumbler},
+            #{item.shot},
+            #{item.vanillaSyrup},
+            #{item.whippedCream}
+            )
+        </foreach>
+    </insert>
 
     <update id="updateOrderStatus">
         UPDATE orders
-        SET
-            order_status = #{status}
-        WHERE
-            order_id = #{orderId}
+        SET order_status = #{status}
+        WHERE order_id = #{orderId}
     </update>
 
 </mapper>

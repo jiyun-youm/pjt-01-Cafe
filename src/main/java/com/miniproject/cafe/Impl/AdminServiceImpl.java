@@ -28,18 +28,16 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public AdminVO login(String id, String password) {
+    public AdminVO login(AdminVO adminVO) {
 
-        AdminVO vo = new AdminVO();
-        vo.setId(id);
+        AdminVO dbVO = mapper.loginAdmin(adminVO);
 
-        AdminVO dbVO = mapper.loginAdmin(vo);
         if (dbVO == null) {
-            throw new RuntimeException("아이디가 존재하지 않습니다.");
+            return null;
         }
 
-        if (!passwordEncoder.matches(password, dbVO.getPassword())) {
-            throw new RuntimeException("비밀번호가 일치하지 않습니다.");
+        if (!passwordEncoder.matches(adminVO.getPassword(), dbVO.getPassword())) {
+            return null;
         }
 
         return dbVO;

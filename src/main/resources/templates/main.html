@@ -5,7 +5,7 @@
 
     <!-- 로그인 여부 JS 전달 -->
     <script th:inline="javascript">
-        const IS_LOGGED_IN = [[${#authorization.expr('isAuthenticated()')}]];
+        const IS_LOGGED_IN = [[${IS_LOGGED_IN}]];
     </script>
 
     <script th:if="${loginErrorMessage}">
@@ -86,7 +86,7 @@
                 <span class="region-label">구매할 지점을 선택하세요.</span>
                 <form action="region">
                     <select name="userRegion" id="userRegion">
-                        <option value="selecting">선택</option>
+                        <option value="" disabled selected>지점 선택</option>
                         <option value="강남중앙점">자바빈카페 강남중앙점</option>
                         <option value="역삼중앙점">자바빈카페 역삼중앙점</option>
                         <option value="선릉중앙점">자바빈카페 선릉중앙점</option>
