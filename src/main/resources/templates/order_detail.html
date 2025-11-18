@@ -2,90 +2,99 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <link rel="stylesheet" href="/css/order_detail.css">
 <th:block th:replace="~{./include/userBaseLayout :: setContent( ~{:: .wrap} ) }">
-  <div class="wrap">
-      <div class="coffee-img">
-          <img th:src="@{|/images/img/${menu.menuImg}|}"
+    <div class="wrap">
+        <div class="coffee-img">
+            <img th:src="@{|/images/img/${menu.menuImg}|}"
                th:alt="${menu.menuName}">
-      </div>
-      <h1 th:text="${menu.menuName}">메뉴 이름</h1>
-      <p class="desc" th:utext="${menu.menuDefinition}">메뉴 설명</p>
-      <form name="orderDetailForm" action="orderComplete" method="post">
-        <div class="section">
-          <div class="menu-info" id="detailBtn">메뉴 상세 정보 <span>›</span></div>
-            <div class="segmented-wrap"
-                 th:if="${menu.hotAvailable == 1}">
-                <div class="segmented" role="tablist" aria-label="Temperature">
-                    <button type="button" class="segmented-btn" data-value="ice" role="tab">ICE</button>
-                    <button type="button" class="segmented-btn active" data-value="hot" role="tab">HOT</button>
-                    <span class="segmented-thumb" aria-hidden="true"></span>
+        </div>
+        <h1 th:text="${menu.menuName}">메뉴 이름</h1>
+        <p class="desc" th:utext="${menu.menuDefinition}">메뉴 설명</p>
+        <form name="orderDetailForm" action="orderComplete" method="post">
+            <div class="section">
+                <div class="menu-info" id="detailBtn">메뉴 상세 정보
+                    <span>›</span>
+                </div>
+                <div class="segmented-wrap"
+                     th:if="${menu.hotAvailable == 1}">
+                    <div class="segmented" role="tablist" aria-label="Temperature">
+                        <button type="button" class="segmented-btn" data-value="ice" role="tab">ICE</button>
+                        <button type="button" class="segmented-btn active" data-value="hot" role="tab">HOT</button>
+                        <span class="segmented-thumb" aria-hidden="true"></span>
+                    </div>
+                </div>
+
+                <label class="tumbler"
+                       th:if="${menu.category == '커피' or menu.category == '음료' or menu.category == '티'}">
+                    <input type="checkbox" id="tumbler" name="tumbler" value="Y"> 텀블러에 주문할게요
+                </label>
+
+                <div class="option-btn" id="shotBtn"
+                     th:if="${menu.category == '커피' or menu.category == '음료' or menu.category == '티'}">샷 선택
+                    <span>›</span>
+                </div>
+                <div class="option-btn" id="sweetBtn"
+                     th:if="${menu.category == '커피' or menu.category == '음료' or menu.category == '티'}">당도 선택
+                    <span>›</span>
+                </div>
+                <div class="option-btn" id="toppingBtn"
+                     th:if="${menu.category == '커피' or menu.category == '음료' or menu.category == '티'}">토핑 선택
+                    <span>›</span>
+                </div>
+
+                <div class="quantity">
+                    <div>
+                        <button type="button" class="qty-btn" id="minus">-</button>
+                        <span id="qty">1</span>
+                        <input type="hidden" name="amount" id="qtyInput" value="1">
+                        <button type="button" class="qty-btn" id="plus">+</button>
+                    </div>
+                    <div class="price" id="price"
+                         th:text="${#numbers.formatInteger(menu.menuPrice, 0)} + '원'"
+                         th:data-actual-price="${menu.menuPrice}">0000원
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button type="button" class="add">담기</button>
+                    <button type="button" class="order">주문하기</button>
                 </div>
             </div>
 
-          <label class="tumbler">
-                <input type="checkbox" id="tumbler" name="tumbler" value="Y"> 텀블러에 주문할게요
-          </label>
-
-          <div class="option-btn" id="shotBtn">샷 선택 <span>›</span></div>
-          <div class="option-btn" id="sweetBtn">당도 선택 <span>›</span></div>
-          <div class="option-btn" id="toppingBtn">토핑 선택 <span>›</span></div>
-
-          <div class="quantity">
-            <div>
-              <button type="button" class="qty-btn" id="minus">-</button>
-              <span id="qty">1</span>
-              <input type="hidden" name="amount" id="qtyInput" value="1">
-              <button type="button" class="qty-btn" id="plus">+</button>
-              </div>
-                  <div class="price" id="price"
-                       th:text="${#numbers.formatInteger(menu.menuPrice, 0)} + '원'"
-                       th:data-actual-price="${menu.menuPrice}">0000원
-                  </div>
-              </div>
-
-              <div class="actions">
-                <button type="button" class="add">담기</button>
-                <button type="button" class="order">주문하기</button>
-              </div>
+            <!-- 상세정보 모달 -->
+            <div class="modal-bg" id="detailModal">
+                <div class="modal">
+                    <div class="modal-header"><h3>메뉴 상세 정보</h3><span class="close">✕</span></div>
+                    <div class="info-row"><span>용량</span><span>710ml</span></div>
+                    <div class="info-row"><span>칼로리</span><span>12kcal</span></div>
+                    <div class="info-row"><span>탄수화물</span><span>1.6g</span></div>
+                    <div class="info-row"><span>단백질</span><span>1.0g</span></div>
+                    <div class="info-row"><span>지방</span><span>0.2g</span></div>
+                    <div class="info-row"><span>나트륨</span><span>1.5mg</span></div>
+                    <div class="info-row"><span>카페인</span><span>199.7mg</span></div>
+                </div>
             </div>
-        </main>
 
-
-        <!-- 상세정보 모달 -->
-        <div class="modal-bg" id="detailModal">
-          <div class="modal">
-            <div class="modal-header"><h3>메뉴 상세 정보</h3><span class="close">✕</span></div>
-            <div class="info-row"><span>용량</span><span>710ml</span></div>
-            <div class="info-row"><span>칼로리</span><span>12kcal</span></div>
-            <div class="info-row"><span>탄수화물</span><span>1.6g</span></div>
-            <div class="info-row"><span>단백질</span><span>1.0g</span></div>
-            <div class="info-row"><span>지방</span><span>0.2g</span></div>
-            <div class="info-row"><span>나트륨</span><span>1.5mg</span></div>
-            <div class="info-row"><span>카페인</span><span>199.7mg</span></div>
-          </div>
-        </div>
-
-        <!-- 공통 모달 -->
-        <div class="modal-bg" id="optionModal">
-          <div class="modal">
-            <div class="modal-header">
-                <h3 id="optionTitle">옵션 선택</h3>
-                <span class="close">✕</span>
+            <!-- 공통 모달 -->
+            <div class="modal-bg" id="optionModal">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h3 id="optionTitle">옵션 선택</h3>
+                        <span class="close">✕</span>
+                    </div>
+                    <div id="optionContent">
+                        <input type="hidden" name="shot" id="shotInput" value="0">
+                      <input type="hidden" name="vanillaSyrup" id="vanillaInput" value="0">
+                      <input type="hidden" name="cream" id="creamInput" value="0">
+                    </div>
+                    <div id="optionFooter" style="margin-top:16px; text-align:right;">
+                        <button type="button" id="applyOptionBtn" style="padding:6px 12px; border-radius:5px; cursor:pointer;">적용하기</button>
+                    </div>
+                </div>
             </div>
-            <div id="optionContent">
-              <input type="hidden" name="shot" id="shotInput" value="0">
-              <input type="hidden" name="vanillaSyrup" id="vanillaInput" value="0">
-              <input type="hidden" name="cream" id="creamInput" value="0">
-
-            </div>
-            <div id="optionFooter" style="margin-top:16px; text-align:right;">
-              <button type="button" id="applyOptionBtn" style="padding:6px 12px; border-radius:5px; cursor:pointer;">적용하기</button>
-            </div>
-          </div>
-        </div>
-      </form>
-  </div>
+        </form>
+    </div>
 </th:block>
-  <script src="/js/orderdetail.js"></script>
+    <script src="/js/orderdetail.js"></script>
 </html>
 
 
