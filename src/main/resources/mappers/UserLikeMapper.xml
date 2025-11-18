@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.miniproject.cafe.Mapper.UserLikeMapper">
+    <!-- 찜 등록 -->
+    <insert id="insertLike">
+        INSERT INTO user_like (user_id, menu_id)
+        VALUES (#{userId}, #{menuId})
+    </insert>
+
+    <!-- 찜 삭제 -->
+    <delete id="deleteLike">
+        DELETE FROM user_like
+        WHERE user_id = #{userId} AND menu_id = #{menuId}
+    </delete>
+
+    <!-- 특정 유저가 찜한 menu_id 목록 조회 -->
+    <select id="getLikedMenuIds" resultType="string">
+        SELECT menu_id FROM user_like
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 이미 찜했는지 여부 조회 -->
+    <select id="isLiked" resultType="int">
+        SELECT COUNT(*)
+        FROM user_like
+        WHERE user_id = #{userId} AND menu_id = #{menuId}
+    </select>
+
+    <select id="getLikedMenus" resultType="com.miniproject.cafe.VO.MenuVO">
+        SELECT m.menu_id AS menuId,
+               m.menu_name AS menuName,
+               m.menu_price AS menuPrice,
+               m.menu_img AS menuImg,
+               m.hot_available AS hotAvailable
+        FROM user_like ul
+                 JOIN menu m ON ul.menu_id = m.menu_id
+        WHERE ul.user_id = #{userId}
+    </select>
+
+</mapper>

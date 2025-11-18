@@ -21,24 +21,25 @@
         SELECT
             C.CART_ID,
             C.MEMBER_ID,
-            C.TOTAL_PRICE,
+            COALESCE(C.TOTAL_PRICE, 0) as TOTAL_PRICE,
             CI.CART_ITEM_ID,
-            CI.QUANTITY,
+            COALESCE(CI.QUANTITY, 0) as QUANTITY,
             MO.OPTION_ID,
             MO.TEMP,
-            MO.TUMBLER_USE,
-            MO.SHOT_COUNT,
-            MO.VANILLA_SYRUP_COUNT,
-            MO.WHIPPED_CREAM_COUNT,
+            COALESCE(MO.TUMBLER_USE, false) as TUMBLER_USE,
+            COALESCE(MO.SHOT_COUNT, 0) as SHOT_COUNT,
+            COALESCE(MO.VANILLA_SYRUP_COUNT, 0) as VANILLA_SYRUP_COUNT,
+            COALESCE(MO.WHIPPED_CREAM_COUNT, 0) as WHIPPED_CREAM_COUNT,
             M.MENU_ID,
             M.MENU_NAME,
-            M.MENU_PRICE,
+            COALESCE(M.MENU_PRICE, 0) as MENU_PRICE,
             M.MENU_IMG
         FROM CART C
                  LEFT JOIN CART_ITEM CI ON C.CART_ID = CI.CART_ID
                  LEFT JOIN MENU_OPTION MO ON CI.MENU_OPTION_ID = MO.OPTION_ID
                  LEFT JOIN MENU M ON MO.MENU_ID = M.MENU_ID
         WHERE C.MEMBER_ID = #{memberId}
+        ORDER BY CI.CART_ITEM_ID DESC
     </select>
 
     <insert id="addCartItem" parameterType="CartItemVO">
@@ -79,5 +80,17 @@
         INSERT INTO MENU_OPTION (MENU_ID, TEMP, TUMBLER_USE, SHOT_COUNT, VANILLA_SYRUP_COUNT, WHIPPED_CREAM_COUNT)
         VALUES (#{menuId}, #{temp}, #{tumblerUse}, #{shotCount}, #{vanillaSyrupCount}, #{whippedCreamCount})
     </insert>
+
+    <select id="findExistingCartItem" resultType="Long">
+        SELECT CART_ITEM_ID
+        FROM CART_ITEM
+        WHERE CART_ID = #{cartId} AND MENU_OPTION_ID = #{menuOptionId}
+    </select>
+
+    <select id="getCartItem" resultType="CartItemVO">
+        SELECT *
+        FROM CART_ITEM
+        WHERE CART_ITEM_ID = #{cartItemId}
+    </select>
 
 </mapper>

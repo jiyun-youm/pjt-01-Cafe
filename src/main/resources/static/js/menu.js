@@ -1,62 +1,82 @@
-const LIKE_KEY = "likedMenus";
+// DB에서 찜한 메뉴 목록 로드 → 하트 상태 반영
+document.addEventListener("DOMContentLoaded", async () => {
+    let likedMenus = await loadLikedMenus();
+    updateLikeButtons(likedMenus);
 
-document.addEventListener("DOMContentLoaded", () => {
-    const likedMenus = JSON.parse(localStorage.getItem(LIKE_KEY)) || [];
-    const likeButtons = document.querySelectorAll(".menu-item .like-button");
-
-    // 기존 좋아요 상태 표시
-    likeButtons.forEach((btn) => {
-        const menuItem = btn.closest(".menu-item");
-        const menuName = menuItem.querySelector(".menu-name").textContent.trim();
-        const isLiked = likedMenus.some(item => item.name === menuName); // ✅ 이름 기준으로 비교
-
-        btn.textContent = isLiked ? "❤" : "♡";
+    // 메뉴 링크 클릭 시 하트 버튼 클릭으로 인한 페이지 이동 방지
+    document.querySelectorAll(".menu-link").forEach(link => {
+        link.addEventListener("click", (e) => {
+            if (e.target.classList.contains("like-button")) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        });
     });
 });
 
-// 메뉴 상세 정보를 추출
-function getMenuDetails(element) {
-    const menuItem = element.closest(".menu-item");
-    const name = menuItem.querySelector(".menu-name").textContent.trim();
+// DB에서 찜 목록 가져오기
+async function loadLikedMenus() {
+    try {
+        let response = await fetch("/like/list", {
+            method: "GET",
+            credentials: "include" // 로그인 세션 유지
+        });
 
-    const priceText = menuItem.querySelector(".menu-price").dataset.price ||
-        menuItem.querySelector(".menu-price").textContent.replace('원', '').trim();
-    const price = parseInt(priceText, 10);
+        if (!response.ok)
+            return [];
 
-    const image = menuItem.querySelector(".menu-image").getAttribute('src');
-    const menuId = menuItem.dataset.menuId; // 있어도 무관함
-
-    return { menuId, name, price, image, temp: 'ICE/HOT' };
+        return await response.json();
+    } catch (err) {
+        console.error("찜 목록 불러오기 실패:", err);
+        return [];
+    }
 }
 
-// 하트 토글
-function toggleLike(element, event) {
+// 하트 표시 적용
+function updateLikeButtons(likedMenus) {
+    let likeButtons = document.querySelectorAll(".like-button");
+
+    likeButtons.forEach((btn) => {
+        let menuItem = btn.closest(".menu-item");
+        let id = menuItem.dataset.menuId;
+
+        // DB에 이미 찜한 메뉴이면 하트 표시 변경
+        btn.textContent = likedMenus.some(item => item.menuId == id)
+            ? "❤"
+            : "♡";
+
+        // 클릭 이벤트 설정
+        btn.onclick = (event) => toggleLike(btn, event);
+    });
+}
+
+// 찜 토글 및 DB 반영
+async function toggleLike(element, event) {
+    event.preventDefault();
     event.stopPropagation();
 
-    const menuDetails = getMenuDetails(element);
-    let likedMenus = JSON.parse(localStorage.getItem(LIKE_KEY)) || [];
+    let menuItem = element.closest(".menu-item");
+    let menuId = menuItem.dataset.menuId;
 
-    // ✅ 이름 기준으로 비교
-    const isLiked = likedMenus.some(item => item.name === menuDetails.name);
+    try {
+        let response = await fetch("/like/toggle", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: `menuId=${menuId}`,
+            credentials: "include"
+        });
 
-    // UI 즉시 변경
-    element.textContent = isLiked ? "♡" : "❤";
+        let result = await response.json();
 
-    // localStorage 갱신
-    if (isLiked) {
-        likedMenus = likedMenus.filter(item => item.name !== menuDetails.name);
-        console.log(menuDetails.name + " 좋아요 해제");
-    } else {
-        likedMenus.push(menuDetails);
-        console.log(menuDetails.name + " 좋아요 설정");
+        if (!result) {
+            console.error("찜 반영 실패");
+            return;
+        }
+
+        // UI 아이콘만 즉시 변경
+        element.textContent = (element.textContent === "❤") ? "♡" : "❤";
+
+    } catch (err) {
+        console.error("찜 토글 오류:", err);
     }
-
-    localStorage.setItem(LIKE_KEY, JSON.stringify(likedMenus));
 }
-
-    // 메뉴 클릭 이벤트
-    function selectMenu(menuItemElement) {
-        const menuId = menuItemElement.getAttribute("data-menu-id");
-        // 메뉴 상세 페이지로 이동
-        window.location.href = `/home/order_detail`;
-    }

@@ -40,6 +40,42 @@ body {
     margin-bottom: 30px;
 }
 
+/* 빈 장바구니 메시지 스타일 */
+.empty-cart-message {
+    text-align: center;
+    padding: 80px 20px;
+    background-color: #fafafa;
+    border-radius: 12px;
+    margin: 40px 0;
+    border: 1px solid #eee;
+}
+
+.empty-cart-message p {
+    font-size: 18px;
+    color: #666;
+    margin-bottom: 25px;
+    font-weight: 500;
+}
+
+.go-to-menu-btn {
+    display: inline-block;
+    padding: 14px 28px;
+    background-color: #795548;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 16px;
+    transition: background-color 0.2s ease;
+    box-shadow: 0 2px 8px rgba(121, 85, 72, 0.3);
+}
+
+.go-to-menu-btn:hover {
+    background-color: #6d4c41;
+    text-decoration: none;
+    color: white;
+}
+
 /* Action Bar (Select All / Delete Selected) */
 .action-bar {
     display: flex;

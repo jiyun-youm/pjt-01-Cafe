@@ -38,7 +38,7 @@
               </div>
                   <div class="price" id="price"
                        th:text="${#numbers.formatInteger(menu.menuPrice, 0)} + '원'"
-                       data-actual-price="${menu.menuPrice}">0000원
+                       th:data-actual-price="${menu.menuPrice}">0000원
                   </div>
               </div>
 
@@ -67,7 +67,10 @@
         <!-- 공통 모달 -->
         <div class="modal-bg" id="optionModal">
           <div class="modal">
-            <div class="modal-header"><h3 id="optionTitle">옵션 선택</h3><span class="close">✕</span></div>
+            <div class="modal-header">
+                <h3 id="optionTitle">옵션 선택</h3>
+                <span class="close">✕</span>
+            </div>
             <div id="optionContent">
               <input type="hidden" name="shot" id="shotInput" value="0">
               <input type="hidden" name="vanillaSyrup" id="vanillaInput" value="0">

@@ -13,8 +13,29 @@
                 <h2 style="font-weight: bold; color: #333; margin-bottom: 10px;" class="title-content">나만의 원픽</h2>
             </div>
 
-            <div class="menu-list-container" id="myPickList">
+            <!-- 찜한 메뉴 출력 영역 -->
+            <div class="menu-list-container">
+
+                <!-- 찜 메뉴 없을 때 -->
+                <div th:if="${#lists.isEmpty(likedMenus)}" style="text-align:center; padding:50px; color:#777;">
+                    찜한 메뉴가 없습니다 ☕
+                </div>
+
+                <!-- 찜 메뉴 반복 출력 -->
+                <div th:each="item : ${likedMenus}" class="menu-item" th:data-menu-id="${item.menuId}">
+                    <img th:src="@{'/images/img/' + ${item.menuImg}}" class="menu-image">
+
+                    <div class="menu-details">
+                        <div class="menu-name" th:text="${item.menuName}"></div>
+                        <div class="menu-price" th:text="${#numbers.formatInteger(item.menuPrice,0)} + '원'"></div>
+                    </div>
+
+                    <!-- 하트 토글 (삭제) -->
+                    <span class="like-button" onclick="cancelLike(this)">❤</span>
+                </div>
+
             </div>
+
         </main>
         <script src="/js/mypick.js"></script>
     </div>

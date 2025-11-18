@@ -5,8 +5,9 @@
 
 <mapper namespace="com.miniproject.cafe.Mapper.MenuMapper">
 
-    <!-- 전체 메뉴 조회 -->
-    <select id="getAllMenu" resultType="MenuVO">
+
+    <!-- 1) 지점 전체 메뉴 조회 (관리자 전용) -->
+    <select id="getMenuByStore" resultType="com.miniproject.cafe.VO.MenuVO">
         SELECT
             MENU_ID AS menuId,
             MENU_NAME AS menuName,
@@ -14,12 +15,17 @@
             SALES_STATUS AS salesStatus,
             MENU_IMG AS menuImg,
             MENU_PRICE AS menuPrice,
-            HOT_AVAILABLE AS hotAvailable
+            HOT_AVAILABLE AS hotAvailable,
+            MENU_DEFINITION AS menuDefinition,
+            STORE_NAME AS storeName
         FROM MENU
-        ORDER BY MENU_ID ASC
+        WHERE STORE_NAME = #{storeName}
+        ORDER BY MENU_NAME ASC
     </select>
 
-    <select id="getMenuByCategory" parameterType="string" resultType="MenuVO">
+
+    <!-- 2) 지점 + 카테고리 조회 (사용자용) -->
+    <select id="getMenuByStoreAndCategory" resultType="com.miniproject.cafe.VO.MenuVO">
         SELECT
             MENU_ID AS menuId,
             MENU_NAME AS menuName,
@@ -27,14 +33,18 @@
             SALES_STATUS AS salesStatus,
             MENU_IMG AS menuImg,
             MENU_PRICE AS menuPrice,
-            HOT_AVAILABLE AS hotAvailable
+            HOT_AVAILABLE AS hotAvailable,
+            MENU_DEFINITION AS menuDefinition,
+            STORE_NAME AS storeName
         FROM MENU
-        WHERE CATEGORY = #{category}
-        ORDER BY MENU_ID ASC
+        WHERE STORE_NAME = #{storeName}
+          AND CATEGORY = #{category}
+        ORDER BY MENU_NAME ASC
     </select>
 
-    <!-- 단일 메뉴 조회 -->
-    <select id="getMenuById" parameterType="string" resultType="MenuVO">
+
+    <!-- 3) 메뉴 단일 조회 -->
+    <select id="getMenuById" resultType="com.miniproject.cafe.VO.MenuVO">
         SELECT
             MENU_ID AS menuId,
             MENU_NAME AS menuName,
@@ -42,47 +52,53 @@
             SALES_STATUS AS salesStatus,
             MENU_IMG AS menuImg,
             MENU_PRICE AS menuPrice,
-            HOT_AVAILABLE AS hotAvailable
+            HOT_AVAILABLE AS hotAvailable,
+            MENU_DEFINITION AS menuDefinition,
+            STORE_NAME AS storeName
         FROM MENU
         WHERE MENU_ID = #{menuId}
     </select>
 
-    <!-- 메뉴 추가 -->
-    <insert id="insertMenu" parameterType="MenuVO">
-        INSERT INTO MENU (MENU_ID,
-                          MENU_NAME,
-                          CATEGORY,
-                          SALES_STATUS,
-                          MENU_IMG,
-                          MENU_PRICE,
-                          HOT_AVAILABLE)
-        VALUES (
-                #{menuId},
-                #{menuName},
-                #{category},
-                #{salesStatus},
-                #{menuImg},
-                #{menuPrice},
-                #{hotAvailable}
-               )
+
+    <!-- 4) 메뉴 INSERT -->
+    <insert id="insertMenu" parameterType="com.miniproject.cafe.VO.MenuVO">
+        INSERT INTO MENU (
+            MENU_ID,
+            MENU_NAME,
+            CATEGORY,
+            SALES_STATUS,
+            MENU_IMG,
+            MENU_PRICE,
+            HOT_AVAILABLE,
+            MENU_DEFINITION,
+            STORE_NAME
+        ) VALUES (
+                     #{menuId},
+                     #{menuName},
+                     #{category},
+                     #{salesStatus},
+                     #{menuImg},
+                     #{menuPrice},
+                     #{hotAvailable},
+                     #{menuDefinition},
+                     #{storeName}
+                 )
     </insert>
 
-    <!-- 메뉴 수정 -->
-    <update id="updateMenu" parameterType="MenuVO">
-        UPDATE MENU
-        SET MENU_NAME = #{menuName},
-            CATEGORY = #{category},
-            SALES_STATUS = #{salesStatus},
-            MENU_IMG = #{menuImg},
-            MENU_PRICE = #{menuPrice},
-            HOT_AVAILABLE = #{hotAvailable}
-        WHERE MENU_ID = #{menuId}
-    </update>
-
-    <!-- 메뉴 삭제 -->
-    <delete id="deleteMenu" parameterType="string">
+    <!-- 5) 지점 검증 후 삭제 (안전 삭제) -->
+    <delete id="deleteMenuByStore">
         DELETE FROM MENU
         WHERE MENU_ID = #{menuId}
+          AND STORE_NAME = #{storeName}
     </delete>
+
+    <select id="getLastMenuIdByStore" parameterType="string" resultType="string">
+        SELECT MENU_ID
+        FROM MENU
+        WHERE STORE_NAME = #{storeName}
+        ORDER BY MENU_ID DESC
+            LIMIT 1
+    </select>
+
 
 </mapper>

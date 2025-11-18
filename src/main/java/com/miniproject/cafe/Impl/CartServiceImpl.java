@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,33 +28,38 @@ public class CartServiceImpl implements CartService {
     public Map<String, Object> getCartList(String memberId) {
         List<Map<String, Object>> cartItems = cartMapper.getCartList(memberId);
 
+        // ✅ 빈 리스트 또는 null 체크 강화
+        if (cartItems == null || cartItems.isEmpty()) {
+            Map<String, Object> result = new HashMap<>();
+            result.put("cartItems", new ArrayList<>());
+            result.put("totalPrice", 0);
+            return result;
+        }
+
         int totalPrice = 0;
         for (Map<String, Object> item : cartItems) {
-            try {
-                int menuPrice = parseIntSafe(item.get("MENU_PRICE"));
-                int quantity = parseIntSafe(item.get("QUANTITY"));
-                int shotCount = parseIntSafe(item.get("SHOT_COUNT"));
-                int vanillaSyrupCount = parseIntSafe(item.get("VANILLA_SYRUP_COUNT"));
-                int whippedCreamCount = parseIntSafe(item.get("WHIPPED_CREAM_COUNT"));
+            // ✅ NULL 체크 강화
+            if (item == null) continue;
 
-                // ✅ 수정: quantity는 한 번만 곱하기
-                int basePrice = menuPrice * quantity;
-                int optionPrice = (shotCount + vanillaSyrupCount + whippedCreamCount) * 500;
-                int itemTotal = basePrice + (optionPrice * quantity);  // ✅ 옵션도 수량만큼
+            int menuPrice = parseIntSafe(item.get("MENU_PRICE"));
+            int quantity = parseIntSafe(item.get("QUANTITY"));
 
-                totalPrice += itemTotal;
+            // ✅ 옵션 값 NULL 체크
+            Object shotCountObj = item.get("SHOT_COUNT");
+            Object vanillaSyrupCountObj = item.get("VANILLA_SYRUP_COUNT");
+            Object whippedCreamCountObj = item.get("WHIPPED_CREAM_COUNT");
 
-                // 디버깅용 출력
-                System.out.println("메뉴: " + item.get("MENU_NAME") +
-                        ", 기본가: " + menuPrice +
-                        ", 수량: " + quantity +
-                        ", 옵션가: " + optionPrice +
-                        ", 아이템합계: " + itemTotal);
+            int shotCount = shotCountObj != null ? parseIntSafe(shotCountObj) : 0;
+            int vanillaSyrupCount = vanillaSyrupCountObj != null ? parseIntSafe(vanillaSyrupCountObj) : 0;
+            int whippedCreamCount = whippedCreamCountObj != null ? parseIntSafe(whippedCreamCountObj) : 0;
 
-            } catch (Exception e) {
-                System.err.println("가격 계산 중 오류: " + e.getMessage());
-                continue;
-            }
+            int optionCount = shotCount + vanillaSyrupCount + whippedCreamCount;
+
+            int itemTotalPrice = (menuPrice + (optionCount * 500)) * quantity;
+            totalPrice += itemTotalPrice;
+
+            // ✅ 각 아이템의 총 가격을 미리 계산해서 추가
+            item.put("ITEM_TOTAL_PRICE", itemTotalPrice);
         }
 
         Map<String, Object> result = new HashMap<>();
@@ -62,22 +68,38 @@ public class CartServiceImpl implements CartService {
         return result;
     }
 
-    // 🔥 안전한 정수 변환 메서드
     private int parseIntSafe(Object value) {
-        if (value == null) return 0;
+        if (value == null) {
+            return 0;
+        }
 
         try {
-            if (value instanceof Integer) {
-                return (Integer) value;
-            } else if (value instanceof String) {
-                return Integer.parseInt((String) value);
-            } else if (value instanceof Long) {
-                return ((Long) value).intValue();
-            } else {
-                return Integer.parseInt(value.toString());
+            String strValue = value.toString().trim();
+
+            // 빈 문자열 체크
+            if (strValue.isEmpty()) {
+                return 0;
             }
+
+            // 소수점 제거 (3.000 -> 3000)
+            if (strValue.contains(".")) {
+                strValue = strValue.split("\\.")[0];
+            }
+
+            // 쉼표 제거 (3,000 -> 3000)
+            strValue = strValue.replace(",", "");
+
+            // 숫자만 추출
+            strValue = strValue.replaceAll("[^0-9-]", "");
+
+            if (strValue.isEmpty() || strValue.equals("-")) {
+                return 0;
+            }
+
+            int result = Integer.parseInt(strValue);
+            return result;
+
         } catch (NumberFormatException e) {
-            System.err.println("숫자 변환 오류: " + value + " -> " + e.getMessage());
             return 0;
         }
     }
@@ -103,20 +125,23 @@ public class CartServiceImpl implements CartService {
                          boolean tumblerUse, int shotCount, int vanillaSyrupCount,
                          int whippedCreamCount) {
         try {
-            System.out.println("장바구니 추가 시작 - 회원: " + memberId + ", 메뉴: " + menuId);
+            System.out.println("=== addToCart 디버깅 ===");
+            System.out.println("memberId: " + memberId);
+            System.out.println("menuId: " + menuId);
+            System.out.println("quantity: " + quantity);
+            System.out.println("temp: " + temp);
 
             // 1. 회원 장바구니 조회
             Long cartId = cartMapper.findCartByMemberId(memberId);
-            System.out.println("기존 장바구니 ID: " + cartId);
+            System.out.println("cartId: " + cartId);
 
             // 2. 장바구니가 없으면 생성
             if (cartId == null) {
-                System.out.println("새 장바구니 생성");
                 Map<String, Object> cartParams = new HashMap<>();
                 cartParams.put("memberId", memberId);
                 cartMapper.insertCartByMap(cartParams);
                 cartId = cartMapper.findCartByMemberId(memberId);
-                System.out.println("생성된 장바구니 ID: " + cartId);
+                System.out.println("생성된 cartId: " + cartId);
             }
 
             // 3. 메뉴 옵션 조회
@@ -128,34 +153,34 @@ public class CartServiceImpl implements CartService {
             optionParams.put("vanillaSyrupCount", vanillaSyrupCount);
             optionParams.put("whippedCreamCount", whippedCreamCount);
 
-            System.out.println("옵션 파라미터: " + optionParams);
-
             Long menuOptionId = cartMapper.findMenuOption(optionParams);
-            System.out.println("기존 메뉴 옵션 ID: " + menuOptionId);
+            System.out.println("기존 menuOptionId: " + menuOptionId);
 
             // 4. 메뉴 옵션이 없으면 생성
             if (menuOptionId == null) {
-                System.out.println("새 메뉴 옵션 생성");
                 cartMapper.insertMenuOption(optionParams);
                 menuOptionId = cartMapper.findMenuOption(optionParams);
-                System.out.println("생성된 메뉴 옵션 ID: " + menuOptionId);
+                System.out.println("생성된 menuOptionId: " + menuOptionId);
             }
 
-            // 5. 카트 아이템 생성
-            CartItemVO cartItemVO = new CartItemVO();
-            cartItemVO.setCartId(cartId);
-            cartItemVO.setMenuOptionId(menuOptionId);
-            cartItemVO.setQuantity(quantity);
+            // ✅ 5. 기존에 같은 메뉴옵션이 장바구니에 있는지 확인
+            Long existingCartItemId = cartMapper.findExistingCartItem(cartId, menuOptionId);
 
-            System.out.println("카트 아이템: " + cartItemVO);
-
-            int result = cartMapper.addCartItem(cartItemVO);
-            System.out.println("카트 아이템 추가 결과: " + result);
-
-            return result;
+            if (existingCartItemId != null) {
+                // ✅ 기존 아이템이 있으면 수량 증가
+                CartItemVO existingItem = cartMapper.getCartItem(existingCartItemId);
+                int newQuantity = existingItem.getQuantity() + quantity;
+                return cartMapper.changeQuantityCartItem(existingCartItemId, newQuantity);
+            } else {
+                // ✅ 새 아이템 추가
+                CartItemVO cartItemVO = new CartItemVO();
+                cartItemVO.setCartId(cartId);
+                cartItemVO.setMenuOptionId(menuOptionId);
+                cartItemVO.setQuantity(quantity);
+                return cartMapper.addCartItem(cartItemVO);
+            }
 
         } catch (Exception e) {
-            System.err.println("장바구니 추가 중 오류: " + e.getMessage());
             e.printStackTrace();
             return 0;
         }

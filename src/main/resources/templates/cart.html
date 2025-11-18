@@ -9,50 +9,77 @@
         <div class="app-container">
             <main class="shopping-cart-combined" th:data-member-id="${memberId}">
                 <h1 class="screen-1-title">장바구니</h1>
-                <div class="action-bar screen-1-content">
-                    <label class="checkbox-container">
-                        <input type="checkbox" id="selectAll" checked>
-                        전체선택
-                        <span class="checkmark"></span>
-                    </label>
-                    <button class="delete-btn" id="deleteSelectedBtn">선택삭제</button>
+
+                <!-- ✅ 장바구니가 비어있을 때 -->
+                <div th:if="${cartItems == null or #lists.isEmpty(cartItems)}" class="empty-cart-message"
+                     th:style="${cartItems != null and not #lists.isEmpty(cartItems)} ? 'display: none;' : ''">
+                    <p>장바구니가 비어있습니다.</p>
+                    <a th:href="@{/menu/coffee}" class="go-to-menu-btn">메뉴 보러가기</a>
                 </div>
-                <div class="item-list screen-1-content">
-                    <!-- Map 형태의 데이터를 Thymeleaf로 출력 -->
+
+                <!-- ✅ 장바구니에 아이템이 있을 때 -->
+                <div th:if="${cartItems != null and not #lists.isEmpty(cartItems)}">
+                    <div class="action-bar screen-1-content">
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="selectAll" checked>
+                            전체선택
+                            <span class="checkmark"></span>
+                        </label>
+                        <button class="delete-btn" id="deleteSelectedBtn">선택삭제</button>
+                    </div>
+
                     <div class="item-list screen-1-content">
-                        <!-- Thymeleaf로 장바구니 아이템 출력 -->
                         <div th:each="item : ${cartItems}" class="cart-item"
-                             th:data-price="${item.MENU_PRICE + (item.SHOT_COUNT * 500) + (item.VANILLA_SYRUP_COUNT * 500) + (item.WHIPPED_CREAM_COUNT * 500)}">
+                             th:data-price="${item.MENU_PRICE + (item.SHOT_COUNT * 500) + (item.VANILLA_SYRUP_COUNT * 500) + (item.WHIPPED_CREAM_COUNT * 500)}"
+                             th:data-cart-item-id="${item['CART_ITEM_ID']}"
+                             th:data-base-price="${item['MENU_PRICE']}"
+                             th:data-option-price="${(item['SHOT_COUNT'] + item['VANILLA_SYRUP_COUNT'] + item['WHIPPED_CREAM_COUNT']) * 500}"
+                             th:data-quantity="${item['QUANTITY']}">
 
                             <label class="checkbox-container">
                                 <input type="checkbox" class="item-checkbox-input" checked>
                                 <span class="checkmark item-checkbox"></span>
                             </label>
 
-                            <!-- 상품 이미지 -->
-                            <img th:src="@{/images/{imageName}(imageName=${item.MENU_IMG})}"
-                                 th:alt="${item.MENU_NAME}" class="item-img">
+                            <img th:src="@{|/images/img/${item['MENU_IMG']}|}"
+                                 th:alt="${item['MENU_NAME']}" class="item-img">
 
                             <div class="item-details">
-                                <!-- ICE/HOT 표시 -->
-                                <span class="item-temp" th:classappend="${item.TEMP == 'HOT'} ? 'hot' : ''"
-                                      th:text="${item.TEMP}">temp</span>
+                                <span class="item-temp"
+                                      th:classappend="${item['TEMP'] == 'HOT' or item['TEMP'] == 'Hot' or item['TEMP'] == 'hot'} ? 'hot' : ''"
+                                      th:text="${#strings.toUpperCase(item['TEMP'])}">temp</span>
 
-                                <!-- 메뉴명 -->
-                                <span class="item-name" th:text="${item.MENU_NAME}">커피이름</span>
+                                <span class="item-name" th:text="${item['MENU_NAME']}">커피이름</span>
 
-                                <!-- 가격 (기본가 + 옵션가) * 수량 -->
                                 <span class="item-price-display"
-                                      th:text="${#numbers.formatInteger((item.MENU_PRICE + (item.SHOT_COUNT * 500) + (item.VANILLA_SYRUP_COUNT * 500) + (item.WHIPPED_CREAM_COUNT * 500)) * item.QUANTITY, 1, 'COMMA')} + '원'">
+                                      th:text="${#numbers.formatInteger(item['ITEM_TOTAL_PRICE'], 1, 'COMMA')} + '원'">
                                 </span>
 
-                                <!-- 옵션 표시 (가격 포함) -->
                                 <p class="item-options"
-                                   th:if="${item.TUMBLER_USE == true or item.SHOT_COUNT > 0 or item.VANILLA_SYRUP_COUNT > 0 or item.WHIPPED_CREAM_COUNT > 0}">
-                                    <span th:if="${item.TUMBLER_USE == true}">텀블러 사용 | </span>
-                                    <span th:if="${item.SHOT_COUNT > 0}">샷 추가([[${item.SHOT_COUNT}]])(+[[${item.SHOT_COUNT * 500}]]원) | </span>
-                                    <span th:if="${item.VANILLA_SYRUP_COUNT > 0}">바닐라 시럽([[${item.VANILLA_SYRUP_COUNT}]])(+[[${item.VANILLA_SYRUP_COUNT * 500}]]원) | </span>
-                                    <span th:if="${item.WHIPPED_CREAM_COUNT > 0}">휘핑크림([[${item.WHIPPED_CREAM_COUNT}]])(+[[${item.WHIPPED_CREAM_COUNT * 500}]]원)</span>
+                                   th:if="${item['TUMBLER_USE'] == true or item['TUMBLER_USE'] == 1 or item['SHOT_COUNT'] > 0 or item['VANILLA_SYRUP_COUNT'] > 0 or item['WHIPPED_CREAM_COUNT'] > 0}">
+
+                                    <!-- 텀블러 사용 -->
+                                    <span th:if="${item['TUMBLER_USE'] == true or item['TUMBLER_USE'] == 1}">
+                                        텀블러 사용
+                                        <span th:if="${item['SHOT_COUNT'] > 0 or item['VANILLA_SYRUP_COUNT'] > 0 or item['WHIPPED_CREAM_COUNT'] > 0}"> | </span>
+                                    </span>
+
+                                    <!-- 샷 추가 -->
+                                    <span th:if="${item['SHOT_COUNT'] > 0}">
+                                        샷 추가([[${item['SHOT_COUNT']}]])(+[[${item['SHOT_COUNT'] * 500}]]원)
+                                        <span th:if="${item['VANILLA_SYRUP_COUNT'] > 0 or item['WHIPPED_CREAM_COUNT'] > 0}"> | </span>
+                                    </span>
+
+                                    <!-- 바닐라 시럽 -->
+                                    <span th:if="${item['VANILLA_SYRUP_COUNT'] > 0}">
+                                        바닐라 시럽([[${item['VANILLA_SYRUP_COUNT']}]])(+[[${item['VANILLA_SYRUP_COUNT'] * 500}]]원)
+                                        <span th:if="${item['WHIPPED_CREAM_COUNT'] > 0}"> | </span>
+                                    </span>
+
+                                    <!-- 휘핑크림 -->
+                                    <span th:if="${item['WHIPPED_CREAM_COUNT'] > 0}">
+                                        휘핑크림([[${item['WHIPPED_CREAM_COUNT']}]])(+[[${item['WHIPPED_CREAM_COUNT'] * 500}]]원)
+                                    </span>
                                 </p>
                             </div>
 

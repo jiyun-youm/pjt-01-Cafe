@@ -9,11 +9,11 @@
 
         <!-- 카테고리 탭 -->
         <nav class="category-tab-bar">
-            <a th:href="@{/menu/newMenu}">신메뉴</a>
-            <a th:href="@{/menu/coffee}">커피</a>
-            <a th:href="@{/menu/beverage}">음료</a>
-            <a th:href="@{/menu/tea}">티/에이드</a>
-            <a th:href="@{/menu/food}" class="active-category">푸드</a>
+            <a th:href="@{/menu/newMenu(region=${region})}">신메뉴</a>
+            <a th:href="@{/menu/coffee(region=${region})}">커피</a>
+            <a th:href="@{/menu/beverage(region=${region})}">음료</a>
+            <a th:href="@{/menu/tea(region=${region})}">티/에이드</a>
+            <a th:href="@{/menu/food(region=${region})}" class="active-category">푸드</a>
         </nav>
 
         <!-- 메뉴 리스트 -->
@@ -23,7 +23,7 @@
                 <a th:each="item : ${menuItems}"
                    th:href="@{/home/order_detail(id=${item.menuId})}"
                    class="menu-link">
-                    <div class="menu-item">
+                    <div class="menu-item" th:data-menu-id="${item.menuId}">
                         <!-- 메뉴 이미지 -->
                         <img th:src="@{'/images/img/' + ${item.menuImg}}"
                              th:alt="${item.menuName}"
@@ -34,6 +34,7 @@
                             <div class="menu-name" th:text="${item.menuName}"></div>
                             <!-- 가격 -->
                             <div class="menu-price"
+                                 th:data-price="${item.menuPrice}"
                                  th:text="${#numbers.formatInteger(item.menuPrice, 0)} + '원'">
                             </div>
                         </div>

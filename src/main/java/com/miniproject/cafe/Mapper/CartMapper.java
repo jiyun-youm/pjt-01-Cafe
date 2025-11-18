@@ -18,9 +18,10 @@ public interface CartMapper {
     int deleteCartItem(long cartItemId);
     int changeQuantityCartItem(@Param("cartItemId") long cartItemId, @Param("quantity") int quantity);
 
-    // 🔥 추가된 메서드들 (insertCartByMap으로 변경)
     Long findCartByMemberId(String memberId);
     int insertCartByMap(Map<String, Object> cartParams); // 이름 변경
     Long findMenuOption(Map<String, Object> optionParams);
     int insertMenuOption(Map<String, Object> optionParams);
+    Long findExistingCartItem(@Param("cartId") Long cartId, @Param("menuOptionId") Long menuOptionId);
+    CartItemVO getCartItem(@Param("cartItemId") Long cartItemId);
 }

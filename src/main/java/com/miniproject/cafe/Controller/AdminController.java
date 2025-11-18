@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/admin")
@@ -17,7 +18,7 @@ public class AdminController {
     @Autowired
     private AdminService adminService;
 
-    // 🔹 개행 문자 제거하는 sanitizing 메서드 추가
+    // 개행 문자 제거하는 sanitizing 메서드 추가
     private String sanitize(String msg) {
         if (msg == null) return "";
         return msg.replaceAll("[\r\n]", "");  // CR/LF 제거
@@ -33,19 +34,24 @@ public class AdminController {
 
     // 회원가입 화면
     @GetMapping("/signup")
-    public String adminSignup() {
+    public String adminSignup(HttpSession session, Model model) {
+        Object msg = session.getAttribute("signupError");
+        if (msg != null) {
+            model.addAttribute("error", msg.toString());
+            session.removeAttribute("signupError");   // 한 번만 표시
+        }
         return "admin_signup";
     }
 
     // 회원가입 처리
     @PostMapping("/joinForm")
-    public String signup(AdminVO vo) {
+    public String signup(AdminVO vo, HttpSession session) {
         try {
             adminService.register(vo);
         } catch (RuntimeException e) {
 
-            // 🔥 개행 제거 적용
-            return "redirect:/admin/signup?error=" + sanitize(e.getMessage());
+            session.setAttribute("signupError", e.getMessage());
+            return "redirect:/admin/signup";
         }
 
         return "redirect:/admin/login";
@@ -61,7 +67,8 @@ public class AdminController {
     @PostMapping("/login")
     public String login(@RequestParam String id,
                         @RequestParam String password,
-                        HttpSession session) {
+                        HttpSession session,
+                        RedirectAttributes ra) {
 
         try {
             AdminVO admin = adminService.login(id, password);
@@ -69,9 +76,8 @@ public class AdminController {
             session.setAttribute("storeName", admin.getStoreName());
 
         } catch (RuntimeException e) {
-
-            // 🔥 로그인 실패 메시지도 sanitize 적용
-            return "redirect:/admin/login?error=" + sanitize(e.getMessage());
+            ra.addFlashAttribute("loginError", e.getMessage());
+            return "redirect:/admin/login";
         }
 
         return "redirect:/admin/orders";

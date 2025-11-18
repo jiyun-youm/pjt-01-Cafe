@@ -184,9 +184,9 @@ button:hover {
     transition: background-color 0.2s;
 }
 
-/*.footer-nav-item.active {*/
-/*    background-color: var(--active-orange);*/
-/*}*/
+.footer-nav-item.active {
+    background-color: var(--active-orange);
+}
 
 .footer-nav-item:not(.active):hover {
     background-color: var(--hover-orange);

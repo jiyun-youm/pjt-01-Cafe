@@ -73,12 +73,14 @@
     function updatePrice() {
         qtyEl.textContent = qty;
 
+        // 옵션 총액 계산
         let optionTotal = 0;
         for (const key in appliedOptionCounts) {
             optionTotal += appliedOptionCounts[key] * optionPrice;
         }
 
-        const total = (qty * pricePer) + optionTotal;
+        // ✅ 수정: (기본가 + 옵션총액) × 수량
+        const total = (pricePer + optionTotal) * qty;
         priceEl.textContent = total.toLocaleString() + '원';
     }
 
@@ -89,16 +91,16 @@
     const applyBtn = document.getElementById('applyOptionBtn');
 
     applyBtn.onclick = () => {
-    // 모든 옵션 row를 돌면서 수량을 저장
-    document.querySelectorAll('#optionContent .option-row').forEach(row => {
-        const name = row.querySelector('span').textContent;
-        const val = parseInt(row.querySelector('.val').textContent);
-        appliedOptionCounts[name] = val;
-    });
+        // 모든 옵션 row의 현재 값을 appliedOptionCounts에 저장
+        document.querySelectorAll('#optionContent .option-row').forEach(row => {
+            const name = row.querySelector('span').textContent;
+            const val = parseInt(row.querySelector('.val').textContent);
+            appliedOptionCounts[name] = val;
+        });
 
-    updatePrice();           // 총액 갱신
-    optionModal.style.display = 'none'; // 모달 닫기
-};
+        updatePrice();           // 총액 갱신
+        optionModal.style.display = 'none'; // 모달 닫기
+    };
 
     document.getElementById('detailBtn').onclick = () => openModal(detailModal);
     document.getElementById('shotBtn').onclick = () => openOption('샷 선택', ['샷 추가']);
@@ -114,35 +116,51 @@
     const optionTitle = document.getElementById('optionTitle');
     const optionContent = document.getElementById('optionContent');
     function openOption(title, items) {
-    optionTitle.textContent = title;
-
-    optionContent.innerHTML = items.map(item => {
-    // 기존 선택값 불러오기
-    let val = appliedOptionCounts[item] || 0;
-    return `
+        optionTitle.textContent = title;
+        optionContent.innerHTML = items.map(item => {
+            let val = appliedOptionCounts[item] || 0;
+            return `
       <div class='option-row'>
         <span>${item}</span>
         <div class='opt-controls'>
           <span>500원</span>
-          <button onclick='adjust(this,-1)'>-</button>
+          <button class="option-minus-btn" data-option="${item}">-</button>
           <span class='val'>${val}</span>
-          <button onclick='adjust(this,1)'>+</button>
+          <button class="option-plus-btn" data-option="${item}">+</button>
         </div>
       </div>
     `;
-}).join('');
+        }).join('');
 
-    openModal(optionModal);
-}
+        // 이벤트 리스너 추가
+        optionContent.querySelectorAll('.option-minus-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                adjust(this, -1);
+            });
+        });
+
+        optionContent.querySelectorAll('.option-plus-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                adjust(this, 1);
+            });
+        });
+
+        openModal(optionModal);
+    }
 
 
     function adjust(btn, delta) {
-    const valEl = btn.parentElement.querySelector('.val');
-    let v = parseInt(valEl.textContent);
-    v = Math.max(0, v + delta);
-    valEl.textContent = v;
+        const valEl = btn.parentElement.querySelector('.val');
+        let v = parseInt(valEl.textContent);
+        v = Math.max(0, v + delta);
+        valEl.textContent = v;
 
-}
+        // 옵션값 변경 시 실시간으로 appliedOptionCounts 업데이트
+        const optionName = btn.closest('.option-row').querySelector('span').textContent;
+        appliedOptionCounts[optionName] = v;
+    }
 
     document.querySelector('.add').addEventListener('click', function() {
         addToCart();
@@ -160,6 +178,7 @@
         // 2. 메뉴 ID 가져오기 (URL 파라미터에서)
         let urlParams = new URLSearchParams(window.location.search);
         let menuId = urlParams.get('id');
+        console.log('menuId:', menuId);
 
         if (!menuId) {
             alert('메뉴 정보를 찾을 수 없습니다.');
@@ -196,8 +215,8 @@
             .then(result => {
                 if (result.success) {
                     alert('장바구니에 추가되었습니다.');
-                    // 장바구니 페이지로 이동 옵션
-                    // window.location.href = '/home/cart';
+                    // ✅ home/cart로 이동
+                    window.location.href = '/home/cart';
                 } else {
                     alert('장바구니 추가에 실패했습니다: ' + result.message);
                 }
