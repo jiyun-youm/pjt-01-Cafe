@@ -33,21 +33,6 @@
                             </tr>
                             </thead>
                             <tbody>
-<<<<<<< Updated upstream
-                            <!-- DB 메뉴 리스트 반복 출력 -->
-                            <tr th:each="menu : ${menuList}"
-                                th:data-menu-id="${menu.menuId}">
-                                <td><input type="checkbox" th:value="${menu.menuId}"></td>
-                                <td th:text="${menu.menuName}">메뉴명</td>
-                                <td th:text="${menu.menuPrice} + '원'"></td>
-                                <td th:text="${menu.category}">카테고리</td>
-                                <td>
-                                    <button class="delete-btn"
-                                            th:data-id="${menu.menuId}">×</button>
-                                </td>
-                            </tr>
-                            </tbody>
-=======
                             <th:block th:each="menu : ${menuList}">
                                 <tr class="menu-row" th:data-menu-id="${menu.menuId}">
                                     <td><input type="checkbox" th:value="${menu.menuId}"></td>
@@ -75,8 +60,6 @@
                                 </tr>
                             </th:block>
                             </tbody>
-
->>>>>>> Stashed changes
                         </table>
                     </div>
                 </section>
@@ -88,10 +71,6 @@
                           th:action="@{/admin/insertMenu}"
                           method="post"
                           enctype="multipart/form-data">
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
                         <label for="menuName">메뉴 이름</label>
                         <input type="text" id="menuName" name="menuName" placeholder="예) 아메리카노" required>
 
@@ -107,17 +86,12 @@
                             <option value="티">티(Tea)</option>
                             <option value="푸드">푸드</option>
                         </select>
-
-<<<<<<< Updated upstream
-=======
                         <label for="menuTemperature">HOT ICE (푸드는 ICE로 선택)</label>
                         <select id="menuTemperature" name="temperature" required>
                             <option value="" disabled selected>온도 선택</option>
                             <option value="AVAILABLE">HOT ICE</option>
                             <option value="ONLY_ICE">ICE</option>
                         </select>
-
->>>>>>> Stashed changes
                         <label for="menuDescription">메뉴 설명</label>
                         <textarea id="menuDescription" name="menuDefinition"></textarea>
 
@@ -125,13 +99,7 @@
                         <div class="image-upload-box" onclick="document.getElementById('menuImage').click();">
                             <span class="material-icons">add</span>
                         </div>
-<<<<<<< Updated upstream
-                        <input type="file" id="menuImage" name="menuImgFile" accept="image/*" style="display:none;">
-
-
-=======
                         <input type="file" id="menuImage" name="menuImgFile" style="display:none;">
->>>>>>> Stashed changes
 
                         <button type="submit" class="submit-btn">메뉴 등록</button>
                     </form>
@@ -143,7 +111,6 @@
     </div>
 </th:block>
 
-<<<<<<< Updated upstream
     <footer class="footer-nav">
         <a href="/admin/menu" class="footer-nav-item active">메뉴 관리</a>
         <a href="/admin/orders" class="footer-nav-item">주문 관리</a>
@@ -152,14 +119,5 @@
         <a th:if="${isLoggedIn}" href="/admin/logout" class="footer-nav-item">로그아웃</a>
         <a th:unless="${isLoggedIn}" href="/admin/login" class="footer-nav-item">로그인</a>
     </footer>
-
-=======
-<footer class="footer-nav">
-    <a href="menu" class="footer-nav-item active">메뉴 관리</a>
-    <a href="orders" class="footer-nav-item">주문 관리</a>
-    <a href="revenue" class="footer-nav-item">매출 관리</a>
-    <a href="login" class="footer-nav-item">로그인</a>
-</footer>
->>>>>>> Stashed changes
 </body>
 </html>
