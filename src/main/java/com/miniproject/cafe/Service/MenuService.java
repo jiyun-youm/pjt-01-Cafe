@@ -11,4 +11,5 @@ public interface MenuService {
     void insertMenu(MenuVO menuVO);
     void deleteMenuByStore(String menuId, String storeName);
     String getLastMenuIdByStore(String storeName);
+    void updateSalesStatus(String menuId, String storeName, String saleStatus);
 }

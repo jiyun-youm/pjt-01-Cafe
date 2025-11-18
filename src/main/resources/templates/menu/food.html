@@ -22,24 +22,34 @@
 
                 <a th:each="item : ${menuItems}"
                    th:href="@{/home/order_detail(id=${item.menuId})}"
-                   class="menu-link">
+                   class="menu-link"
+                   th:classappend="${item.salesStatus != '판매중'} ? ' sold-out-item'">
+
                     <div class="menu-item" th:data-menu-id="${item.menuId}">
+
                         <!-- 메뉴 이미지 -->
-                        <img th:src="@{'/images/img/' + ${item.menuImg}}"
+                        <img th:src="@{'/upload/' + ${item.menuImg}}"
                              th:alt="${item.menuName}"
                              class="menu-image">
+
                         <!-- 메뉴 정보 -->
                         <div class="menu-details">
 
                             <div class="menu-name" th:text="${item.menuName}"></div>
-                            <!-- 가격 -->
+
+                            <!-- 가격 영역: 판매 상태에 따라 변경 -->
                             <div class="menu-price"
-                                 th:data-price="${item.menuPrice}"
-                                 th:text="${#numbers.formatInteger(item.menuPrice, 0)} + '원'">
+                                 th:text="${item.salesStatus == '판매중'}
+                                          ? ${#numbers.formatInteger(item.menuPrice, 0)} + '원'
+                                          : 'SOLD OUT'"
+                                 th:classappend="${item.salesStatus != '판매중'} ? ' sold-out-text'">
                             </div>
                         </div>
 
-                        <span class="like-button" onclick="toggleLike(this, event)">♡</span>
+                        <!-- 찜 버튼 (데이터 속성 추가됨) -->
+                        <span class="like-button"
+                              th:data-menu-id="${item.menuId}"
+                              onclick="toggleLike(this, event)">♡</span>
 
                     </div>
                 </a>

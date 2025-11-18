@@ -39,4 +39,9 @@ public class MenuServiceImpl implements MenuService {
     public String getLastMenuIdByStore(String storeName) {
         return menuMapper.getLastMenuIdByStore(storeName);
     }
+
+    @Override
+    public void updateSalesStatus(String menuId, String storeName, String saleStatus) {
+        menuMapper.updateSalesStatus(menuId, storeName, saleStatus);
+    }
 }

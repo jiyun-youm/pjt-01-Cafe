@@ -1,249 +1,131 @@
-    /* 기본 레이아웃 및 상/하단 고정 영역 CSS */
-    .mobile-frame {
-        width: 100%;
-        height: 100vh;
-        max-width: 430px;
-        margin: 0 auto;
-        background-color: #fff;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        border-radius: 20px;
-    }
-    .fixed-top {
-        flex-shrink: 0;
-        background-color: #f8f8f8;
-    }
-    .fixed-bottom {
-        flex-shrink: 0;
-        box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
-        background-color: transparent;
-        position: relative;
-    }
-
-    /* 상단 바 스타일 */
-    .top-bar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 15px;
-        background-color: #A47D5B;
-        height: 60px;
-        position: relative;
-    }
-    .top-bar .logo-section {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .top-bar .logo-icon {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin-top: 10px;
-    }
-    .top-bar .logo-icon img{
-        width: 60px;
-        height: 60px;
-    }
-
-    .top-bar .logo-text {
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .top-bar .logo-text img {
-        display: block;
-    }
-    .top-bar .notification-icon {
-        font-size: 24px;
-        width: 40px;
-        height: 40px;
-        background-color: rgba(255, 255, 255, 0.4);
-        border-radius: 50%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        border: 1px solid rgba(255, 255, 255, 0.6);
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        position: relative;
-        cursor: pointer;
-    }
-    .top-bar .notification-icon img {
-        vertical-align: middle;
-        margin-top: -7px;
-        margin-left: 2px;
-    }
-
-    .tab-bar {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    background-color: #E8DED6;
-    padding: 10px 0;
-    height: 70px;
-    border-top-left-radius: 20px;
-    border-top-right-radius: 20px;
-    box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
-    position: relative;
-    z-index: 10;
-    }
-
-    .tab-bar a {
-    color: #5A3E2B;
-    text-decoration: none;
+/* 전체 화면 프레임 */
+.mobile-frame {
+    width: 100%;
+    height: 100vh;
+    max-width: 430px;
+    margin: 0 auto;
+    background-color: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     display: flex;
     flex-direction: column;
-    align-items: center;
-    font-size: 14px;
-    font-weight: 500;
-    gap: 4px;
+    overflow: hidden;
+    border-radius: 20px;
+}
+
+.fixed-top { flex-shrink: 0; background-color: #f8f8f8; }
+.fixed-bottom {
+    flex-shrink: 0;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
+    background-color: transparent;
     position: relative;
-    z-index: 11;
-    }   
+}
 
-    .tab-bar a .tab-icon {
-        font-size: 24px;
-    }
+/* 상단 바 */
+.top-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 15px; background-color: #A47D5B; height: 60px; position: relative;
+}
+.top-bar .logo-section { display: flex; align-items: center; gap: 8px; }
+.top-bar .logo-icon { display: flex; justify-content: center; align-items: center; margin-top: 10px; }
+.top-bar .logo-icon img { width: 60px; height: 60px; }
 
-    .tab-bar a.active {
-        color: #5A3E2B;
-    }
+.top-bar .logo-text {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    display: flex; justify-content: center; align-items: center;
+}
 
-    .tab-bar a.active .tab-icon-wrapper {
-    width: 70px;
-    height: 70px;
-    background-color: #c9b19e;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transform: translateY(-25%);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-    z-index: 20;
-    }
+.top-bar .notification-icon {
+    font-size: 24px; width: 40px; height: 40px;
+    background-color: rgba(255,255,255,0.4); border-radius: 50%;
+    display: flex; justify-content: center; align-items: center;
+    border: 1px solid rgba(255,255,255,0.6);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    position: relative; cursor: pointer;
+}
 
-    .tab-bar a:not(.active) .tab-icon-wrapper {
-        width: 30px;
-        height: 30px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin-bottom: 2px;
-    }
+/* 하단 탭 */
+.tab-bar {
+    display: flex; justify-content: space-around; align-items: center;
+    background-color: #E8DED6; padding: 10px 0; height: 70px;
+    border-top-left-radius: 20px; border-top-right-radius: 20px;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.1); position: relative; z-index: 10;
+}
 
-    .tab-bar a.active span:last-child {
-    margin-top: 8px;
-    }
+.tab-bar a {
+    color: #5A3E2B; text-decoration: none;
+    display: flex; flex-direction: column; align-items: center;
+    font-size: 14px; font-weight: 500; gap: 4px; position: relative; z-index: 11;
+}
 
+.tab-bar a.active .tab-icon-wrapper {
+    width: 70px; height: 70px; background-color: #c9b19e; border-radius: 50%;
+    display: flex; justify-content: center; align-items: center;
+    transform: translateY(-25%); box-shadow: 0 4px 12px rgba(0,0,0,0.25); z-index: 20;
+}
 
-    /* 메인 콘텐츠 및 메뉴 관련 CSS */
-    /* 카테고리 탭 바 */
-    .category-tab-bar {
-        position: sticky;
-        top: 0;
-        z-index: 50;
-        display: flex;
-        justify-content: space-around;
-        align-items: center;
-        overflow-x: auto;
-        white-space: nowrap;
-        padding: 8px 0;
-        border-bottom: 1px solid #e5e5e5;
-        background-color: #fff;
-    }
+/* 카테고리 탭 */
+.category-tab-bar {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; justify-content: space-around; align-items: center;
+    overflow-x: auto; white-space: nowrap;
+    padding: 8px 0; border-bottom: 1px solid #e5e5e5; background-color: #fff;
+}
+.category-tab-bar::-webkit-scrollbar { display: none; }
 
-    .category-tab-bar::-webkit-scrollbar {
-        display: none;
-    }
+.category-tab-bar a {
+    flex: 1; text-align: center; text-decoration: none;
+    color: #5A3E2B; font-size: 15px; font-weight: 600;
+    padding: 10px 0; position: relative;
+}
 
-    .category-tab-bar a {
-        flex: 1;
-        text-align: center;
-        text-decoration: none;
-        color: #5A3E2B;
-        font-size: 15px;
-        font-weight: 600;
-        padding: 10px 0;
-        position: relative;
-    }
+/* 선택 탭 표시 */
+.category-tab-bar a.active-category::after {
+    content: ''; position: absolute; bottom: -5px; left: 50%;
+    transform: translateX(-50%); width: 60%; height: 3px;
+    background-color: #5A3E2B; border-radius: 2px; transition: all 0.2s ease;
+}
 
-    /* 선택된 탭 밑에 밑줄 표시 */
-    .category-tab-bar a.active-category::after {
-        content: '';
-        position: absolute;
-        bottom: -5px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 60%;
-        height: 3px;
-        background-color: #5A3E2B;
-        border-radius: 2px;
-        transition: all 0.2s ease;
-    }
+/* 메뉴 리스트 */
+.menu-list-container { padding: 10px 15px; }
+.menu-item {
+    display: flex; align-items: center; padding: 15px 0;
+    border-bottom: 1px solid #eee;
+}
+.menu-item:last-child { border-bottom: none; }
 
-    /* 메뉴 리스트 스타일 */
-    .menu-list-container {
-        padding: 10px 15px;
-    }
-    .menu-item {
-        display: flex;
-        align-items: center;
-        padding: 15px 0;
-        border-bottom: 1px solid #eee;
-    }
-    .menu-item:last-child {
-        border-bottom: none;
-    }
-    .menu-image {
-        width: 80px;
-        height: 80px;
-        border-radius: 8px;
-        margin-right: 15px;
-        object-fit: cover;
-        background-color: #f5f5f5;
-    }
-    .menu-details {
-        flex-grow: 1;
-    }
-    .menu-name {
-        font-size: 18px;
-        font-weight: 600;
-        color: #333;
-        margin-bottom: 5px;
-    }
-    .menu-temp {
-        font-size: 14px;
-        font-weight: bold;
-        color: #1a73e8;
-        margin-right: 5px;
-    }
-    .menu-temp.hot {
-        color: #d93025;
-    }
-    .menu-price {
-        font-size: 16px;
-        color: #5A3E2B;
-        font-weight: 500;
-    }
-    /* 하트 토글 관련 CSS */
-    .like-button {
-        font-size: 24px;
-        color: #e67c73;
-        cursor: pointer;
-        margin-left: 10px;
-    }
+.menu-image {
+    width: 80px; height: 80px; border-radius: 8px; margin-right: 15px;
+    object-fit: cover; background-color: #f5f5f5;
+}
 
-    .menu-link {
-        text-decoration: none !important;
-        color: inherit !important;
-    }
+.menu-details { flex-grow: 1; }
+.menu-name {
+    font-size: 18px; font-weight: 600; color: #333; margin-bottom: 5px;
+}
 
-    .menu-link * {
-        text-decoration: none !important;
-    }
+.menu-temp { font-size: 14px; font-weight: bold; color: #1a73e8; margin-right: 5px; }
+.menu-temp.hot { color: #d93025; }
+
+.menu-price {
+    font-size: 16px; color: #5A3E2B; font-weight: 500;
+}
+
+/* 좋아요 버튼 */
+.like-button {
+    font-size: 24px; color: #e67c73; cursor: pointer; margin-left: 10px;
+}
+
+/* 링크 스타일 제거 */
+.menu-link { text-decoration: none !important; color: inherit !important; }
+.menu-link * { text-decoration: none !important; }
+
+/* ====================== SOLD OUT 스타일 추가 ====================== */
+.sold-out-item {
+    opacity: 0.38;
+    pointer-events: none;
+}
+
+.sold-out-text {
+    font-weight: 700;
+    color: #d93025 !important;
+}

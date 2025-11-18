@@ -1,9 +1,9 @@
-// DB에서 찜한 메뉴 목록 로드 → 하트 상태 반영
+// DB에서 찜한 메뉴 불러오기 → UI 반영
 document.addEventListener("DOMContentLoaded", async () => {
-    let likedMenus = await loadLikedMenus();
+    const likedMenus = await loadLikedMenus();
     updateLikeButtons(likedMenus);
 
-    // 메뉴 링크 클릭 시 하트 버튼 클릭으로 인한 페이지 이동 방지
+    // 하트 클릭 시 메뉴 상세 이동 방지
     document.querySelectorAll(".menu-link").forEach(link => {
         link.addEventListener("click", (e) => {
             if (e.target.classList.contains("like-button")) {
@@ -14,67 +14,52 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 });
 
-// DB에서 찜 목록 가져오기
+// 찜 목록 가져오기
 async function loadLikedMenus() {
     try {
-        let response = await fetch("/like/list", {
-            method: "GET",
-            credentials: "include" // 로그인 세션 유지
-        });
-
-        if (!response.ok)
-            return [];
-
-        return await response.json();
+        const res = await fetch("/like/list", { method: "GET", credentials: "include" });
+        if (!res.ok) return [];
+        return await res.json();
     } catch (err) {
         console.error("찜 목록 불러오기 실패:", err);
         return [];
     }
 }
 
-// 하트 표시 적용
+// UI 하트 초기 세팅
 function updateLikeButtons(likedMenus) {
-    let likeButtons = document.querySelectorAll(".like-button");
+    document.querySelectorAll(".like-button").forEach(btn => {
+        const menuId = btn.dataset.menuId;
+        btn.textContent = likedMenus.some(item => item.menuId == menuId) ? "❤" : "♡";
 
-    likeButtons.forEach((btn) => {
-        let menuItem = btn.closest(".menu-item");
-        let id = menuItem.dataset.menuId;
-
-        // DB에 이미 찜한 메뉴이면 하트 표시 변경
-        btn.textContent = likedMenus.some(item => item.menuId == id)
-            ? "❤"
-            : "♡";
-
-        // 클릭 이벤트 설정
         btn.onclick = (event) => toggleLike(btn, event);
     });
 }
 
-// 찜 토글 및 DB 반영
+// 찜 토글 처리
 async function toggleLike(element, event) {
     event.preventDefault();
     event.stopPropagation();
 
-    let menuItem = element.closest(".menu-item");
-    let menuId = menuItem.dataset.menuId;
+    const menuId = element.dataset.menuId;
+    console.log("토글 실행 → menuId:", menuId);
+
+    if (!menuId) {
+        console.error("menuId 누락 → HTML data-menu-id 확인 필요");
+        return;
+    }
 
     try {
-        let response = await fetch("/like/toggle", {
+        const response = await fetch("/like/toggle", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: `menuId=${menuId}`,
             credentials: "include"
         });
 
-        let result = await response.json();
+        const result = await response.json();
 
-        if (!result) {
-            console.error("찜 반영 실패");
-            return;
-        }
-
-        // UI 아이콘만 즉시 변경
-        element.textContent = (element.textContent === "❤") ? "♡" : "❤";
+        element.textContent = result ? "❤" : "♡"; // DB 반영 결과 기준
 
     } catch (err) {
         console.error("찜 토글 오류:", err);

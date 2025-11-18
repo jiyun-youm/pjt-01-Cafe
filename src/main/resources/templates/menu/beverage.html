@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<title>JavaBean - 음료</title>
-<link rel="stylesheet" href="/css/menu.css">
+<head>
+    <title>JavaBean - 메뉴 음료</title>
+    <link rel="stylesheet" href="/css/menu.css">
+</head>
+
 <th:block th:replace="~{./include/userBaseLayout :: setContent(~{:: .wrap})}">
 
     <div class="wrap">
 
+        <!-- 카테고리 탭 -->
         <nav class="category-tab-bar">
             <a th:href="@{/menu/newMenu(region=${region})}">신메뉴</a>
             <a th:href="@{/menu/coffee(region=${region})}">커피</a>
@@ -17,16 +21,20 @@
         <main class="main-content">
             <div class="menu-list-container">
 
+                <!-- 메뉴 반복 & SOLD OUT 처리 -->
                 <a th:each="item : ${menuItems}"
                    th:href="@{/home/order_detail(id=${item.menuId})}"
-                   class="menu-link">
+                   class="menu-link"
+                   th:classappend="${item.salesStatus != '판매중'} ? ' sold-out-item'">
 
                     <div class="menu-item" th:data-menu-id="${item.menuId}">
 
+                        <!-- 이미지 -->
                         <img th:src="@{'/images/img/' + ${item.menuImg}}"
                              th:alt="${item.menuName}"
                              class="menu-image">
 
+                        <!-- 상세 -->
                         <div class="menu-details">
                             <div class="menu-name" th:text="${item.menuName}"></div>
 
@@ -37,13 +45,18 @@
                                 HOT
                             </span>
 
+                            <!-- 가격 or SOLD OUT -->
                             <div class="menu-price"
-                                 th:data-price="${item.menuPrice}"
-                                 th:text="${#numbers.formatInteger(item.menuPrice, 0)} + '원'">
-                            </div>
+                                 th:text="${item.salesStatus == '판매중'}
+                                          ? ${#numbers.formatInteger(item.menuPrice, 0)} + '원'
+                                          : 'SOLD OUT'"
+                                 th:classappend="${item.salesStatus != '판매중'} ? ' sold-out-text'"></div>
                         </div>
 
-                        <span class="like-button" onclick="toggleLike(this, event)">♡</span>
+                        <!-- 찜 버튼 (menuId 바인딩 추가됨) -->
+                        <span class="like-button"
+                              th:data-menu-id="${item.menuId}"
+                              onclick="toggleLike(this, event)">♡</span>
 
                     </div>
                 </a>
@@ -54,5 +67,6 @@
     </div>
 
 </th:block>
+
 <script src="/js/menu.js"></script>
 </html>

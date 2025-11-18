@@ -20,9 +20,10 @@
             STORE_NAME AS storeName
         FROM MENU
         WHERE STORE_NAME = #{storeName}
-        ORDER BY MENU_NAME ASC
+        ORDER BY
+            CASE WHEN SALES_STATUS = '판매중' THEN 0 ELSE 1 END,
+            MENU_NAME ASC
     </select>
-
 
     <!-- 2) 지점 + 카테고리 조회 (사용자용) -->
     <select id="getMenuByStoreAndCategory" resultType="com.miniproject.cafe.VO.MenuVO">
@@ -39,7 +40,9 @@
         FROM MENU
         WHERE STORE_NAME = #{storeName}
           AND CATEGORY = #{category}
-        ORDER BY MENU_NAME ASC
+        ORDER BY
+            CASE WHEN SALES_STATUS = '판매중' THEN 0 ELSE 1 END,
+            MENU_NAME ASC
     </select>
 
 
@@ -99,6 +102,13 @@
         ORDER BY MENU_ID DESC
             LIMIT 1
     </select>
+
+    <update id="updateSalesStatus">
+        UPDATE menu
+        SET SALES_STATUS = #{salesStatus}
+        WHERE MENU_ID = #{menuId}
+          AND STORE_NAME = #{storeName}
+    </update>
 
 
 </mapper>

@@ -33,18 +33,32 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <!-- DB 메뉴 리스트 반복 출력 -->
-                            <tr th:each="menu : ${menuList}"
-                                th:data-menu-id="${menu.menuId}">
-                                <td><input type="checkbox" th:value="${menu.menuId}"></td>
-                                <td th:text="${menu.menuName}">메뉴명</td>
-                                <td th:text="${menu.menuPrice} + '원'"></td>
-                                <td th:text="${menu.category}">카테고리</td>
-                                <td>
-                                    <button class="delete-btn"
-                                            th:data-id="${menu.menuId}">×</button>
-                                </td>
-                            </tr>
+                            <th:block th:each="menu : ${menuList}">
+                                <tr class="menu-row" th:data-menu-id="${menu.menuId}">
+                                    <td><input type="checkbox" th:value="${menu.menuId}"></td>
+                                    <td th:text="${menu.menuName}"></td>
+                                    <td th:text="${menu.menuPrice} + '원'"></td>
+                                    <td th:text="${menu.category}"></td>
+                                    <td><button class="delete-btn" th:data-id="${menu.menuId}">×</button></td>
+                                </tr>
+
+                                <tr class="detail-row" style="display:none;">
+                                    <td colspan="5">
+                                        <div class="detail-box">
+                                            <label>판매 상태 변경</label>
+                                            <select class="status-select">
+                                                <option value="판매중"
+                                                        th:selected="${menu.salesStatus == '판매중'}">판매중</option>
+
+                                                <option value="품절"
+                                                        th:selected="${menu.salesStatus == '품절'}">품절</option>
+                                            </select>
+
+                                            <button class="status-save-btn" th:data-id="${menu.menuId}">저장</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </th:block>
                             </tbody>
                         </table>
                     </div>
@@ -72,7 +86,12 @@
                             <option value="티">티(Tea)</option>
                             <option value="푸드">푸드</option>
                         </select>
-
+                        <label for="menuTemperature">HOT ICE (푸드는 ICE로 선택)</label>
+                        <select id="menuTemperature" name="temperature" required>
+                            <option value="" disabled selected>온도 선택</option>
+                            <option value="AVAILABLE">HOT ICE</option>
+                            <option value="ONLY_ICE">ICE</option>
+                        </select>
                         <label for="menuDescription">메뉴 설명</label>
                         <textarea id="menuDescription" name="menuDefinition"></textarea>
 
@@ -80,9 +99,7 @@
                         <div class="image-upload-box" onclick="document.getElementById('menuImage').click();">
                             <span class="material-icons">add</span>
                         </div>
-                        <input type="file" id="menuImage" name="menuImgFile" accept="image/*" style="display:none;">
-
-
+                        <input type="file" id="menuImage" name="menuImgFile" style="display:none;">
 
                         <button type="submit" class="submit-btn">메뉴 등록</button>
                     </form>
@@ -102,6 +119,5 @@
         <a th:if="${isLoggedIn}" href="/admin/logout" class="footer-nav-item">로그아웃</a>
         <a th:unless="${isLoggedIn}" href="/admin/login" class="footer-nav-item">로그인</a>
     </footer>
-
 </body>
 </html>

@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<title>JavaBean - 티/에이드</title>
-<link rel="stylesheet" href="/css/menu.css">
+<head>
+    <title>JavaBean - 티/에이드</title>
+    <link rel="stylesheet" href="/css/menu.css">
+</head>
 
 <th:block th:replace="~{./include/userBaseLayout :: setContent(~{:: .wrap})}">
 
@@ -22,11 +24,12 @@
 
                 <a th:each="item : ${menuItems}"
                    th:href="@{/home/order_detail(id=${item.menuId})}"
-                   class="menu-link">
+                   class="menu-link"
+                   th:classappend="${item.salesStatus != '판매중'} ? ' sold-out-item'">
 
                     <div class="menu-item" th:data-menu-id="${item.menuId}">
 
-                        <!-- 이미지 -->
+                        <!-- 메뉴 이미지 -->
                         <img th:src="@{'/images/img/' + ${item.menuImg}}"
                              th:alt="${item.menuName}"
                              class="menu-image">
@@ -39,19 +42,25 @@
                             <!-- ICE 기본 표시 -->
                             <span class="menu-temp">ICE</span>
 
-                            <!-- HOT 표시 (DB hotAvailable이 1일 때만 노출) -->
+                            <!-- HOT 가능 표시 -->
                             <span class="menu-temp hot"
                                   th:if="${item.hotAvailable == 1}">
                                 HOT
                             </span>
 
-                            <!-- 가격 -->
+                            <!-- 가격 or SOLD OUT -->
                             <div class="menu-price"
-                                 th:text="${#numbers.formatInteger(item.menuPrice, 0)} + '원'">
+                                 th:text="${item.salesStatus == '판매중'}
+                                          ? ${#numbers.formatInteger(item.menuPrice, 0)} + '원'
+                                          : 'SOLD OUT'"
+                                 th:classappend="${item.salesStatus != '판매중'} ? ' sold-out-text'">
                             </div>
                         </div>
 
-                        <span class="like-button" onclick="toggleLike(this, event)">♡</span>
+                        <!-- 좋아요 버튼 - menuId 추가 -->
+                        <span class="like-button"
+                              th:data-menu-id="${item.menuId}"
+                              onclick="toggleLike(this, event)">♡</span>
 
                     </div>
                 </a>
@@ -62,5 +71,6 @@
     </div>
 
 </th:block>
+
 <script src="/js/menu.js"></script>
 </html>

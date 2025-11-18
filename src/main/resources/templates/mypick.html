@@ -27,6 +27,12 @@
 
                     <div class="menu-details">
                         <div class="menu-name" th:text="${item.menuName}"></div>
+                        <span class="menu-temp">ICE</span>
+
+                        <span class="menu-temp hot"
+                              th:if="${item.hotAvailable == 1}">
+                                HOT
+                            </span>
                         <div class="menu-price" th:text="${#numbers.formatInteger(item.menuPrice,0)} + '원'"></div>
                     </div>
 

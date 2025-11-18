@@ -21,10 +21,10 @@
         <main class="main-content">
             <div class="menu-list-container">
 
-                <!-- 메뉴 리스트 반복 출력 -->
                 <a th:each="item : ${menuItems}"
                    th:href="@{/home/order_detail(id=${item.menuId})}"
-                   class="menu-link">
+                   class="menu-link"
+                   th:classappend="${item.salesStatus != '판매중'} ? ' sold-out-item'">
 
                     <div class="menu-item" th:data-menu-id="${item.menuId}">
                         <img th:src="@{'/images/img/' + ${item.menuImg}}"
@@ -37,16 +37,19 @@
                             <span class="menu-temp">ICE</span>
 
                             <span class="menu-temp hot"
-                                  th:if="${item.hotAvailable == 1}">
-                                HOT
-                            </span>
+                                  th:if="${item.hotAvailable == 1}">HOT</span>
 
                             <div class="menu-price"
-                                 th:text="${#numbers.formatInteger(item.menuPrice, 0)} + '원'">
-                            </div>
+                                 th:text="${item.salesStatus == '판매중'}
+                                          ? ${#numbers.formatInteger(item.menuPrice, 0)} + '원'
+                                          : 'SOLD OUT'"
+                                 th:classappend="${item.salesStatus != '판매중'} ? ' sold-out-text'"></div>
                         </div>
 
-                        <span class="like-button" onclick="toggleLike(this, event)">♡</span>
+                        <!-- 수정된 찜 버튼 -->
+                        <span class="like-button"
+                              th:data-menu-id="${item.menuId}"
+                              onclick="toggleLike(this, event)">♡</span>
 
                     </div>
                 </a>

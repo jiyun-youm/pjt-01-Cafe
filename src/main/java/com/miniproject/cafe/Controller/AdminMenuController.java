@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/admin")
@@ -50,6 +51,7 @@ public class AdminMenuController {
     @PostMapping("/insertMenu")
     public String insertMenu(MenuVO vo,
                              @RequestParam(value = "menuImgFile", required = false) MultipartFile file,
+                             @RequestParam("temperature") String temperature,
                              HttpSession session) {
 
         String storeName = (String) session.getAttribute("storeName");
@@ -57,20 +59,29 @@ public class AdminMenuController {
 
         vo.setStoreName(storeName);
 
+        // 메뉴ID 생성 코드 유지
         String prefix = getStorePrefix(storeName);
         String lastId = menuService.getLastMenuIdByStore(storeName);
         String newMenuId = generateNextId(prefix, lastId);
         vo.setMenuId(newMenuId);
 
-        // 이미지 처리
-        if (file != null && !file.isEmpty()) {
-            String fileName = newMenuId + "_" + file.getOriginalFilename();
-            String filePath = "C:/upload/menuImg/";
+        // 🔽 temperature → hotAvailable 매핑
+        int hotAvailableValue = 0;
+        if ("AVAILABLE".equals(temperature)) {
+            hotAvailableValue = 1;
+        }
+        vo.setHotAvailable(hotAvailableValue);
 
+        // 이미지 처리 (기존 로직)
+        if (file != null && !file.isEmpty()) {
+            String originalName = file.getOriginalFilename();
+            String ext = originalName.substring(originalName.lastIndexOf("."));
+            String fileName = java.util.UUID.randomUUID().toString() + ext;
+
+            String filePath = "C:/upload/menuImg/";
             try {
                 java.io.File dir = new java.io.File(filePath);
                 if (!dir.exists()) dir.mkdirs();
-
                 file.transferTo(new java.io.File(filePath + fileName));
                 vo.setMenuImg(fileName);
             } catch (Exception e) {
@@ -86,6 +97,7 @@ public class AdminMenuController {
         menuService.insertMenu(vo);
         return "redirect:/admin/menu";
     }
+
 
 
     private String getStorePrefix(String storeName) {
@@ -125,6 +137,18 @@ public class AdminMenuController {
         for (String id : ids) {
             menuService.deleteMenuByStore(id, storeName);
         }
+        return "success";
+    }
+
+    @PostMapping("/updateStatus")
+    @ResponseBody
+    public String updateMenuStatus(@RequestBody Map<String, String> data, HttpSession session) {
+        String menuId = data.get("menuId");
+        String status = data.get("status");
+        String storeName = (String) session.getAttribute("storeName");
+
+        menuService.updateSalesStatus(menuId, storeName, status);
+
         return "success";
     }
 }
