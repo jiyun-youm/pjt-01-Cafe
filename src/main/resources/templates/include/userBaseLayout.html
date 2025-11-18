@@ -34,7 +34,7 @@
                     </a>
 
                     <span class="notification-icon" id="notification-trigger">
-                        <a href="#"><img src="/images/알림.png" width="23" height="23" alt="알림"></a>
+                        <a href="/home/mypage"><img src="/images/알림.png" width="23" height="23" alt="알림"></a>
                         <div class="notification-popup" id="notification-popup">
                             <div class="popup-arrow"></div>
                             <p>주문내역이 없습니다.</p>
@@ -83,7 +83,7 @@
 
                 <!-- 🔥 로그인 했을 때 -->
                 <th:block sec:authorize="isAuthenticated()">
-                    <a th:href="@{/home/account}">
+                    <a th:href="@{/home/mypage}">
                         <div class="tab-icon-wrapper">
                             <img src="/images/mypage.png" th:src="@{/images/mypage.png}" alt="계정관리" width="40" height="40">
                         </div>

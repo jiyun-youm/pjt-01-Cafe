@@ -1,5 +1,6 @@
 package com.miniproject.cafe.Controller;
 
+import com.miniproject.cafe.VO.MemberVO;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -33,4 +34,18 @@ public class HomeController {
     public String myPickPage() {
         return "mypick";
     }
+
+    @GetMapping("/mypage")
+    public String myPage(HttpSession session ,Model model) {
+
+        MemberVO member = (MemberVO) session.getAttribute("member");
+        if(member == null) {
+            return "redirect:/login";
+        }
+        model.addAttribute("member", member);
+
+        return "mypage";
+    }
+
+
 }

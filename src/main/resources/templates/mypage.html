@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>javabean 마이페이지</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/mypage.css">
+</head>
+<th:block th:replace="~{./include/userBaseLayout :: setContent( ~{:: .wrap} ) }">
+    <div class="wrap">
+        <div class="welcome-box">
+            <img src="img/javabean_logo.png" class="welcome-logo" alt="">
+            <div class="welcome-text">
+                <span th:text="${member.username}"></span>님<br>
+                안녕하세요🙌
+            </div>
+        </div>
+
+        <!-- ★ 메인 기능 4개 메뉴 -->
+        <div class="main-menu">
+            <div class="menu-box">
+                <img th:src="@{/images/mypage.png}" alt="">
+                <div class="menu-title">계정정보</div>
+            </div>
+
+            <div class="menu-box">
+                <img th:src="@{/images/list.png}" alt="">
+                <div class="menu-title">주문내역</div>
+            </div>
+
+            <div class="menu-box">
+                <img th:src="@{/images/cart.png}" alt="">
+                <div class="menu-title">장바구니</div>
+            </div>
+
+            <div class="menu-box">
+                <img th:src="@{/images/Heart.png}" alt="">
+                <div class="menu-title">나만의 원픽</div>
+            </div>
+        </div>
+    </div>
+</th:block>
+
+
+    <!-- 기서부터 마이페이지 메인 내용 시작 -->
+
+    <!-- 환영 메시지 박스 -->
+
+
+
+
+
+
+
+</div>
+</body>
+</html>
