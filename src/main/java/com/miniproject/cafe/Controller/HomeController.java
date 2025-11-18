@@ -1,6 +1,8 @@
 package com.miniproject.cafe.Controller;
 
+import com.miniproject.cafe.Service.CustomUserDetailsService;
 import com.miniproject.cafe.Service.UserLikeService;
+import com.miniproject.cafe.VO.MemberVO;
 import com.miniproject.cafe.VO.MenuVO;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -73,5 +75,18 @@ public class HomeController {
         Object storeName = session.getAttribute("storeName");
 
         return storeName != null ? storeName.toString() : null;
+    }
+
+    @GetMapping("/account")
+    public String account(Authentication auth, HttpSession session, Model model) {
+        if(auth == null || !auth.isAuthenticated()) {
+            return "redirect:/login";
+        }
+        MemberVO member = (MemberVO) session.getAttribute("member");
+        if(member == null) {
+            return "redirect:/login";
+        }
+        model.addAttribute("member", member);
+        return "mypage";
     }
 }

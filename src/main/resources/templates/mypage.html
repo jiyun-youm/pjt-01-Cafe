@@ -9,34 +9,36 @@
 <th:block th:replace="~{./include/userBaseLayout :: setContent( ~{:: .wrap} ) }">
     <div class="wrap">
         <div class="welcome-box">
-            <img src="img/javabean_logo.png" class="welcome-logo" alt="">
+            <img src="/images/img/자바빈로고 1.png" class="welcome-logo" alt="">
             <div class="welcome-text">
                 <span th:text="${member.username}"></span>님<br>
                 안녕하세요🙌
             </div>
         </div>
 
-        <!-- ★ 메인 기능 4개 메뉴 -->
+        <!--  메인 기능 4개 메뉴 -->
         <div class="main-menu">
-            <div class="menu-box">
+
+            <a th:href="@{/home/account}" class="menu-box">
                 <img th:src="@{/images/mypage.png}" alt="">
                 <div class="menu-title">계정정보</div>
-            </div>
+            </a>
 
-            <div class="menu-box">
+            <a th:href="@{/home/order_history}" class="menu-box">
                 <img th:src="@{/images/list.png}" alt="">
                 <div class="menu-title">주문내역</div>
-            </div>
+            </a>
 
-            <div class="menu-box">
+            <a th:href="@{/home/cart}" class="menu-box">
                 <img th:src="@{/images/cart.png}" alt="">
                 <div class="menu-title">장바구니</div>
-            </div>
+            </a>
 
-            <div class="menu-box">
+            <a th:href="@{/home/mypick}" class="menu-box">
                 <img th:src="@{/images/Heart.png}" alt="">
                 <div class="menu-title">나만의 원픽</div>
-            </div>
+            </a>
+
         </div>
     </div>
 </th:block>
