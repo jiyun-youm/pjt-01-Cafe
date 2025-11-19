@@ -26,11 +26,12 @@ public class AdminController {
 
     @GetMapping("/orders")
     public String adminOrders(HttpSession session, Model model) {
-        if (session.getAttribute("adminId") == null) {
+        if (session.getAttribute("admin") == null) {
             return "redirect:/admin/login";
         }
         //로그인 상태 전달
-        model.addAttribute("isLoggedIn", session.getAttribute("adminId") != null);
+        model.addAttribute("isLoggedIn", true);
+        model.addAttribute("activePage", "orders");
         return "admin_orders";
     }
 
@@ -63,7 +64,7 @@ public class AdminController {
     @GetMapping("/login")
     public String adminLogin(HttpSession session, Model model) {
         // 세션에 adminId가 있으면 로그인 상태
-        boolean isLoggedIn = session.getAttribute("adminId") != null;
+        boolean isLoggedIn = session.getAttribute("admin") != null;
         model.addAttribute("isLoggedIn", isLoggedIn);
 
         return "admin_login";

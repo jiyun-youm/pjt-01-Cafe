@@ -1,20 +1,3 @@
-body {
-    font-family: 'Arial', sans-serif;
-    background-color: #f7f0e8;
-    color: #333;
-    margin: 0;
-    padding: 0;
-}
-
-header {
-    background-color: #a67c52;
-    padding: 20px;
-    text-align: center;
-    color: white;
-    font-size: 24px;
-    font-weight: bold;
-}
-
 .container {
     width: 90%;
     max-width: 1000px;
@@ -27,7 +10,8 @@ header {
     margin-bottom: 20px;
 }
 
-.controls select, .controls button {
+.controls select,
+.controls button {
     padding: 5px 10px;
     margin-right: 10px;
     font-size: 16px;
@@ -61,30 +45,4 @@ table th {
 
 table tr:nth-child(even) {
     background-color: #f2e7d5;
-}
-
-.footer-nav {
-    background-color: var(--main-brown);
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-}
-
-.footer-nav-item {
-    flex: 1;
-    padding: 2rem 0;
-    text-align: center;
-    color: white;
-    font-size: 1.5rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.footer-nav-item.active {
-    background-color: var(--active-orange);
-}
-
-.footer-nav-item:not(.active):hover {
-    background-color: var(--hover-orange);
 }

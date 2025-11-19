@@ -23,8 +23,9 @@ public class AdminRevenueController {
     public String adminRevenue(HttpSession session, Model model,
                                @RequestParam(required=false) String date) {
         // 로그인 상태 체크
-        boolean isLoggedIn = session.getAttribute("adminId") != null;
+        boolean isLoggedIn = session.getAttribute("admin") != null;
         model.addAttribute("isLoggedIn", isLoggedIn);
+        model.addAttribute("activePage", "revenue");
 
         // 로그인 안 되어 있으면 로그인 페이지로 이동
         if (!isLoggedIn) {

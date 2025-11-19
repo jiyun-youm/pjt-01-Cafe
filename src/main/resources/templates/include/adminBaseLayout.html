@@ -1,32 +1,64 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>JavaBean Admin</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/admin_menu_management.css"> <!-- 공통 CSS -->
+</head>
+
 <th:block th:fragment="setContent(adminContent)">
+
+    <!-- ====================== -->
+    <!--  상단바 (Top Bar)       -->
+    <!-- ====================== -->
     <header class="top-bar">
         <div class="logo-section">
             <span class="logo-icon">☕</span>
-            <span class="logo-text">JavaBean</span>
+            <span class="logo-text">JavaBean Admin</span>
         </div>
     </header>
 
-    <th:block th:replace="${adminContent}"></th:block>
+    <!-- ====================== -->
+    <!--  페이지 본문           -->
+    <!-- ====================== -->
+    <main class="content-wrapper">
+        <th:block th:replace="${adminContent}"></th:block>
+    </main>
 
-    <!--<script th:inline="javascript">
-        document.addEventListener("DOMContentLoaded", function() {
-            const adminSession = [[${session.admin}]];
+    <!-- ====================== -->
+    <!--  관리자 공통 푸터       -->
+    <!-- ====================== -->
+    <footer class="footer-nav">
 
-            console.log("%c[ADMIN SESSION CHECK] 페이지: " + document.title, "color: white; background: #d32f2f; font-size: 12px; padding: 4px; font-weight: bold;");
+        <!-- 메뉴 관리 -->
+        <a href="/admin/menu"
+           class="footer-nav-item"
+           th:classappend="${activePage == 'menu'} ? ' active' : ''">
+            메뉴 관리
+        </a>
 
-            if (adminSession) {
-                console.log("✅ 로그인 상태: O");
-                console.log("👤 관리자 ID: ", adminSession.id);
-                console.log("🏠 담당 매장 (storeName): %c" + adminSession.storeName, "color: black; background: yellow; font-weight: bold; padding: 2px;");
-            } else {
-                console.log("❌ 로그인 상태: X (세션 없음)");
-            }
+        <!-- 주문 관리 -->
+        <a href="/admin/orders"
+           class="footer-nav-item"
+           th:classappend="${activePage == 'orders'} ? ' active' : ''">
+            주문 관리
+        </a>
 
-            console.log("&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;");
-        });
-    </script>-->
+        <!-- 매출 관리 -->
+        <a href="/admin/revenue"
+           class="footer-nav-item"
+           th:classappend="${activePage == 'revenue'} ? ' active' : ''">
+            매출 관리
+        </a>
+
+        <!-- 로그인/로그아웃 -->
+        <a th:if="${isLoggedIn}" href="/admin/logout" class="footer-nav-item">로그아웃</a>
+        <a th:unless="${isLoggedIn}" href="/admin/login" class="footer-nav-item">로그인</a>
+
+    </footer>
 
 </th:block>
+
 </html>

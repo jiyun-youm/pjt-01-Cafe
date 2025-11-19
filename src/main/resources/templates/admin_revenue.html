@@ -38,16 +38,6 @@
     </div>
 </th:block>
 
-<footer class="footer-nav">
-    <a href="/admin/menu" class="footer-nav-item">메뉴 관리</a>
-    <a href="/admin/orders" class="footer-nav-item">주문 관리</a>
-    <a href="/admin/revenue" class="footer-nav-item active">매출 관리</a>
-
-    <a th:if="${isLoggedIn}" href="/admin/logout" class="footer-nav-item">로그아웃</a>
-    <a th:unless="${isLoggedIn}" href="/admin/login" class="footer-nav-item">로그인</a>
-</footer>
-
-
 <script>
     function loadData() {
 

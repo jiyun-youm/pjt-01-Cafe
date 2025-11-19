@@ -38,6 +38,12 @@ a {
 }
 
 /* --- 레이아웃 --- */
+.content-wrapper {
+    flex: 1;                 /* body의 flex column 안에서 남는 높이 채우기 */
+    display: flex;
+    flex-direction: column;
+}
+
 .wrap {
     display: flex;
     flex-direction: column;

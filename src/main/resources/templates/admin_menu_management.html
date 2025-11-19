@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Java Coffee</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/admin.css">
     <link rel="stylesheet" href="/css/admin_menu_management.css">
 </head>
 <body>
@@ -110,15 +111,6 @@
         <script src="/js/admin_menu_management.js"></script>
     </div>
 </th:block>
-
-    <footer class="footer-nav">
-        <a href="/admin/menu" class="footer-nav-item active">메뉴 관리</a>
-        <a href="/admin/orders" class="footer-nav-item">주문 관리</a>
-        <a href="/admin/revenue" class="footer-nav-item">매출 관리</a>
-
-        <a th:if="${isLoggedIn}" href="/admin/logout" class="footer-nav-item">로그아웃</a>
-        <a th:unless="${isLoggedIn}" href="/admin/login" class="footer-nav-item">로그인</a>
-    </footer>
 
 </body>
 </html>

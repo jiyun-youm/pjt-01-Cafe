@@ -1,6 +1,7 @@
 package com.miniproject.cafe.Controller;
 
 import com.miniproject.cafe.Service.MenuService;
+import com.miniproject.cafe.VO.AdminVO;
 import com.miniproject.cafe.VO.MenuVO;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,23 +22,21 @@ public class AdminMenuController {
     @GetMapping("/menu")
     public String menuManagement(Model model, HttpSession session) {
 
-        String storeName = (String) session.getAttribute("storeName");
-
-        if(storeName == null) {
+        AdminVO admin = (AdminVO) session.getAttribute("admin");
+        if (admin == null) {
             return "redirect:/admin/login";
         }
 
-        model.addAttribute("isLoggedIn", session.getAttribute("adminId") != null);
+        String storeName = admin.getStoreName();
+
+        model.addAttribute("isLoggedIn", true);
+        model.addAttribute("activePage", "menu");
 
         List<MenuVO> menuList = menuService.getMenuByStore(storeName);
 
         model.addAttribute("menuList", menuList);
         model.addAttribute("storeName", storeName);
 
-        System.out.println("==== 메뉴 조회 결과 ====");
-        menuList.forEach(m -> System.out.println(m.getMenuId() + " / " + m.getMenuName() + " / " + m.getCategory()));
-
-        model.addAttribute("menuList", menuList);
         return "admin_menu_management";
     }
 
@@ -54,34 +53,33 @@ public class AdminMenuController {
                              @RequestParam("temperature") String temperature,
                              HttpSession session) {
 
-        String storeName = (String) session.getAttribute("storeName");
-        if (storeName == null) throw new RuntimeException("지점 정보가 없습니다. 다시 로그인해주세요.");
+        AdminVO admin = (AdminVO) session.getAttribute("admin");
+        if (admin == null) throw new RuntimeException("관리자 로그인 정보가 없습니다.");
 
+        String storeName = admin.getStoreName();
         vo.setStoreName(storeName);
 
-        // 메뉴ID 생성 코드 유지
+        // 메뉴 ID 생성
         String prefix = getStorePrefix(storeName);
         String lastId = menuService.getLastMenuIdByStore(storeName);
         String newMenuId = generateNextId(prefix, lastId);
         vo.setMenuId(newMenuId);
 
-        // 🔽 temperature → hotAvailable 매핑
-        int hotAvailableValue = 0;
-        if ("AVAILABLE".equals(temperature)) {
-            hotAvailableValue = 1;
-        }
-        vo.setHotAvailable(hotAvailableValue);
+        // temperature → DB hotAvailable
+        vo.setHotAvailable("AVAILABLE".equals(temperature) ? 1 : 0);
 
-        // 이미지 처리 (기존 로직)
+        // 이미지 처리
         if (file != null && !file.isEmpty()) {
             String originalName = file.getOriginalFilename();
             String ext = originalName.substring(originalName.lastIndexOf("."));
             String fileName = java.util.UUID.randomUUID().toString() + ext;
 
             String filePath = "C:/upload/menuImg/";
+
             try {
                 java.io.File dir = new java.io.File(filePath);
                 if (!dir.exists()) dir.mkdirs();
+
                 file.transferTo(new java.io.File(filePath + fileName));
                 vo.setMenuImg(fileName);
             } catch (Exception e) {
@@ -95,6 +93,7 @@ public class AdminMenuController {
         if (vo.getSalesStatus() == null) vo.setSalesStatus("판매중");
 
         menuService.insertMenu(vo);
+
         return "redirect:/admin/menu";
     }
 
@@ -122,8 +121,13 @@ public class AdminMenuController {
     @DeleteMapping("/deleteMenu/{id}")
     @ResponseBody
     public String deleteMenu(@PathVariable("id") String menuId, HttpSession session) {
-        String storeName = (String) session.getAttribute("storeName");
+
+        AdminVO admin = (AdminVO) session.getAttribute("admin");
+        if (admin == null) return "fail";
+
+        String storeName = admin.getStoreName();
         menuService.deleteMenuByStore(menuId, storeName);
+
         return "success";
     }
 
@@ -132,20 +136,28 @@ public class AdminMenuController {
     @ResponseBody
     public String deleteMenuBatch(@RequestBody List<String> ids, HttpSession session) {
 
-        String storeName = (String) session.getAttribute("storeName");
+        AdminVO admin = (AdminVO) session.getAttribute("admin");
+        if (admin == null) return "fail";
+
+        String storeName = admin.getStoreName();
 
         for (String id : ids) {
             menuService.deleteMenuByStore(id, storeName);
         }
+
         return "success";
     }
 
     @PostMapping("/updateStatus")
     @ResponseBody
     public String updateMenuStatus(@RequestBody Map<String, String> data, HttpSession session) {
+
+        AdminVO admin = (AdminVO) session.getAttribute("admin");
+        if (admin == null) return "fail";
+
         String menuId = data.get("menuId");
         String status = data.get("status");
-        String storeName = (String) session.getAttribute("storeName");
+        String storeName = admin.getStoreName();
 
         menuService.updateSalesStatus(menuId, storeName, status);
 
