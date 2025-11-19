@@ -49,7 +49,7 @@ public class AdminController {
     @PostMapping("/joinForm")
     public String signup(AdminVO vo, HttpSession session) {
         try {
-            adminService.register(vo);
+            adminService.register(vo)
         } catch (RuntimeException e) {
 
             session.setAttribute("signupError", e.getMessage());
