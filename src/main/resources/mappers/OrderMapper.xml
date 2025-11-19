@@ -6,7 +6,7 @@
 <mapper namespace="com.miniproject.cafe.Mapper.OrderMapper">
 
     <!-- 기본 주문 + 상세 주문 Map -->
-    <resultMap id="orderMap" type="com.miniproject.cafe.VO.OrderVO">
+    <resultMap id="orderMap" type="OrderVO">
         <id property="orderId" column="order_id"/>
         <result property="uId" column="u_id"/>
         <result property="username" column="username"/>
@@ -17,8 +17,9 @@
         <result property="totalQuantity" column="total_quantity"/>
         <result property="storeName" column="store_name"/>
         <result property="dailyOrderNum" column="daily_order_num"/>
+        <result property="requestText" column="request_text"/>
 
-        <collection property="orderItemList" ofType="com.miniproject.cafe.VO.OrderItemVO">
+        <collection property="orderItemList" ofType="OrderItemVO">
             <id property="orderItemId" column="order_detail_id"/>
             <result property="orderId" column="order_id"/>
             <result property="menuId" column="menu_id"/>
@@ -64,27 +65,29 @@
     </select>
 
     <!-- 주문 저장 -->
-    <insert id="insertOrder" parameterType="com.miniproject.cafe.VO.OrderVO"
+    <insert id="insertOrder" parameterType="OrderVO"
             useGeneratedKeys="true" keyProperty="orderId">
         INSERT INTO orders (
             u_id, order_status, total_price,
             pickup_method, order_time, total_quantity,
-            store_name, daily_order_num
+            store_name, daily_order_num,
+            request_text
         )
         VALUES (
-                   #{uId},
-                   #{orderStatus},
-                   #{totalPrice},
-                   #{orderType},
-                   #{orderTime},
-                   #{totalQuantity},
-                   #{storeName},
-                   (
-                       SELECT COALESCE(MAX(o2.daily_order_num), 0) + 1
-                       FROM orders o2
-                       WHERE DATE(o2.order_time) = CURDATE()
-                AND o2.store_name = #{storeName}
-            )
+            #{uId},
+            #{orderStatus},
+            #{totalPrice},
+            #{orderType},
+            #{orderTime},
+            #{totalQuantity},
+            #{storeName},
+            (
+                SELECT COALESCE(MAX(o2.daily_order_num), 0) + 1
+                FROM orders o2
+                WHERE DATE(o2.order_time) = CURDATE()
+              AND o2.store_name = #{storeName}
+            ),
+            #{requestText}
             )
     </insert>
 

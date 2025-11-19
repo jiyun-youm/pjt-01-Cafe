@@ -197,6 +197,23 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    //요청사항
+    function getRequestText() {
+        // 체크박스 옵션들
+        const opt1 = document.getElementById("opt1")?.checked ? "빨대 빼주세요" : "";
+        const opt2 = document.getElementById("opt2")?.checked ? "봉투에 담아갈게요" : "";
+        const opt3 = document.getElementById("opt3")?.checked ? "얼음 적게 넣어주세요" : "";
+        const opt4 = document.getElementById("opt4")?.checked ? "캐리어에 담아갈게요" : "";
+
+        // 직접 입력[textarea]
+        const direct = document.getElementById("directInput")?.value?.trim() || "";
+
+        // 값 조립
+        let arr = [opt1, opt2, opt3, opt4, direct].filter(v => v !== "");
+
+        return arr.length > 0 ? arr.join(", ") : null;
+    }
+
     // ==========================================
     // 5. ⭐ [핵심] 주문 데이터 생성 (OrderVO 구조 맞춤)
     // ==========================================
@@ -266,7 +283,8 @@ document.addEventListener('DOMContentLoaded', function() {
             orderStatus: "주문접수",
             uId: currentUserId || "guest",
             storeName: storeName,
-            orderItemList: orderItems
+            orderItemList: orderItems,
+            requestText: getRequestText()
         };
     }
 

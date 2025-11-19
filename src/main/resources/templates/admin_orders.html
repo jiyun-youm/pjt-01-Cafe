@@ -64,13 +64,14 @@
         // 2. 주문 렌더링 함수
         // ---------------------------
         function renderOrders(orders) {
+            console.log("▶ 초기 주문 데이터:", orders);   // ★ 전체 데이터 확인
+            orders.forEach(o => console.log("개별 주문:", o));
             orderGrid.innerHTML = '';
 
             if (!orders || orders.length === 0) {
                 orderGrid.innerHTML = '<div class="order-grid-empty">현재 접수된 주문이 없습니다.</div>';
                 return;
             }
-
             orders.forEach(order => {
                 orderGrid.insertAdjacentHTML('beforeend', createOrderCard(order));
                 const card = document.getElementById(`order-card-${order.orderId}`);
@@ -194,6 +195,9 @@
                     <ul class="menu-list">
                         ${menuItemsHtml}
                     </ul>
+                    <div class="request-text">
+                        <strong>요청사항:</strong> ${order.requestText ? order.requestText : '없음'}
+                    </div>
                 </div>
 
                 <div>

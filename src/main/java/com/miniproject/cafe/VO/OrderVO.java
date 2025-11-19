@@ -36,4 +36,6 @@ public class OrderVO {
 
     @JsonProperty("dailyOrderNum")
     private Integer dailyOrderNum;
+
+    private String requestText;
 }
