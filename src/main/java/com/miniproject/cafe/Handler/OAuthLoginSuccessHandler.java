@@ -33,6 +33,7 @@ public class OAuthLoginSuccessHandler implements AuthenticationSuccessHandler {
         FlashMap flash = new FlashMap();
         flash.put("loginSuccessType", "oauth");
         flash.put("loginMemberName", member.getUsername());
+        request.getSession().setAttribute("member", member);
         new SessionFlashMapManager().saveOutputFlashMap(flash, request, response);
 
         response.sendRedirect("/home/");

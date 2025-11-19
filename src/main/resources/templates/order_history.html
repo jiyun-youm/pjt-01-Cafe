@@ -1,81 +1,62 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head><title>JavaBean - 지난 주문 내역</title>
+<head>
+    <title>JavaBean - 지난 주문 내역</title>
     <link rel="stylesheet" href="/css/order_history.css">
     <link rel="stylesheet" href="/css/main.css">
 </head>
-<th:block th:replace="~{./include/userBaseLayout :: setContent( ~{:: .wrap} ) }">
 
+<th:block th:replace="~{./include/userBaseLayout :: setContent( ~{:: .wrap} ) }">
     <div class="wrap">
         <main class="container">
+
             <h2 class="order-history-header">지난 주문 내역</h2>
+
             <div class="order-list-container">
-                <div class="order-item">
-                    <div class="order-item-image">
-                        <img src="/images/image2.png" alt="아메리카노">
-                    </div>
-                    <div class="order-item-details">
-                        <span class="detail-label">메뉴명</span><span class="detail-value">아메리카노</span>
-                        <span class="detail-label">종류</span><span class="detail-value ice">ICE</span>
-                        <span class="detail-label">가격</span><span class="detail-value">12,000원</span>
-                        <span class="detail-label">수량</span><span class="detail-value">4개</span>
-                    </div>
-                    <div class="divider-line"></div>
-                </div>
 
-                <div class="order-item">
-                    <div class="order-item-image">
-                        <img src="/images/cafelatte.png" alt="카페라떼">
-                    </div>
-                    <div class="order-item-details">
-                        <span class="detail-label">메뉴명</span><span class="detail-value">카페라떼</span>
-                        <span class="detail-label">종류</span><span class="detail-value ice">ICE</span>
-                        <span class="detail-label">가격</span><span class="detail-value">6,000원</span>
-                        <span class="detail-label">수량</span><span class="detail-value">2개</span>
-                    </div>
-                    <div class="divider-line"></div>
-                </div>
+                <!-- 주문내역이 없을 때 -->
+                <th:block th:if="${#lists.isEmpty(allOrders)}">
+                    <p style="font-size:14px; color:#666;">주문 내역이 없습니다.</p>
+                </th:block>
 
-                <div class="order-item">
-                    <div class="order-item-image">
-                        <img src="/images/capuchino.png" alt="카푸치노">
-                    </div>
-                    <div class="order-item-details">
-                        <span class="detail-label">메뉴명</span><span class="detail-value">카푸치노</span>
-                        <span class="detail-label">종류</span><span class="detail-value hot">HOT</span>
-                        <span class="detail-label">가격</span><span class="detail-value">9,000원</span>
-                        <span class="detail-label">수량</span><span class="detail-value">3개</span>
-                    </div>
-                    <div class="divider-line"></div>
-                </div>
+                <!-- 주문 반복 -->
+                <th:block th:each="item : ${allOrders}">
+                    <div class="order-item">
 
-                <div class="order-item">
-                    <div class="order-item-image">
-                        <img src="/images/vanillaLatte.png" alt="바닐라라떼">
-                    </div>
-                    <div class="order-item-details">
-                        <span class="detail-label">메뉴명</span><span class="detail-value">바닐라라떼</span>
-                        <span class="detail-label">종류</span><span class="detail-value hot">HOT</span>
-                        <span class="detail-label">가격</span><span class="detail-value">12,000원</span>
-                        <span class="detail-label">수량</span><span class="detail-value">4개</span>
-                    </div>
-                    <div class="divider-line"></div>
-                </div>
+                        <div class="order-item-image">
+                            <img th:src="@{|/images/${item.menuImg}|}" th:alt="${item.menuName}">
+                        </div>
 
-                <div class="order-item">
-                    <div class="order-item-image">
-                        <img src="/images/espresso.png" alt="에스프레소">
+                        <div class="order-item-details">
+                            <span class="detail-label">지점</span>
+                            <span class="detail-value" th:text="${item.storeName}"></span>
+
+                            <span class="detail-label">메뉴명</span>
+                            <span class="detail-value" th:text="${item.menuName}"></span>
+
+                            <span class="detail-label">종류</span>
+                            <span class="detail-value" th:text="${item.temp}"></span>
+
+                            <span class="detail-label">가격</span>
+                            <span class="detail-value"
+                                  th:text="${#numbers.formatInteger(item.totalPrice, 0) + '원'}"></span>
+
+                            <span class="detail-label">수량</span>
+                            <span class="detail-value" th:text="${item.quantity + '개'}"></span>
+
+                            <span class="detail-label">주문일시</span>
+                            <span class="detail-value" th:text="${#dates.format(item.orderTime, 'yyyy-MM-dd HH:mm')}"></span>
+                        </div>
+
+                        <div class="divider-line"></div>
                     </div>
-                    <div class="order-item-details">
-                        <span class="detail-label">메뉴명</span><span class="detail-value">에스프레소</span>
-                        <span class="detail-label">종류</span><span class="detail-value hot">HOT</span>
-                        <span class="detail-label">가격</span><span class="detail-value">3,000원</span>
-                        <span class="detail-label">수량</span><span class="detail-value">1개</span>
-                    </div>
-                </div>
+                </th:block>
+
             </div>
         </main>
     </div>
-<script src="/js/main.js"></script>
+
+    <script src="/js/main.js"></script>
 </th:block>
+
 </html>

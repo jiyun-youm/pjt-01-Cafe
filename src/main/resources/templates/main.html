@@ -44,26 +44,15 @@
                 </div>
 
                 <div class="previous-orders-grid">
-                    <a href="#" class="previous-order-item login-required">
-                        <img src="/images/image2.png" alt="아메리카노">
-                        <p class="item-name">아메리카노</p>
-                    </a>
-                    <a href="#" class="previous-order-item login-required">
-                        <img src="/images/cafelatte.png" alt="카페라떼">
-                        <p class="item-name">카페라떼</p>
-                    </a>
-                    <a href="#" class="previous-order-item login-required">
-                        <img src="/images/capuchino.png" alt="카푸치노">
-                        <p class="item-name">카푸치노</p>
-                    </a>
-                    <a href="#" class="previous-order-item login-required">
-                        <img src="/images/vanillaLatte.png" alt="바닐라라떼">
-                        <p class="item-name">바닐라라떼</p>
-                    </a>
-                    <a href="#" class="previous-order-item login-required">
-                        <img src="/images/espresso.png" alt="에스프레소">
-                        <p class="item-name">에스프레소</p>
-                    </a>
+                    <th:block th:if="${#lists.isEmpty(recentOrders)}">
+                        <p style="font-size:14px; color:#555">최근 주문내역이 없습니다.</p>
+                    </th:block>
+                    <th:block th:each="item : ${recentOrders}">
+                        <a th:href="@{'/home/order_history'}" class="previous-order-item login-required">
+                            <img th:src="@{|/images/${item.menuImg}|}" th:alt="${item.menuName}">
+                            <p class="item-name" th:text="${item.menuName}"></p>
+                        </a>
+                    </th:block>
                 </div>
             </section>
 
@@ -86,7 +75,7 @@
                 <span class="region-label">구매할 지점을 선택하세요.</span>
                 <form action="region">
                     <select name="userRegion" id="userRegion">
-                        <option value="" disabled selected>지점 선택</option>
+                        <option value="none" disabled selected hidden>지점 선택</option>
                         <option value="강남중앙점">자바빈카페 강남중앙점</option>
                         <option value="역삼중앙점">자바빈카페 역삼중앙점</option>
                         <option value="선릉중앙점">자바빈카페 선릉중앙점</option>

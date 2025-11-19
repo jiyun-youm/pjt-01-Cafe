@@ -185,21 +185,6 @@
     </div>
 
     <script src="/js/main.js"></script>
-    <script th:inline="javascript">
-        document.addEventListener("DOMContentLoaded", function() {
-            const currentSessionStore = [[${session.storeName}]];
-
-            console.log("%c[SESSION CHECK] 현재 페이지: " + document.title, "color: #00ff00; background: #333; font-size: 12px; padding: 4px;");
-
-            if (currentSessionStore) {
-                console.log("%c✅ 유지된 매장 이름: " + currentSessionStore, "color: black; background: yellow; font-weight: bold; padding: 3px;");
-            } else {
-                console.log("%c❌ 세션에 매장 정보가 없습니다 (null)", "color: white; background: red; font-weight: bold; padding: 3px;");
-            }
-
-            console.log("--------------------------------------------------");
-        });
-    </script>
     </body>
 </th:block>
 </html>

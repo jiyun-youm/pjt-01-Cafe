@@ -20,4 +20,5 @@ public class OrderItemVO {
     private int shot;           // 샷 추가 수량
     private int vanillaSyrup;   // 시럽 추가 수량
     private int whippedCream;   // 휘핑 추가 수량
+    private String memberId;
 }

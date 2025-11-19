@@ -2,6 +2,7 @@ package com.miniproject.cafe.Mapper;
 
 import com.miniproject.cafe.VO.OrderItemVO;
 import com.miniproject.cafe.VO.OrderVO;
+import com.miniproject.cafe.VO.RecentOrderVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -22,4 +23,7 @@ public interface OrderMapper {
     //매장 필터가 포함된 단일 주문 조회
     OrderVO findOrderById(@Param("orderId") Long orderId,
                           @Param("storeName") String storeName);
+
+    List<RecentOrderVO> getRecentOrders(String memberId); //이전 주문내역
+    List<RecentOrderVO> getAllOrders(String memberId);
 }

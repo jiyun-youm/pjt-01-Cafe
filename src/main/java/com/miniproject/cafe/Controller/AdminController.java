@@ -26,19 +26,12 @@ public class AdminController {
 
     @GetMapping("/orders")
     public String adminOrders(HttpSession session, Model model) {
-
-        // ⭐ [중요] 저장할 때 "admin"으로 저장했으니, 꺼낼 때도 "admin"으로 꺼내야 합니다.
-        Object adminSession = session.getAttribute("admin");
-
-        // 1. 세션이 없으면(로그인 안 했으면) 로그인 페이지로 이동
-        if (adminSession == null) {
-            System.out.println("🚫 [접근 거부] 세션(admin)이 없습니다. 로그인 페이지로 이동.");
+        if (session.getAttribute("adminId") == null) {
             return "redirect:/admin/login";
         }
-
-        model.addAttribute("isLoggedIn", true);
-
-        return "admin_orders"; // admin_orders.html 연결
+        //로그인 상태 전달
+        model.addAttribute("isLoggedIn", session.getAttribute("adminId") != null);
+        return "admin_orders";
     }
 
     // 회원가입 화면

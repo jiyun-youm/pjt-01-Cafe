@@ -5,82 +5,71 @@
 
 <mapper namespace="com.miniproject.cafe.Mapper.OrderMapper">
 
+    <!-- 기본 주문 + 상세 주문 Map -->
     <resultMap id="orderMap" type="com.miniproject.cafe.VO.OrderVO">
-        <id     property="orderId"      column="order_id" />
-
-        <result property="uId"          column="u_id" />
-
-        <result property="username"     column="username" />
-
-        <result property="orderStatus"  column="order_status" />
-        <result property="totalPrice"   column="total_price" />
-        <result property="orderType"    column="pickup_method" />
-        <result property="orderTime"    column="order_time" />
-        <result property="totalQuantity" column="total_quantity" />
-        <result property="storeName"    column="store_name" />
-        <result property="dailyOrderNum" column="daily_order_num" />
+        <id property="orderId" column="order_id"/>
+        <result property="uId" column="u_id"/>
+        <result property="username" column="username"/>
+        <result property="orderStatus" column="order_status"/>
+        <result property="totalPrice" column="total_price"/>
+        <result property="orderType" column="pickup_method"/>
+        <result property="orderTime" column="order_time"/>
+        <result property="totalQuantity" column="total_quantity"/>
+        <result property="storeName" column="store_name"/>
+        <result property="dailyOrderNum" column="daily_order_num"/>
 
         <collection property="orderItemList" ofType="com.miniproject.cafe.VO.OrderItemVO">
-            <id     property="orderItemId" column="order_detail_id"/>
-            <result property="orderId"     column="order_id"/>
-            <result property="menuId"      column="menu_id"/>
+            <id property="orderItemId" column="order_detail_id"/>
+            <result property="orderId" column="order_id"/>
+            <result property="menuId" column="menu_id"/>
             <result property="menuItemName" column="menu_name"/>
-            <result property="quantity"    column="item_amount"/>
-
-            <result property="temp"         column="temp" />
-            <result property="tumbler"      column="tumbler" />
-            <result property="shot"         column="shot" />
-            <result property="vanillaSyrup" column="vanilla_syrup" />
-            <result property="whippedCream" column="whipped_cream" />
+            <result property="quantity" column="item_amount"/>
+            <result property="temp" column="temp"/>
+            <result property="tumbler" column="tumbler"/>
+            <result property="shot" column="shot"/>
+            <result property="vanillaSyrup" column="vanilla_syrup"/>
+            <result property="whippedCream" column="whipped_cream"/>
         </collection>
     </resultMap>
 
+    <!-- 매장별 주문 조회 -->
     <select id="findOrdersByStore" resultMap="orderMap">
         SELECT
-        o.order_id,
-        o.u_id,
-        m.username,
-        o.order_status,
-        o.total_price,
-        o.pickup_method,
-        o.order_time,
-        o.store_name,
-        o.total_quantity,
-        o.daily_order_num,     <!-- ★ 저장된 컬럼 그대로 사용 -->
-
-        od.order_detail_id,
-        od.menu_id,
-        m_menu.menu_name,
-        od.amount AS item_amount,
-        od.temp,
-        od.tumbler,
-        od.shot,
-        od.vanilla_syrup,
-        od.whipped_cream
-
+            o.order_id,
+            o.u_id,
+            m.username,
+            o.order_status,
+            o.total_price,
+            o.pickup_method,
+            o.order_time,
+            o.store_name,
+            o.total_quantity,
+            o.daily_order_num,
+            od.order_detail_id,
+            od.menu_id,
+            m_menu.menu_name,
+            od.amount AS item_amount,
+            od.temp,
+            od.tumbler,
+            od.shot,
+            od.vanilla_syrup,
+            od.whipped_cream
         FROM orders o
-        LEFT JOIN order_detail od ON o.order_id = od.order_id
-        LEFT JOIN menu m_menu ON od.menu_id = m_menu.menu_id
-        LEFT JOIN member m ON o.u_id = m.id
-
+                 LEFT JOIN order_detail od ON o.order_id = od.order_id
+                 LEFT JOIN menu m_menu ON od.menu_id = m_menu.menu_id
+                 LEFT JOIN member m ON o.u_id = m.id
         WHERE o.store_name = #{storeName}
-        AND o.order_status = '주문접수'
-
-        ORDER BY o.daily_order_num DESC   <!-- ★ 반드시 저장된 컬럼 기준으로 -->
+          AND o.order_status = '주문접수'
+        ORDER BY o.daily_order_num DESC
     </select>
 
+    <!-- 주문 저장 -->
     <insert id="insertOrder" parameterType="com.miniproject.cafe.VO.OrderVO"
             useGeneratedKeys="true" keyProperty="orderId">
-
         INSERT INTO orders (
-            u_id,
-            order_status,
-            total_price,
-            pickup_method,
-            order_time,
-            total_quantity,
-            store_name,
-            daily_order_num
+            u_id, order_status, total_price,
+            pickup_method, order_time, total_quantity,
+            store_name, daily_order_num
         )
         VALUES (
                    #{uId},
@@ -94,15 +83,17 @@
                        SELECT COALESCE(MAX(o2.daily_order_num), 0) + 1
                        FROM orders o2
                        WHERE DATE(o2.order_time) = CURDATE()
-              AND o2.store_name = #{storeName}
+                AND o2.store_name = #{storeName}
             )
-        )
+            )
     </insert>
 
+    <!-- 상세 주문 저장 -->
     <insert id="insertOrderDetails" parameterType="java.util.List">
         INSERT INTO order_detail (
         order_id,
         menu_id,
+        member_id,
         amount,
         temp,
         tumbler,
@@ -115,6 +106,7 @@
             (
             #{item.orderId},
             #{item.menuId},
+            #{item.memberId},
             #{item.quantity},
             #{item.temp},
             #{item.tumbler},
@@ -142,28 +134,22 @@
             o.order_time,
             o.store_name,
             o.total_quantity,
-
             o.daily_order_num,
-
             od.order_detail_id,
             od.menu_id,
             m_menu.menu_name,
             od.amount AS item_amount,
-
             od.temp,
             od.tumbler,
             od.shot,
             od.vanilla_syrup,
             od.whipped_cream
-
         FROM orders o
                  LEFT JOIN order_detail od ON o.order_id = od.order_id
                  LEFT JOIN menu m_menu ON od.menu_id = m_menu.menu_id
                  LEFT JOIN member m ON o.u_id = m.id
-
         WHERE o.order_id = #{orderId}
           AND o.store_name = #{storeName}
-
         ORDER BY od.order_detail_id ASC
     </select>
 
@@ -172,4 +158,35 @@
         FROM orders
         WHERE order_id = #{orderId}
     </select>
+
+    <!-- 최근 주문내역 조회 -->
+    <select id="getRecentOrders" resultType="com.miniproject.cafe.VO.RecentOrderVO">
+        SELECT
+            od.menu_id,
+            m.menu_name AS menuName,
+            m.menu_img AS menuImg
+        FROM order_detail od
+                 JOIN menu m ON od.menu_id = m.menu_id
+        WHERE od.member_id = #{memberId}
+        ORDER BY od.order_detail_id DESC
+            LIMIT 5
+    </select>
+
+    <select id="getAllOrders" resultType="com.miniproject.cafe.VO.RecentOrderVO">
+        SELECT
+        od.menu_id,
+        m.menu_name AS menuName,
+        m.menu_img AS menuImg,
+        od.temp,
+        od.amount AS quantity,
+        o.total_price AS totalPrice,
+        o.order_time AS orderTime,
+        o.store_name AS storeName   <!-- ★ 이 부분 추가! -->
+        FROM order_detail od
+        JOIN orders o ON od.order_id = o.order_id
+        JOIN menu m ON od.menu_id = m.menu_id
+        WHERE od.member_id = #{memberId}
+        ORDER BY od.order_detail_id DESC
+    </select>
+
 </mapper>

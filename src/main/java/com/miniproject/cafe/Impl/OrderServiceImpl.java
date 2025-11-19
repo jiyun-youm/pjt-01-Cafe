@@ -5,6 +5,7 @@ import com.miniproject.cafe.Mapper.OrderMapper;
 import com.miniproject.cafe.Service.OrderService;
 import com.miniproject.cafe.VO.OrderItemVO;
 import com.miniproject.cafe.VO.OrderVO;
+import com.miniproject.cafe.VO.RecentOrderVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional; // (추가)
@@ -32,9 +33,7 @@ public class OrderServiceImpl implements OrderService {
 
         // 1. 기본값 세팅
         if (order.getOrderStatus() == null) order.setOrderStatus("주문접수");
-
         if (order.getOrderType() == null) order.setOrderType("매장");
-
         if (order.getStoreName() == null) order.setStoreName("");
 
 
@@ -46,9 +45,10 @@ public class OrderServiceImpl implements OrderService {
         List<OrderItemVO> items = order.getOrderItemList();
 
         if (items != null && !items.isEmpty()) {
+            String memberId = order.getUId();
             for (OrderItemVO item : items) {
-                // 방금 insertOrder를 통해 생성된 주문 번호를 세팅
                 item.setOrderId(order.getOrderId());
+                item.setMemberId(memberId);
             }
             orderMapper.insertOrderDetails(items);
         }
@@ -80,5 +80,15 @@ public class OrderServiceImpl implements OrderService {
                 emitterStore.sendToStore(storeName, updatedOrder);
             }
         }
+    }
+
+    @Override
+    public List<RecentOrderVO> getRecentOrders(String memberId) {
+        return orderMapper.getRecentOrders(memberId);
+    }
+
+    @Override
+    public List<RecentOrderVO> getAllOrders(String memberId) {
+        return orderMapper.getAllOrders(memberId);
     }
 }
