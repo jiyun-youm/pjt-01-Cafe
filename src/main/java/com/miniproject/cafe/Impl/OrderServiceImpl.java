@@ -1,11 +1,10 @@
 package com.miniproject.cafe.Impl;
 
 import com.miniproject.cafe.Emitter.SseEmitterStore;
+import com.miniproject.cafe.Mapper.OrderDetailMapper;
 import com.miniproject.cafe.Mapper.OrderMapper;
 import com.miniproject.cafe.Service.OrderService;
-import com.miniproject.cafe.VO.OrderItemVO;
-import com.miniproject.cafe.VO.OrderVO;
-import com.miniproject.cafe.VO.RecentOrderVO;
+import com.miniproject.cafe.VO.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional; // (추가)
@@ -20,6 +19,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private SseEmitterStore emitterStore;
+
+    @Autowired
+    private OrderDetailMapper orderDetailMapper;
 
     @Override
     public List<OrderVO> getOrdersByStore(String storeName) {
@@ -49,6 +51,18 @@ public class OrderServiceImpl implements OrderService {
             for (OrderItemVO item : items) {
                 item.setOrderId(order.getOrderId());
                 item.setMemberId(memberId);
+                if (item.getOptionId() != null) {
+                    // MENU_OPTION 테이블에서 옵션 조회
+                    MenuOptionVO option = orderDetailMapper.findMenuOptionById(item.getOptionId());
+
+                    if (option != null) {
+                        item.setTemp(option.getTemp());
+                        item.setTumbler(option.getTumblerUse());
+                        item.setShot(option.getShotCount());
+                        item.setVanillaSyrup(option.getVanillaSyrupCount());
+                        item.setWhippedCream(option.getWhippedCreamCount());
+                    }
+                }
             }
             orderMapper.insertOrderDetails(items);
         }

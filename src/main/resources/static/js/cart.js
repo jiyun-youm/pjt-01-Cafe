@@ -228,19 +228,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
     //요청사항
     function getRequestText() {
-        // 체크박스 옵션들
-        const opt1 = document.getElementById("opt1")?.checked ? "빨대 빼주세요" : "";
-        const opt2 = document.getElementById("opt2")?.checked ? "봉투에 담아갈게요" : "";
-        const opt3 = document.getElementById("opt3")?.checked ? "얼음 적게 넣어주세요" : "";
-        const opt4 = document.getElementById("opt4")?.checked ? "캐리어에 담아갈게요" : "";
+        let items = [];
 
-        // 직접 입력[textarea]
-        const direct = document.getElementById("directInput")?.value?.trim() || "";
+        // 체크박스(예: "빨대 빼주세요", "얼음 적게") 값 읽기
+        document.querySelectorAll('input[name="requestOption"]:checked')
+            .forEach(el => items.push(el.value));
 
-        // 값 조립
-        let arr = [opt1, opt2, opt3, opt4, direct].filter(v => v !== "");
+        // 직접입력 textarea 값 읽기
+        let directInput = document.getElementById('directRequest');
+        if (directInput && directInput.value.trim() !== "") {
+            items.push(directInput.value.trim());
+        }
 
-        return arr.length > 0 ? arr.join(", ") : null;
+        // 아무 옵션도 선택 안 했으면 '없음'
+        return items.length > 0 ? items.join(", ") : "없음";
     }
 
     // ==========================================
@@ -252,6 +253,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         let orderItems = [];
         let totalQty = 0;
+
+        let requestText = getRequestText();
 
         console.log("--------------------------------");
         console.log("🛒 [JS 데이터 점검]");
@@ -265,27 +268,32 @@ document.addEventListener('DOMContentLoaded', function() {
             let item = checkbox.closest('.cart-item');
             let qty = parseInt(item.querySelector('.item-quantity').dataset.quantity);
 
-            // (1) 메뉴 ID 가져오기
+            //옵션 ID
+            const optionId = parseInt(item.dataset.optionId);
+            console.log('[CHECK] cart item optionId =', optionId);
+
+            // 메뉴 ID
             let menuId = item.dataset.menuId || item.dataset.cartItemId;
 
-            // (2) 상세 옵션 정보 추출
+            // 상세 옵션 정보
             let shot = parseInt(item.dataset.shotCount || 0);
             let vanillaSyrup = parseInt(item.dataset.vanillaSyrupCount || 0);
             let whippedCream = parseInt(item.dataset.whippedCreamCount || 0);
 
-            // 온도 (ICE/HOT) 추출
+            // 온도 (ICE/HOT)
             let tempElement = item.querySelector('.item-temp');
             let tempText = tempElement ? tempElement.textContent.trim() : 'ICE';
 
-            // 텀블러 사용 여부 (옵션 텍스트 내 '텀블러' 포함 여부로 판단)
+            // 텀블러 사용 여부
             let optionsText = item.querySelector('.item-options') ? item.querySelector('.item-options').textContent : "";
             let isTumbler = optionsText.includes('텀블러') ? 1 : 0;
 
-            // (3) 리스트에 추가
+            // 리스트에 추가
             orderItems.push({
                 menuId: menuId,
                 menuItemName: item.querySelector('.item-name').textContent.trim(),
                 quantity: qty,
+                optionId: optionId,
                 temp: tempText,
                 tumbler: isTumbler,
                 shot: shot,
@@ -313,7 +321,7 @@ document.addEventListener('DOMContentLoaded', function() {
             uId: currentUserId || "guest",
             storeName: storeName,
             orderItemList: orderItems,
-            requestText: getRequestText()
+            requestText: requestText
         };
     }
 

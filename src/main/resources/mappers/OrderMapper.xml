@@ -36,31 +36,33 @@
     <!-- 매장별 주문 조회 -->
     <select id="findOrdersByStore" resultMap="orderMap">
         SELECT
-            o.order_id,
-            o.u_id,
-            m.username,
-            o.order_status,
-            o.total_price,
-            o.pickup_method,
-            o.order_time,
-            o.store_name,
-            o.total_quantity,
-            o.daily_order_num,
-            od.order_detail_id,
-            od.menu_id,
-            m_menu.menu_name,
-            od.amount AS item_amount,
-            od.temp,
-            od.tumbler,
-            od.shot,
-            od.vanilla_syrup,
-            od.whipped_cream
+        o.order_id,
+        o.u_id,
+        m.username,
+        o.order_status,
+        o.total_price,
+        o.pickup_method,
+        o.order_time,
+        o.store_name,
+        o.total_quantity,
+        o.daily_order_num,
+        o.request_text,     <!-- ★ 추가 -->
+
+        od.order_detail_id,
+        od.menu_id,
+        m_menu.menu_name,
+        od.amount AS item_amount,
+        od.temp,
+        od.tumbler,
+        od.shot,
+        od.vanilla_syrup,
+        od.whipped_cream
         FROM orders o
-                 LEFT JOIN order_detail od ON o.order_id = od.order_id
-                 LEFT JOIN menu m_menu ON od.menu_id = m_menu.menu_id
-                 LEFT JOIN member m ON o.u_id = m.id
+        LEFT JOIN order_detail od ON o.order_id = od.order_id
+        LEFT JOIN menu m_menu ON od.menu_id = m_menu.menu_id
+        LEFT JOIN member m ON o.u_id = m.id
         WHERE o.store_name = #{storeName}
-          AND o.order_status = '주문접수'
+        AND o.order_status = '주문접수'
         ORDER BY o.daily_order_num DESC
     </select>
 
@@ -128,31 +130,33 @@
 
     <select id="findOrderById" resultMap="orderMap">
         SELECT
-            o.order_id,
-            o.u_id,
-            m.username,
-            o.order_status,
-            o.total_price,
-            o.pickup_method,
-            o.order_time,
-            o.store_name,
-            o.total_quantity,
-            o.daily_order_num,
-            od.order_detail_id,
-            od.menu_id,
-            m_menu.menu_name,
-            od.amount AS item_amount,
-            od.temp,
-            od.tumbler,
-            od.shot,
-            od.vanilla_syrup,
-            od.whipped_cream
+        o.order_id,
+        o.u_id,
+        m.username,
+        o.order_status,
+        o.total_price,
+        o.pickup_method,
+        o.order_time,
+        o.store_name,
+        o.total_quantity,
+        o.daily_order_num,
+        o.request_text,   <!-- ★ 추가 -->
+
+        od.order_detail_id,
+        od.menu_id,
+        m_menu.menu_name,
+        od.amount AS item_amount,
+        od.temp,
+        od.tumbler,
+        od.shot,
+        od.vanilla_syrup,
+        od.whipped_cream
         FROM orders o
-                 LEFT JOIN order_detail od ON o.order_id = od.order_id
-                 LEFT JOIN menu m_menu ON od.menu_id = m_menu.menu_id
-                 LEFT JOIN member m ON o.u_id = m.id
+        LEFT JOIN order_detail od ON o.order_id = od.order_id
+        LEFT JOIN menu m_menu ON od.menu_id = m_menu.menu_id
+        LEFT JOIN member m ON o.u_id = m.id
         WHERE o.order_id = #{orderId}
-          AND o.store_name = #{storeName}
+        AND o.store_name = #{storeName}
         ORDER BY od.order_detail_id ASC
     </select>
 

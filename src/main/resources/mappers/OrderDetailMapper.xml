@@ -57,4 +57,17 @@
         FROM MENU
     </select>
 
+    <select id="findMenuOptionById" parameterType="long" resultType="MenuOptionVO">
+        SELECT
+            OPTION_ID           AS optionId,
+            MENU_ID             AS menuId,
+            TEMP                AS temp,
+            TUMBLER_USE         AS tumblerUse,
+            SHOT_COUNT          AS shotCount,
+            VANILLA_SYRUP_COUNT AS vanillaSyrupCount,
+            WHIPPED_CREAM_COUNT AS whippedCreamCount
+        FROM MENU_OPTION
+        WHERE OPTION_ID = #{optionId}
+    </select>
+
 </mapper>

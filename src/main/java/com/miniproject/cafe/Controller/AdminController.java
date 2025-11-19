@@ -64,9 +64,10 @@ public class AdminController {
     @GetMapping("/login")
     public String adminLogin(HttpSession session, Model model) {
         // 세션에 adminId가 있으면 로그인 상태
-        boolean isLoggedIn = session.getAttribute("admin") != null;
-        model.addAttribute("isLoggedIn", isLoggedIn);
-
+        if (session.getAttribute("loginError") != null) {
+            model.addAttribute("loginError", session.getAttribute("loginError"));
+            session.removeAttribute("loginError");   // 바로 삭제
+        }
         return "admin_login";
     }
 
@@ -76,34 +77,20 @@ public class AdminController {
                         HttpSession session,
                         RedirectAttributes ra) {
 
-        System.out.println("-----------------------------------------");
-        System.out.println("🔍 [관리자 로그인 시도] ID: " + vo.getId());
-
         // 2. 서비스 호출 (VO 객체를 그대로 전달)
         AdminVO loginAdmin = adminService.login(vo);
 
         // 3. 결과 확인 (null이면 로그인 실패)
         if (loginAdmin != null) {
-            // 로그인 성공
-
-            System.out.println("✅ [로그인 성공] DB에서 가져온 정보: " + loginAdmin);
-            System.out.println("   - 매장명: " + loginAdmin.getStoreName());
 
             // 2. 세션 저장
             session.setAttribute("admin", loginAdmin);
-            System.out.println("💾 [세션 저장 완료] 키값='admin'");
-
-            // 3. 세션 저장 확인 (바로 꺼내보기)
-            System.out.println("👀 [세션 재확인] " + session.getAttribute("admin"));
-
-            // ⭐ [중요] HTML에서 session.admin.storeName 으로 꺼내 쓰고 있으므로
-            // 키값을 반드시 "admin"으로, 값은 객체 통째로 저장해야 합니다.
             session.setAttribute("admin", loginAdmin);
 
             return "redirect:/admin/orders";
         } else {
             // 로그인 실패
-            ra.addFlashAttribute("loginError", "아이디 또는 비밀번호가 일치하지 않습니다.");
+            session.setAttribute("loginError", "아이디 또는 비밀번호가 일치하지 않습니다.");
             return "redirect:/admin/login";
         }
     }

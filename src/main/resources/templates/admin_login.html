@@ -31,9 +31,7 @@
     </div>
 </body>
 <script src="/js/admin_login.js"></script>
-<th:block th:if="${loginError != null}">
-    <script>
-        alert("[[${loginError}]]");
-    </script>
+<th:block th:if="${session.loginError != null}">
+    <script>alert("[[${session.loginError}]]");</script>
 </th:block>
 </html>

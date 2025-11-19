@@ -21,7 +21,6 @@ public class OrderApiController {
     //주문 생성
     @PostMapping("/create")
     public ResponseEntity<OrderVO> createOrder(@RequestBody OrderVO order) {
-        System.out.println("🚀 [주문 접수] 매장명: " + order.getStoreName() + " / 주문자: " + order.getUId());
         try {
             OrderVO createdOrder = orderService.createOrder(order);
             return ResponseEntity.ok(createdOrder);

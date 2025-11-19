@@ -213,7 +213,8 @@ a {
 }
 
 .request-text {
-    margin-top: 10px;
+    padding-top: 8px;
+    margin-top: auto;
     font-size: 1rem;
     color: #333;
     white-space: pre-line;
@@ -295,6 +296,16 @@ a {
 
 .complete { color: #1B7F3A; }
 .cancel { color: #D0342C; }
+
+.order-grid-empty {
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: 40px 0;
+    color: #666;
+    font-size: 20px;
+    font-weight: 500;
+}
 
 /* --- 하단 네비게이션 --- */
 .footer-nav {
