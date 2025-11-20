@@ -8,8 +8,9 @@ import com.miniproject.cafe.Service.RewardService;
 import com.miniproject.cafe.VO.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional; // (추가)
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -33,82 +34,68 @@ public class OrderServiceImpl implements OrderService {
         return orderMapper.findOrdersByStore(storeName);
     }
 
-    //신규 주문
+    // 신규 주문 생성
     @Override
-    @Transactional // 트랜잭션 필수: 주문서 생성과 상세 메뉴 저장이 모두 성공해야 커밋됨
+    @Transactional
     public OrderVO createOrder(OrderVO order) {
 
-        // 1. 기본값 세팅
+        // 기본값 설정
         if (order.getOrderStatus() == null) order.setOrderStatus("주문접수");
         if (order.getOrderType() == null) order.setOrderType("매장");
         if (order.getStoreName() == null) order.setStoreName("");
 
+        order.setOrderTime(new Date());
 
-        // 2. orders 테이블에 저장 (여기서 DB가 생성한 orderId가 order 객체에 담김)
-        order.setOrderTime(new java.util.Date());
+        // orders 테이블 insert
         orderMapper.insertOrder(order);
 
-        // 3. 상세 메뉴(Item)들이 있다면, 방금 생성된 주문번호(orderId)를 넣고 저장
+        // 상세 주문 insert
         List<OrderItemVO> items = order.getOrderItemList();
-
-        if (items != null && !items.isEmpty()) {
-            String memberId = order.getUId();
+        if (items != null) {
             for (OrderItemVO item : items) {
                 item.setOrderId(order.getOrderId());
-                item.setMemberId(memberId);
-                if (item.getOptionId() != null) {
-                    // MENU_OPTION 테이블에서 옵션 조회
-                    MenuOptionVO option = orderDetailMapper.findMenuOptionById(item.getOptionId());
-
-                    if (option != null) {
-                        item.setTemp(option.getTemp());
-                        item.setTumbler(option.getTumblerUse());
-                        item.setShot(option.getShotCount());
-                        item.setVanillaSyrup(option.getVanillaSyrupCount());
-                        item.setWhippedCream(option.getWhippedCreamCount());
-                    }
-                }
+                item.setMemberId(order.getUId());
             }
             orderMapper.insertOrderDetails(items);
         }
-        // 새 주문을 해당 매장(storeName)의 관리자에게 SSE push
+
+        // 전체 주문 불러오기
         OrderVO fullOrder = orderMapper.findOrderById(order.getOrderId(), order.getStoreName());
 
-        // 4) ★ SSE로 보내는 것은 fullOrder이어야 한다 ★
-        emitterStore.sendToStore(order.getStoreName(), fullOrder);
+        // ⭐ 관리자에게 이벤트 발송 (sendToStore 사용)
+        emitterStore.sendToStore(order.getStoreName(), "new-order", fullOrder);
+
         return fullOrder;
     }
 
-    //주문 업데이트 (완료, 취소)
+    // 상태 업데이트 (완료/취소)
     @Override
     @Transactional
     public void updateOrderStatus(String status, Long orderId) {
 
-        // 1) 해당 주문의 매장 이름 조회
+        // 주문의 매장명 조회
         String storeName = orderMapper.findStoreNameByOrderId(orderId);
 
-        // 2) 상태 업데이트
+        // 주문 상태 변경
         orderMapper.updateOrderStatus(status, orderId);
 
-        // ✅ 주문 완료이면 reward 증가
+        // 변경된 주문 불러오기
+        OrderVO updatedOrder = orderMapper.findOrderById(orderId, storeName);
+
+        // ⭐ 관리자에게 상태 변경 이벤트
+        emitterStore.sendToStore(storeName, "order-update", updatedOrder);
+
+        // ⭐ 고객에게 주문완료 SSE 전달
         if ("주문완료".equals(status)) {
-            OrderVO order = orderMapper.findOrderById(orderId, storeName);
-            if(order != null && order.getUId() != null) {
-                int totalQuantity = order.getTotalQuantity(); // 주문 수량
-                rewardService.addStamps(order.getUId(), totalQuantity);
-            }
-        }
+            emitterStore.sendToUser(updatedOrder.getUId(), "order-complete", updatedOrder);
 
-        // 3) 매장 필터를 적용해 변경된 주문 정보 조회
-        if (storeName != null && !storeName.isEmpty()) {
-            OrderVO updatedOrder = orderMapper.findOrderById(orderId, storeName);
-
-            // 4) SSE push (해당 매장 관리자에게만)
-            if (updatedOrder != null) {
-                emitterStore.sendToStore(storeName, updatedOrder);
+            // 스탬프 적립
+            if (updatedOrder.getUId() != null) {
+                rewardService.addStamps(updatedOrder.getUId(), updatedOrder.getTotalQuantity());
             }
         }
     }
+
 
     @Override
     public List<RecentOrderVO> getRecentOrders(String memberId) {
@@ -118,5 +105,10 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<RecentOrderVO> getAllOrders(String memberId) {
         return orderMapper.getAllOrders(memberId);
+    }
+
+    @Override
+    public OrderVO getOrderById(Long orderId) {
+        return orderMapper.selectOrderById(orderId);
     }
 }

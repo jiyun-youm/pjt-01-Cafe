@@ -188,7 +188,7 @@
         od.amount AS quantity,
         o.total_price AS totalPrice,
         o.order_time AS orderTime,
-        o.store_name AS storeName   <!-- ★ 이 부분 추가! -->
+        o.store_name AS storeName
         FROM order_detail od
         JOIN orders o ON od.order_id = o.order_id
         JOIN menu m ON od.menu_id = m.menu_id
@@ -196,4 +196,9 @@
         ORDER BY od.order_detail_id DESC
     </select>
 
+    <select id="selectOrderById" resultType="com.miniproject.cafe.VO.OrderVO">
+        SELECT *
+        FROM orders
+        WHERE order_id = #{orderId}
+    </select>
 </mapper>

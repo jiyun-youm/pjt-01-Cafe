@@ -85,8 +85,104 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("getRegion error:", e);
         }
     }
-
     initRegionSelect(); // 실행
+
+    function connectSSE(url) {
+
+        let es = new EventSource(url);
+
+        es.onopen = () => console.log("[USER SSE] Connected");
+
+        es.onerror = () => {
+            console.warn("[USER SSE] Disconnected → Reconnecting in 3s...");
+            es.close();
+            setTimeout(() => connectSSE(url), 3000);
+        };
+
+        // 서버 연결 확인 이벤트
+        es.addEventListener("connect", (e) => {
+            console.log("[USER SSE] connect event:", e.data);
+        });
+
+        // 주문완료 이벤트 수신
+        es.addEventListener("order-complete", async (event) => {
+            console.log("[USER SSE] 주문완료:", event.data);
+
+            showNotification("주문이 완료되었습니다!");
+            await loadUserOrders();
+        });
+
+        return es;
+    }
+
+    async function initUserSSE() {
+
+        if (typeof IS_LOGGED_IN === 'undefined' || !IS_LOGGED_IN) return;
+
+        const regionResp = await fetch("/home/getRegion");
+        const storeName = await regionResp.text();
+
+        if (!storeName || storeName === "null" || storeName.trim() === "") {
+            console.log("[USER SSE] 매장 미선택 → SSE 중지");
+            return;
+        }
+
+        connectSSE(`/sse/user/${USER_ID}`);
+    }
+
+    initUserSSE();
+
+    function showNotification(message) {
+        const popup = document.getElementById('notification-popup');
+        const text = popup.querySelector('.popup-text');
+
+        if (!popup || !text) return;
+
+        text.innerText = message;
+
+        popup.classList.add('show');
+
+        setTimeout(() => {
+            popup.classList.remove('show');
+        }, 3000);
+    }
+
+    async function loadUserOrders() {
+
+        if (typeof USER_ID === 'undefined' || !USER_ID) return;
+
+        try {
+            const resp = await fetch(`/api/orders/user-list?memberId=${USER_ID}`);
+            const list = await resp.json();
+
+            // 주문 기록이 없는 경우
+            if (list.length === 0) {
+                showNotification("주문내역이 없습니다.");
+                return;
+            }
+
+            // 주문 기록이 있을 때
+            const container = document.getElementById("user-order-list");
+            if (!container) return;
+
+            container.innerHTML = "";
+
+            list.forEach(order => {
+                const div = document.createElement("div");
+                div.classList.add("order-item");
+                div.innerHTML = `
+                <div class='order-title'>주문번호 #${order.orderId}</div>
+                <div class='order-date'>${order.orderTime}</div>
+                <div class='order-status'>${order.orderStatus}</div>
+            `;
+                container.appendChild(div);
+            });
+
+        } catch (e) {
+            console.error("[주문내역 로드 실패]", e);
+        }
+    }
+    loadUserOrders();
 
 
     /* ============================================================
@@ -96,20 +192,16 @@ document.addEventListener('DOMContentLoaded', () => {
         userRegion.addEventListener("change", () => {
             const region = userRegion.value;
 
-            regionSaved = false; // 저장 전
-
             fetch("/home/saveRegion", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ region })
             })
-            .then(() => {
-                regionSaved = true; // 저장 완료
-                console.log("지역 정보 서버 저장 완료:", region);
-            })
-            .catch(err => console.error(err));
+                .then(() => console.log("매장 정보 저장:", region))
+                .catch(err => console.error(err));
         });
     }
+
 
 
     /* ============================================================
@@ -117,25 +209,23 @@ document.addEventListener('DOMContentLoaded', () => {
     ============================================================ */
 
     async function checkAndGoToMenu() {
-        // 세션에서 storeName 가져오기
+
         try {
             const resp = await fetch("/home/getRegion");
             const storeName = await resp.text();
 
-            // 지점 선택 안 했을 때
             if (!storeName || storeName === "null" || storeName.trim() === "") {
                 alert("주문할 매장을 먼저 선택해주세요.");
-                // 홈으로 이동
                 window.location.href = '/home/';
                 return false;
             }
 
-            // 매장 선택이 되어 있으면 메뉴 페이지로 이동
             window.location.href = '/menu/coffee';
             return true;
+
         } catch (error) {
-            console.error("매장 확인 중 오류:", error);
-            alert("매장 정보를 확인하는 중 오류가 발생했습니다.");
+            console.error("매장 확인 오류:", error);
+            alert("매장 정보를 확인할 수 없습니다.");
             window.location.href = '/home/';
             return false;
         }
@@ -145,23 +235,20 @@ document.addEventListener('DOMContentLoaded', () => {
         orderBtn.addEventListener("click", async (e) => {
             e.preventDefault();
 
-            // 1) 로그인 여부 확인
             if (typeof IS_LOGGED_IN !== 'undefined' && !IS_LOGGED_IN) {
                 const overlay = document.getElementById("login-modal-overlay");
                 if (overlay) overlay.classList.add("show");
-                else alert("로그인이 필요합니다.");
                 return;
             }
 
-            // 2) 매장 선택 여부 확인 및 이동
             await checkAndGoToMenu();
         });
     }
 
-    /* ===========================
+   /* /!* ===========================
        🔐 로그인/회원가입 모달 로직
        (로그인 상태가 아닐 때만 동작)
-    ============================*/
+    ============================*!/
     if (typeof IS_LOGGED_IN !== 'undefined' && !IS_LOGGED_IN) {
 
         // 로그인 버튼 클릭
@@ -196,7 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        /* 이메일 중복확인 */
+        /!* 이메일 중복확인 *!/
         if (checkEmailButton) {
             checkEmailButton.addEventListener('click', async () => {
                 const email = signupEmailInput.value;
@@ -236,7 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        /* 비밀번호 일치 검사 */
+        /!* 비밀번호 일치 검사 *!/
         const passwordInput = document.getElementById('signup-password');
         const passwordCheckInput = document.getElementById('signup-password-check');
 
@@ -258,7 +345,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (passwordInput) passwordInput.addEventListener('input', validatePasswords);
         if (passwordCheckInput) passwordCheckInput.addEventListener('input', validatePasswords);
 
-        /* 회원가입 폼 제출 */
+        /!* 회원가입 폼 제출 *!/
         if (signupForm) {
             signupForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -302,7 +389,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         }
-    }
+    }*/
 
     /* 로그인 권한 보호 링크 */
     let loginRequiredLinks = document.querySelectorAll('.login-required');
@@ -315,14 +402,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    /* ===========================
-       🔥 일반 로그인 실패 시 모달 자동 열기
-       (?error 파라미터 존재 시)
-    ============================*/
-    // oauthError가 없을 때만 작동
-    if (!oauthError && params.has("error")) {
+    /*if (!oauthError && params.has("error")) {
         if (loginModalOverlay) loginModalOverlay.classList.add("show");
-    }
+    }*/
 
 });
 
@@ -353,8 +435,10 @@ function displaySuccessMessage(formElement, field, message) {
     let target = formElement.querySelector(`.success-message[data-field="${field}"]`);
     if (target) target.textContent = message;
 }
+
 function setVh() {
     document.documentElement.style.setProperty('--vh', window.innerHeight * 0.01 + 'px');
 }
+
 setVh();
 window.addEventListener('resize', setVh);

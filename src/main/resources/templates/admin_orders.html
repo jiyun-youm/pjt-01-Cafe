@@ -103,10 +103,11 @@
         // ---------------------------
         function connectSSE(storeName) {
 
-            const eventSource = new EventSource(`/sse/subscribe/${storeName}`);
+            const encoded = encodeURIComponent(storeName);
+            const eventSource = new EventSource(`/sse/admin/${encoded}`);
 
             // 주문 이벤트
-            eventSource.addEventListener("order", (event) => {
+            eventSource.addEventListener("new-order", (event) => {
 
                 const order = JSON.parse(event.data);
                 const idStr = String(order.orderId);

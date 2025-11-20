@@ -26,4 +26,6 @@ public interface OrderMapper {
 
     List<RecentOrderVO> getRecentOrders(String memberId); //이전 주문내역
     List<RecentOrderVO> getAllOrders(String memberId);
+
+    OrderVO selectOrderById(@Param("orderId") Long orderId);
 }

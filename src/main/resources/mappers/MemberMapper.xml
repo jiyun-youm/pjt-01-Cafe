@@ -11,24 +11,34 @@
     </insert>
 
     <select id="isEmailDuplicate" parameterType="String" resultType="boolean">
-        SELECT COUNT(*) > 0 FROM MEMBER WHERE email = #{email}
+        SELECT COUNT(*) > 0
+        FROM MEMBER
+        WHERE email = #{email}
     </select>
 
     <select id="isIdDuplicate" parameterType="String" resultType="boolean">
-        SELECT COUNT(*) > 0 FROM MEMBER WHERE id = #{id}
+        SELECT COUNT(*) > 0
+        FROM MEMBER
+        WHERE id = #{id}
     </select>
 
     <select id="findByEmail" parameterType="string" resultType="MemberVO">
-        SELECT * FROM MEMBER WHERE EMAIL = #{email}
+        SELECT *
+        FROM member
+        WHERE email = #{email}
     </select>
 
-    <insert id="insertOAuthMember" parameterType="MemberVO">
-        INSERT INTO MEMBER (ID, EMAIL, USERNAME, PASSWORD, PROVIDER)
-        VALUES (#{id}, #{email}, #{username}, #{password}, #{provider})
+    <insert id="insertOAuthMember" parameterType="com.miniproject.cafe.VO.MemberVO">
+        INSERT INTO member(id,email,username,password,provider)
+        VALUES(
+               #{id},#{email},#{username},#{password},#{provider}
+        )
     </insert>
 
     <update id="updateUser" parameterType="MemberVO">
-        UPDATE MEMBER SET USERNAME = #{username} WHERE ID = #{id}
+        UPDATE MEMBER
+        SET USERNAME = #{username}
+        WHERE ID = #{id}
     </update>
 
 </mapper>

@@ -12,9 +12,20 @@
         <link rel="stylesheet" th:href="@{/css/loginModal.css}">
         <link rel="stylesheet" th:href="@{/css/main.css}">
     </head>
+    <th:block th:if="${IS_LOGGED_IN == true}">
+        <script th:inline="javascript">
+            const IS_LOGGED_IN = true;
+            const USER_ID = /*[[${LOGIN_USER_ID}]]*/ null;
+        </script>
+    </th:block>
 
+    <th:block th:if="${IS_LOGGED_IN != true}">
+        <script>
+            const IS_LOGGED_IN = false;
+            const USER_ID = null;
+        </script>
+    </th:block>
     <body>
-
     <div class="mobile-frame">
 
         <!-- 상단 고정 헤더 -->
@@ -37,7 +48,7 @@
                         <a href="/home/mypage"><img src="/images/알림.png" width="23" height="23" alt="알림"></a>
                         <div class="notification-popup" id="notification-popup">
                             <div class="popup-arrow"></div>
-                            <p>주문내역이 없습니다.</p>
+                            <p class="popup-text">알림메시지</p>
                         </div>
                     </span>
                 </div>
