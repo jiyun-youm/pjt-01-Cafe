@@ -2,10 +2,12 @@ package com.miniproject.cafe.Controller;
 
 import com.miniproject.cafe.Service.CustomUserDetailsService;
 import com.miniproject.cafe.Service.OrderService;
+import com.miniproject.cafe.Service.RewardService;
 import com.miniproject.cafe.Service.UserLikeService;
 import com.miniproject.cafe.VO.MemberVO;
 import com.miniproject.cafe.VO.MenuVO;
 import com.miniproject.cafe.VO.RecentOrderVO;
+import com.miniproject.cafe.VO.RewardVO;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -25,6 +27,8 @@ public class HomeController {
 
     private final UserLikeService userLikeService;
     private final OrderService orderService;
+    private final RewardService rewardService;
+
 
     @GetMapping("/")
     public String home(Model model, Authentication auth, Principal principal) {
@@ -34,6 +38,9 @@ public class HomeController {
             String memberId = principal.getName();
             List<RecentOrderVO> recentOrders = orderService.getRecentOrders(memberId);
             model.addAttribute("recentOrders", recentOrders);
+            // ✅ reward 정보 추가
+            RewardVO reward = rewardService.getReward(memberId);
+            model.addAttribute("reward", reward);
         }
         return "main";
     }

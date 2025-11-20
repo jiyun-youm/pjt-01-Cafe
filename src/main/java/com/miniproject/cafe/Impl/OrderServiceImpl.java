@@ -4,6 +4,7 @@ import com.miniproject.cafe.Emitter.SseEmitterStore;
 import com.miniproject.cafe.Mapper.OrderDetailMapper;
 import com.miniproject.cafe.Mapper.OrderMapper;
 import com.miniproject.cafe.Service.OrderService;
+import com.miniproject.cafe.Service.RewardService;
 import com.miniproject.cafe.VO.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,10 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private OrderDetailMapper orderDetailMapper;
+
+    @Autowired
+    private RewardService rewardService;
+
 
     @Override
     public List<OrderVO> getOrdersByStore(String storeName) {
@@ -84,6 +89,15 @@ public class OrderServiceImpl implements OrderService {
 
         // 2) 상태 업데이트
         orderMapper.updateOrderStatus(status, orderId);
+
+        // ✅ 주문 완료이면 reward 증가
+        if ("주문완료".equals(status)) {
+            OrderVO order = orderMapper.findOrderById(orderId, storeName);
+            if(order != null && order.getUId() != null) {
+                int totalQuantity = order.getTotalQuantity(); // 주문 수량
+                rewardService.addStamps(order.getUId(), totalQuantity);
+            }
+        }
 
         // 3) 매장 필터를 적용해 변경된 주문 정보 조회
         if (storeName != null && !storeName.isEmpty()) {

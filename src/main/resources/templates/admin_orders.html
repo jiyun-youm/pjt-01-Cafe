@@ -347,6 +347,13 @@
                         alert("주문 완료 처리됨!");
                         // ① 현재 주문관리 페이지 새로고침 또는 업데이트
                         // ② 매출페이지에 반영
+                        // ✅ reward 정보 새로 가져오기
+                        fetch(`/api/reward/${memberId}`)
+                            .then(r => r.json())
+                            .then(data => {
+                                document.getElementById('stamp-count').innerText = `스탬프 ${data.stamps}/10`;
+                                document.getElementById('coupon-count').innerText = `쿠폰 ${data.coupons}`;
+                            });
                         updateRevenuePage();
                     }
                 });
