@@ -32,24 +32,26 @@
         <div class="fixed-top">
             <header class="top-bar">
                 <div class="logo-section">
-                    <span class="logo-icon"><img src="/images/자바빈로고 2.png" alt=""></span>
-                    <span class="logo-text"><img src="/images/자바빈로고 1.png" alt=""></span>
-                </div>
-
-                <div class="header-icons"
-                     style="display:flex; align-items:center; gap:10px;">
-
-                    <!-- 로그인 필요 -->
                     <a href="/home/mypick" class="login-required">
                         <img src="/images/heart.png" width="23" height="23" alt="찜">
                     </a>
+                    <span class="logo-text"><img src="/images/자바빈로고 1.png" alt=""></span>
+                </div>
+
+                <div class="header-icons" style="display:flex; align-items:center; gap:10px;">
+                    <div id="toast-notification" class="toast-notification">
+                        <span id="toast-message"></span>
+                    </div>
 
                     <span class="notification-icon" id="notification-trigger">
                         <a href="/home/mypage"><img src="/images/알림.png" width="23" height="23" alt="알림"></a>
                         <div class="notification-popup" id="notification-popup">
-                            <div class="popup-arrow"></div>
-                            <p class="popup-text">알림메시지</p>
+                            <div id="notification-list" class="notification-list"></div>
+                            <div id="no-notification" style="display:none; text-align:center; color:#777; padding:20px;">
+                                주문 알림이 없습니다.
+                            </div>
                         </div>
+                        <span id="alarm-dot" class="alarm-dot"></span>
                     </span>
                 </div>
             </header>

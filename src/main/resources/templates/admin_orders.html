@@ -12,14 +12,7 @@
 </script>
 
 <th:block th:replace="~{./include/adminBaseLayout :: setContent( ~{:: .wrap} ) }">
-
     <div class="wrap">
-        <div class="notification-icon" id="notification-trigger">
-            <div class="notification-popup" id="notification-popup">
-                <div class="popup-arrow"></div> <p>주문내역이 없습니다.</p>
-            </div>
-        </div>
-
         <main class="main-content">
             <h2 class="main-title">주문 목록</h2>
 
@@ -40,7 +33,6 @@
         const API_ENDPOINT_STATUS_UPDATE = `${API_BASE_URL}/status`;
 
         const orderGrid = document.getElementById('order-grid-container');
-        const notificationPopup = document.getElementById('notification-popup');
 
         // ✅ 이 세션에서 "완료/취소 처리한 주문" ID를 보관하는 Set
         const removedOrderIds = new Set();
@@ -97,7 +89,6 @@
             }
         }
 
-
         // ---------------------------
         // 3. SSE 연결
         // ---------------------------
@@ -127,7 +118,7 @@
                 updateEmptyState();
 
                 // 팝업 알림 표시
-                showNotification("새로운 주문이 도착했습니다!");
+                showAdminToast("새로운 주문이 도착했습니다!");
             });
 
             // 오류 발생 시 재연결
@@ -234,12 +225,27 @@
         // ---------------------------
         // 5. 알림 팝업
         // ---------------------------
-        function showNotification(message) {
-            notificationPopup.querySelector('p').innerText = message;
-            notificationPopup.classList.add('show');
+        function showAdminToast(message) {
+            const toast = document.getElementById("admin-toast");
+            const msg = document.getElementById("admin-toast-message");
 
+            if (!toast || !msg) return;
+
+            msg.innerText = message;
+
+            // 초기화
+            toast.classList.remove("hide");
+            toast.classList.remove("show");
+
+            // 슬라이드 다운
             setTimeout(() => {
-                notificationPopup.classList.remove('show');
+                toast.classList.add("show");
+            }, 10);
+
+            // 자동으로 사라짐
+            setTimeout(() => {
+                toast.classList.remove("show");
+                toast.classList.add("hide");
             }, 3000);
         }
 
@@ -276,7 +282,11 @@
 
             if (target.classList.contains('card-menu-button')) {
                 event.stopPropagation();
-                const orderId = target.dataset.orderId;
+                const orderId = Number(target.dataset.orderId);
+                if (isNaN(orderId)) {
+                    alert("주문 ID 오류");
+                    return;
+                }
                 const dropdown = document.getElementById(`menu-dropdown-${orderId}`);
 
                 document.querySelectorAll('.card-menu-dropdown.show').forEach(d => {
@@ -289,7 +299,11 @@
             if (target.matches('.card-menu-dropdown button')) {
                 event.stopPropagation();
                 const dropdown = target.closest('.card-menu-dropdown');
-                const orderId = dropdown.previousElementSibling.dataset.orderId;
+                const orderId = Number(dropdown.previousElementSibling.dataset.orderId);
+                if (isNaN(orderId)) {
+                    alert("주문 ID 오류");
+                    return;
+                }
                 const status = target.dataset.status;
 
                 dropdown.classList.remove('show');

@@ -99,37 +99,6 @@ a {
     color: var(--top-bar-text);
 }
 
-
-/* 알림 팝업 */
-.notification-popup {
-    position: absolute;
-    top: 30px;
-    right: 0;
-    background: white;
-    border: 1px solid #e0e0e0;
-    padding: 12px;
-    border-radius: 10px;
-    width: 200px;
-    display: none;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-}
-
-.notification-popup.show {
-    display: block;
-}
-
-.notification-popup .popup-arrow {
-    position: absolute;
-    top: -10px;
-    right: 18px;
-    width: 0;
-    height: 0;
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-bottom: 10px solid #ffffff;
-    filter: drop-shadow(0 -1px 0.5px #e0e0e0);
-}
-
 /* --- 메인 컨텐츠 --- */
 .main-content {
     flex: 1;
@@ -347,4 +316,46 @@ a {
 
 .footer-nav-item:not(.active):hover {
     background-color: #FBC02D;
+}
+
+.admin-toast {
+    position: fixed;
+
+    /* 1. 화면 위쪽에서 시작 (애니메이션 전 위치) */
+    top: -80px;
+
+    /* 2. [핵심] 가로 정중앙 정렬 공식 */
+    left: 50%;                  /* 화면 왼쪽에서 50% 지점으로 이동 */
+    transform: translateX(-50%); /* 요소 크기의 절반만큼 왼쪽으로 이동하여 중앙 맞춤 */
+
+    /* 3. 혹시 있을지 모를 오른쪽 정렬 속성 초기화 */
+    right: auto;
+
+    /* 디자인 속성 (그대로 유지) */
+    background: rgba(50, 50, 50, 0.92);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    z-index: 99999999 !important;
+    opacity: 0;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+
+    /* 애니메이션 효과 */
+    transition: top 0.4s ease, opacity 0.3s ease;
+}
+
+.admin-toast.show {
+    /* 알림이 떴을 때 위치 */
+    /* 상단바(60px)를 가리지 않으려면 80px, 상단바 위에 띄우려면 20px 정도로 설정하세요 */
+    top: 80px;
+    opacity: 1;
+}
+
+.admin-toast.hide {
+    /* 사라질 때 위치 */
+    top: -80px;
+    opacity: 0;
 }

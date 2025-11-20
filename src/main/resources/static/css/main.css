@@ -130,7 +130,7 @@ main.container {
 .top-bar .logo-text img {
     display: block;
 }
-.top-bar .notification-icon {
+.notification-icon {
     font-size: 24px;
     width: 40px;
     height: 40px;
@@ -144,19 +144,10 @@ main.container {
     position: relative;
     cursor: pointer;
 }
-.top-bar .notification-icon img {
+.notification-icon img {
     vertical-align: middle;
     margin-top: -7px;
     margin-left: 2px;
-}
-
-.notification-item {
-    padding: 10px 14px;
-    background: white;
-    border-radius: 10px;
-    margin-bottom: 8px;
-    color: #333;
-    font-size: 14px;
 }
 
 /* 알림 팝업창 스타일 */
@@ -189,6 +180,36 @@ main.container {
     border-right: 10px solid transparent;
     border-bottom: 10px solid #ffffff;
     filter: drop-shadow(0 -1px 0.5px #e0e0e0);
+}
+
+.toast-notification {
+    position: fixed;
+    top: -80px; /* 처음에는 화면 밖 */
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 16px;
+    z-index: 2000;
+    transition: top 0.4s ease;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.toast-notification.show {
+    top: 20px;  /* 화면 안으로 슬라이드 */
+}
+
+.alarm-dot {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    width: 10px;
+    height: 10px;
+    background: red;
+    border-radius: 50%;
+    display: none; /* 기본 숨김 */
 }
 
 /* =================================
@@ -601,4 +622,91 @@ main.container {
 .region select:focus {
     border-color: #a08978;
     background-color: #fff;
+}
+
+#toast-notification {
+    position: fixed;
+    top: -120px;  /* 처음에는 위로 숨김 */
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 220px;
+    max-width: 80%;
+    padding: 14px 20px;
+    background: rgba(50, 50, 50, 0.92) !important;  /* iOS 스타일 반투명 */
+    color: #ffffff !important;                      /* 글자 안보임 버그 해결 */
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    text-align: center;
+    z-index: 99999;
+    opacity: 0;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.25);
+
+    /* 애니메이션 */
+    transition:
+            top 0.45s cubic-bezier(0.25, 0.8, 0.25, 1),
+            opacity 0.3s ease;
+}
+
+#toast-notification.show {
+    top: 80px; /* 화면 안으로 내려옴 */
+    opacity: 1;
+}
+
+#toast-notification.hide {
+    top: -120px; /* 다시 위로 숨김 */
+    opacity: 0;
+}
+
+/* 토스트 내부 글자 강제 보이게 */
+#toast-notification span#toast-message {
+    color: #ffffff !important;
+    display: block;
+}
+
+.notification-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* 개별 알림 카드 */
+.notification-card {
+    position: relative;
+    background: #fff;
+    padding: 14px 16px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+
+    overflow: hidden;              /* 카드 바깥 삭제 버튼 숨기기 */
+    transition: transform 0.25s ease;
+}
+
+/* 삭제 버튼 – 초기에는 카드 우측 바깥에 100% 숨김 */
+.notification-card .delete-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 60px;
+    height: 100%;
+    background: #ff6b6b;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: none;
+
+    transform: translateX(100%);  /* 카드 밖으로 숨김 */
+    transition: transform 0.25s ease;
+}
+
+/* 스와이프 상태 — 카드 자체를 왼쪽으로 이동 */
+.notification-card.swiped {
+    transform: translateX(-60px);  /* 카드 전체 이동 */
+}
+
+/* 스와이프 상태 — 삭제 버튼 등장 */
+.notification-card.swiped .delete-btn {
+    transform: translateX(0);      /* 오른쪽에서 들어옴 */
 }
