@@ -367,6 +367,13 @@ a {
 }
 
 /* ---------------------------------- */
+/* 수정 → 버튼 오른쪽 정렬 */
+/* ---------------------------------- */
+.detail-box .edit-menu-btn {
+    margin-left: auto;
+}
+
+/* ---------------------------------- */
 /* Footer (Admin Nav) */
 /* ---------------------------------- */
 .admin-footer {
@@ -432,7 +439,6 @@ a {
     gap: 10px;
     align-items: center;
 }
-
 
 .category-quick-buttons {
     display: flex;

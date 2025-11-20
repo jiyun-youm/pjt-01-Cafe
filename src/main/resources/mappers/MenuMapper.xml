@@ -63,6 +63,21 @@
     </select>
 
 
+    <update id="updateMenu" parameterType="com.miniproject.cafe.VO.MenuVO">
+        UPDATE MENU
+        SET
+            MENU_NAME = #{menuName},
+            CATEGORY = #{category},
+            MENU_PRICE = #{menuPrice},
+            HOT_AVAILABLE = #{hotAvailable},
+            MENU_DEFINITION = #{menuDefinition},
+            SALES_STATUS = #{salesStatus},
+            MENU_IMG = #{menuImg}
+        WHERE MENU_ID = #{menuId}
+          AND STORE_NAME = #{storeName}
+    </update>
+
+
     <!-- 4) 메뉴 INSERT -->
     <insert id="insertMenu" parameterType="com.miniproject.cafe.VO.MenuVO">
         INSERT INTO MENU (

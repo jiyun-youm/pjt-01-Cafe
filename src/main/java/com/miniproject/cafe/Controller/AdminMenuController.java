@@ -163,4 +163,71 @@ public class AdminMenuController {
 
         return "success";
     }
+
+    @GetMapping("/updateMenu/{menuId}")
+    public String updateMenuPage(@PathVariable String menuId, Model model, HttpSession session) {
+
+        AdminVO admin = (AdminVO) session.getAttribute("admin");
+        if (admin == null) return "redirect:/admin/login";
+
+        MenuVO menu = menuService.getMenuById(menuId);
+
+        model.addAttribute("menu", menu);
+        model.addAttribute("menuList", menuService.getMenuByStore(admin.getStoreName()));
+
+        Boolean updated = (Boolean) session.getAttribute("updateSuccess");
+        model.addAttribute("updateSuccess", updated);
+
+        session.removeAttribute("updateSuccess");
+
+        return "admin_menu_management";
+    }
+
+
+
+    @PostMapping("/updateMenu")
+    public String updateMenu(
+            MenuVO vo,
+            @RequestParam(value="menuImgFile", required=false) MultipartFile file,
+            @RequestParam("temperature") String temperature,
+            HttpSession session
+    ) {
+
+        AdminVO admin = (AdminVO) session.getAttribute("admin");
+        if (admin == null) throw new RuntimeException("관리자 로그인 필요");
+
+        vo.setStoreName(admin.getStoreName());
+        vo.setHotAvailable("AVAILABLE".equals(temperature) ? 1 : 0);
+
+        if (file != null && !file.isEmpty()) {
+            String originalName = file.getOriginalFilename();
+            String ext = originalName.substring(originalName.lastIndexOf("."));
+            String fileName = java.util.UUID.randomUUID().toString() + ext;
+
+            String filePath = "C:/upload/menuImg/";
+
+            try {
+                java.io.File dir = new java.io.File(filePath);
+                if (!dir.exists()) dir.mkdirs();
+                file.transferTo(new java.io.File(filePath + fileName));
+                vo.setMenuImg(fileName);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            MenuVO original = menuService.getMenuById(vo.getMenuId());
+            vo.setMenuImg(original.getMenuImg());
+        }
+
+        menuService.updateMenu(vo);
+
+        // 수정 완료 알림 플래그 설정
+        session.setAttribute("updateSuccess", true);
+
+        return "redirect:/admin/updateMenu/" + vo.getMenuId();
+    }
+
+
+
 }
