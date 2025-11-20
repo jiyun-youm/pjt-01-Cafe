@@ -44,4 +44,14 @@ public class MenuServiceImpl implements MenuService {
     public void updateSalesStatus(String menuId, String storeName, String saleStatus) {
         menuMapper.updateSalesStatus(menuId, storeName, saleStatus);
     }
+
+    @Override
+    public MenuVO getMenuById(String menuId) {
+        return menuMapper.getMenuById(menuId);
+    }
+
+    @Override
+    public void updateMenu(MenuVO menuVO) {
+        menuMapper.updateMenu(menuVO);
+    }
 }

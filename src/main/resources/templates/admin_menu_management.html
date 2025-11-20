@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/css/admin_menu_management.css">
 </head>
 <body>
+
 <th:block
         th:replace="~{./include/adminBaseLayout :: setContent( ~{:: .wrap} ) }"
         th:with="menuList=${menuList}">
@@ -15,7 +16,7 @@
         <div class="admin-container">
             <main class="admin-main">
 
-                <!-- 등록된 메뉴 영역 -->
+                <!-- ================= 등록된 메뉴 테이블 ================= -->
                 <section class="menu-list-section">
                     <h2>등록된 메뉴</h2>
                     <div class="menu-actions">
@@ -33,6 +34,7 @@
                                 <th class="text-center">메뉴 삭제</th>
                             </tr>
                             </thead>
+
                             <tbody>
                             <th:block th:each="menu : ${menuList}">
                                 <tr class="menu-row" th:data-menu-id="${menu.menuId}">
@@ -43,19 +45,23 @@
                                     <td><button class="delete-btn" th:data-id="${menu.menuId}">×</button></td>
                                 </tr>
 
+                                <!-- 상세 옵션 -->
                                 <tr class="detail-row" style="display:none;">
                                     <td colspan="5">
                                         <div class="detail-box">
                                             <label>판매 상태 변경</label>
                                             <select class="status-select">
-                                                <option value="판매중"
-                                                        th:selected="${menu.salesStatus == '판매중'}">판매중</option>
-
-                                                <option value="품절"
-                                                        th:selected="${menu.salesStatus == '품절'}">품절</option>
+                                                <option value="판매중" th:selected="${menu.salesStatus == '판매중'}">판매중</option>
+                                                <option value="품절" th:selected="${menu.salesStatus == '품절'}">품절</option>
                                             </select>
 
                                             <button class="status-save-btn" th:data-id="${menu.menuId}">저장</button>
+
+                                            <!-- 메뉴 수정 버튼 -->
+                                            <button class="edit-menu-btn" th:data-id="${menu.menuId}">
+                                                수정하기
+                                            </button>
+
                                         </div>
                                     </td>
                                 </tr>
@@ -65,50 +71,87 @@
                     </div>
                 </section>
 
-                <!-- 신규 메뉴 등록 폼 -->
+                <!-- ================= 신규 & 수정 폼 ================= -->
                 <aside class="new-menu-section">
-                    <h2>새 메뉴 등록</h2>
+                    <h2 th:text="${menu != null} ? '메뉴 수정' : '새 메뉴 등록'"></h2>
+
                     <form id="newMenuForm" class="new-menu-form"
-                          th:action="@{/admin/insertMenu}"
+                          th:action="${menu != null} ? @{/admin/updateMenu} : @{/admin/insertMenu}"
                           method="post"
                           enctype="multipart/form-data">
+
+                        <input type="hidden" name="menuId"
+                               th:value="${menu != null} ? ${menu.menuId} : ''">
+
                         <label for="menuName">메뉴 이름</label>
-                        <input type="text" id="menuName" name="menuName" placeholder="예) 아메리카노" required>
+                        <input type="text" id="menuName" name="menuName"
+                               placeholder="예) 아메리카노"
+                               th:value="${menu != null} ? ${menu.menuName} : ''" required>
 
                         <label for="menuPrice">가격</label>
-                        <input type="text" id="menuPrice" name="menuPrice" placeholder="숫자만 입력해주세요. 예) 3000" required>
+                        <input type="text" id="menuPrice"
+                               placeholder="숫자만 입력해주세요. 예) 3000"
+                               th:value="${menu != null} ? ${#numbers.formatInteger(menu.menuPrice, 3, 'COMMA')} + '원' : ''"
+                               required>
 
                         <label for="menuCategory">카테고리</label>
                         <select id="menuCategory" name="category" required>
                             <option value="" disabled selected>카테고리 선택</option>
-                            <option value="커피">커피</option>
-                            <option value="음료">음료</option>
-                            <option value="신메뉴">신메뉴</option>
-                            <option value="티">티(Tea)</option>
-                            <option value="푸드">푸드</option>
+                            <option value="커피" th:selected="${menu != null && menu.category == '커피'}">커피</option>
+                            <option value="음료" th:selected="${menu != null && menu.category == '음료'}">음료</option>
+                            <option value="신메뉴" th:selected="${menu != null && menu.category == '신메뉴'}">신메뉴</option>
+                            <option value="티" th:selected="${menu != null && menu.category == '티'}">티(Tea)</option>
+                            <option value="푸드" th:selected="${menu != null && menu.category == '푸드'}">푸드</option>
                         </select>
+
                         <label for="menuTemperature">HOT ICE (푸드는 ICE로 선택)</label>
                         <select id="menuTemperature" name="temperature" required>
                             <option value="" disabled selected>온도 선택</option>
-                            <option value="AVAILABLE">HOT ICE</option>
-                            <option value="ONLY_ICE">ICE</option>
+
+                            <option value="AVAILABLE"
+                                    th:selected="${menu != null && menu.hotAvailable == 1}">
+                                HOT ICE
+                            </option>
+
+                            <option value="ONLY_ICE"
+                                    th:selected="${menu != null && menu.hotAvailable == 0}">
+                                ICE
+                            </option>
                         </select>
+
                         <label for="menuDescription">메뉴 설명</label>
-                        <textarea id="menuDescription" name="menuDefinition"></textarea>
+                        <textarea id="menuDescription" name="menuDefinition"
+                                  th:text="${menu != null} ? ${menu.menuDefinition} : ''"></textarea>
 
                         <label>사진</label>
                         <div class="image-upload-box" onclick="document.getElementById('menuImage').click();">
-                            <span class="material-icons">add</span>
+                            <span class="material-icons" th:if="${menu == null}">add</span>
+
+                            <!-- 수정 모드 기존 이미지 -->
+                            <img th:if="${menu != null && menu.menuImg != null}"
+                                 th:src="@{'/upload/menuImg/' + ${menu.menuImg}}"
+                                 style="width:100%; height:100%; object-fit:cover;">
                         </div>
+
+
                         <input type="file" id="menuImage" name="menuImgFile" style="display:none;">
 
-                        <button type="submit" class="submit-btn">메뉴 등록</button>
+                        <button type="submit" class="submit-btn"
+                                th:text="${menu != null} ? '메뉴 수정' : ' 메뉴 등록'"></button>
                     </form>
                 </aside>
 
             </main>
         </div>
+
         <script src="/js/admin_menu_management.js"></script>
+        <script th:inline="javascript">
+            var updated = /*[[${updateSuccess}]]*/ false;
+
+            if (updated === true) {
+                alert("수정이 완료되었습니다.");
+            }
+        </script>
     </div>
 </th:block>
 
