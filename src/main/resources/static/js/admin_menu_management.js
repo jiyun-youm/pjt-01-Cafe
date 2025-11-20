@@ -1,21 +1,31 @@
 document.addEventListener('DOMContentLoaded', function() {
 
-    //가격 입력 자동 포맷팅
+    /** ---------------- 가격 입력 자동 포맷 ---------------- */
     const menuPriceInput = document.getElementById('menuPrice');
 
-    function formatPriceInput(event) {
-        let value = event.target.value.replace(/[^0-9]/g, '');
-        if (value) {
-            event.target.value = Number(value).toLocaleString('ko-KR') + '원';
-        } else {
-            event.target.value = '';
-        }
+    function getRawPrice() {
+        return menuPriceInput.value.replace(/[^0-9]/g, '');
     }
 
+    // 입력 중에는 숫자만 유지 (원 붙이지 않음)
     if (menuPriceInput) {
-        menuPriceInput.addEventListener('input', formatPriceInput);
+        menuPriceInput.addEventListener('input', function() {
+            let value = getRawPrice();
+            menuPriceInput.value = value;
+        });
+
+        // 포커스 벗어날 때만 포맷 적용
+        menuPriceInput.addEventListener('blur', function() {
+            let value = getRawPrice();
+            if (value) {
+                menuPriceInput.value = Number(value).toLocaleString('ko-KR') + '원';
+            } else {
+                menuPriceInput.value = '';
+            }
+        });
     }
 
+    /** ---------------- 폼 제출 시 원본값 전달 ---------------- */
     const newMenuForm = document.getElementById("newMenuForm");
 
     if (newMenuForm) {
@@ -25,34 +35,29 @@ document.addEventListener('DOMContentLoaded', function() {
         newMenuForm.appendChild(hiddenPriceInput);
 
         newMenuForm.addEventListener("submit", function(e) {
-            const rawValue = menuPriceInput.value.replace(/[^0-9]/g, "");
+            const rawValue = getRawPrice();
             hiddenPriceInput.value = rawValue;
             menuPriceInput.disabled = true;
         });
     }
 
 
-    // 🔥 상세 옵션 토글 (충돌 제거 후 정상 작동)
+    /** ---------------- 상세 토글 ---------------- */
     document.querySelectorAll(".menu-row").forEach(row => {
         row.addEventListener("click", (e) => {
-
-            // 체크박스 td (0번째 칸) 클릭 시 제외
             if (e.target.closest("td")?.cellIndex === 0) return;
-
-            // 삭제 버튼 클릭 시 제외
             if (e.target.classList.contains("delete-btn")) return;
 
             const detailRow = row.nextElementSibling;
             if (!detailRow) return;
 
-            const isOpen = detailRow.style.display === "table-row";
-            detailRow.style.display = isOpen ? "none" : "table-row";
+            detailRow.style.display = detailRow.style.display === "table-row" ? "none" : "table-row";
         });
     });
 
 
-    // 판매 상태 저장
-    document.querySelectorAll(".status-save-btn").forEach((btn, index) => {
+    /** ---------------- 판매 상태 저장 ---------------- */
+    document.querySelectorAll(".status-save-btn").forEach(btn => {
         btn.addEventListener("click", function () {
             let detailRow = this.closest(".detail-row");
             let menuRow = detailRow.previousElementSibling;
@@ -72,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
 
-    // 개별 삭제
+    /** ---------------- 개별 삭제 ---------------- */
     document.querySelector('.menu-table').addEventListener('click', function(e) {
         if (e.target.classList.contains('delete-btn')) {
             e.stopPropagation();
@@ -92,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
 
-    // 선택 삭제
+    /** ---------------- 선택 삭제 ---------------- */
     document.querySelector('.select-delete-btn').addEventListener('click', function () {
         const checked = document.querySelectorAll('tbody input[type="checkbox"]:checked');
 
@@ -118,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
 
-    // 이미지 미리보기
+    /** ---------------- 이미지 미리보기 ---------------- */
     let fileInput = document.getElementById('menuImage');
     let imageBox = document.querySelector('.image-upload-box');
 
@@ -138,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 
-    // 테이블 정렬 기능
+    /** ---------------- 정렬 기능 ---------------- */
     const table = document.querySelector(".menu-table");
     const headers = table.querySelectorAll("thead th");
     let sortStatus = {};
@@ -162,10 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!isNaN(A) && !isNaN(B)) {
                 return isAsc ? A - B : B - A;
             }
-
-            return isAsc
-                ? A.localeCompare(B, "ko-KR")
-                : B.localeCompare(A, "ko-KR");
+            return isAsc ? A.localeCompare(B, "ko-KR") : B.localeCompare(A, "ko-KR");
         });
 
         rows.forEach(row => {
@@ -174,4 +176,15 @@ document.addEventListener('DOMContentLoaded', function() {
             tbody.appendChild(detailRow);
         });
     }
+
+
+    /** ---------------- 수정 버튼 이동 ---------------- */
+    document.querySelectorAll(".edit-menu-btn").forEach(btn => {
+        btn.addEventListener("click", function(e) {
+            e.stopPropagation();
+            const menuId = this.dataset.id;
+            window.location.href = `/admin/updateMenu/${menuId}`;
+        });
+    });
+
 });
