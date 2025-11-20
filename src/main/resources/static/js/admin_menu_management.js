@@ -3,17 +3,26 @@ document.addEventListener('DOMContentLoaded', function() {
     /** ---------------- 가격 입력 자동 포맷 ---------------- */
     const menuPriceInput = document.getElementById('menuPrice');
 
-    function formatPriceInput(event) {
-        let value = event.target.value.replace(/[^0-9]/g, '');
-        if (value) {
-            event.target.value = Number(value).toLocaleString('ko-KR') + '원';
-        } else {
-            event.target.value = '';
-        }
+    function getRawPrice() {
+        return menuPriceInput.value.replace(/[^0-9]/g, '');
     }
 
+    // 입력 중에는 숫자만 유지 (원 붙이지 않음)
     if (menuPriceInput) {
-        menuPriceInput.addEventListener('input', formatPriceInput);
+        menuPriceInput.addEventListener('input', function() {
+            let value = getRawPrice();
+            menuPriceInput.value = value;
+        });
+
+        // 포커스 벗어날 때만 포맷 적용
+        menuPriceInput.addEventListener('blur', function() {
+            let value = getRawPrice();
+            if (value) {
+                menuPriceInput.value = Number(value).toLocaleString('ko-KR') + '원';
+            } else {
+                menuPriceInput.value = '';
+            }
+        });
     }
 
     /** ---------------- 폼 제출 시 원본값 전달 ---------------- */
@@ -26,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
         newMenuForm.appendChild(hiddenPriceInput);
 
         newMenuForm.addEventListener("submit", function(e) {
-            const rawValue = menuPriceInput.value.replace(/[^0-9]/g, "");
+            const rawValue = getRawPrice();
             hiddenPriceInput.value = rawValue;
             menuPriceInput.disabled = true;
         });
@@ -169,7 +178,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 
-    /** ---------------- 수정 버튼 기능 (폼으로 값 로드) ---------------- */
+    /** ---------------- 수정 버튼 이동 ---------------- */
     document.querySelectorAll(".edit-menu-btn").forEach(btn => {
         btn.addEventListener("click", function(e) {
             e.stopPropagation();
@@ -177,6 +186,5 @@ document.addEventListener('DOMContentLoaded', function() {
             window.location.href = `/admin/updateMenu/${menuId}`;
         });
     });
-
 
 });
