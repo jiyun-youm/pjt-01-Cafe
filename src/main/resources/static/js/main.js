@@ -447,3 +447,16 @@ function setVh() {
 }
 setVh();
 window.addEventListener('resize', setVh);
+
+// 쿠폰 페이지로 이동
+document.addEventListener("DOMContentLoaded", () => {
+    const couponEl = document.getElementById("coupon-count");
+
+    couponEl.addEventListener("click", () => {
+        if (!IS_LOGGED_IN) {
+            alert("로그인이 필요합니다.");
+            return;
+        }
+        location.href = "/home/coupon";  // 쿠폰 페이지 이동
+    });
+});

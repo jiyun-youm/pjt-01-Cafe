@@ -170,6 +170,9 @@ public class AdminMenuController {
         AdminVO admin = (AdminVO) session.getAttribute("admin");
         if (admin == null) return "redirect:/admin/login";
 
+        model.addAttribute("isLoggedIn", true);
+        model.addAttribute("activePage", "menu");
+
         MenuVO menu = menuService.getMenuById(menuId);
 
         model.addAttribute("menu", menu);
@@ -182,6 +185,7 @@ public class AdminMenuController {
 
         return "admin_menu_management";
     }
+
 
 
 
