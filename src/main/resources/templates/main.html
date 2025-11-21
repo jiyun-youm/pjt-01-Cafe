@@ -30,15 +30,15 @@
 
     <!-- 스탬프/쿠폰 데이터 -->
     <script th:inline="javascript">
-        const rewardData = /*[[${reward}]]*/ {stamps:0, coupons:0};
-        document.addEventListener('DOMContentLoaded', () => {
-            const stampEl = document.getElementById('stamp-count');
-            const couponEl = document.getElementById('coupon-count');
+        const rewardData = /*[[${reward}]]*/ {stamps:0};
+        const couponCount = /*[[${couponCount}]]*/ 0;
 
-            stampEl.innerText = `스탬프 ${rewardData.stamps}/10`;
-            couponEl.innerText = `쿠폰 ${rewardData.coupons}`;
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('stamp-count').innerText = `스탬프 ${rewardData.stamps}/10`;
+            document.getElementById('coupon-count').innerText = `쿠폰 ${couponCount}`;
         });
     </script>
+
 </head>
 
 <th:block th:replace="~{./include/userBaseLayout :: setContent( ~{:: .wrap} ) }">

@@ -1,0 +1,56 @@
+.coupon-section {
+    padding: 20px;
+}
+
+.coupon-title-main {
+    font-size: 20px;
+    font-weight: bold;
+    color: #5A3E2B;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.no-coupon-text {
+    text-align: center;
+    color: #777;
+    margin-top: 50px;
+    font-size: 15px;
+}
+
+.coupon-card {
+    display: flex;
+    align-items: center;
+    background: rgba(255,255,255,0.9);
+    padding: 18px;
+    border-radius: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.coupon-left img {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+}
+
+.coupon-right {
+    margin-left: 16px;
+}
+
+.coupon-brand {
+    font-size: 13px;
+    color: #8c6b54;
+}
+
+.coupon-name {
+    font-size: 17px;
+    font-weight: bold;
+    margin-top: 4px;
+    color: #5A3E2B;
+}
+
+.coupon-expire {
+    font-size: 13px;
+    margin-top: 6px;
+    color: #666;
+}

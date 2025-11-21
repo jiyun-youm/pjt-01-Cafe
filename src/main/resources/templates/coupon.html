@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>JavaBean - 쿠폰 </title>
+    <link rel="stylesheet" href="/css/coupon.css">
+</head>
+
+<th:block th:replace="~{./include/userBaseLayout :: setContent(~{:: .wrap})}">
+
+    <div class="wrap">
+
+        <!-- 📍 쿠폰 리스트 영역 -->
+        <section class="coupon-section">
+
+            <!-- 페이지 제목 -->
+            <h2 class="coupon-title-main">보유 쿠폰</h2>
+
+            <!-- 쿠폰 없을 때 -->
+            <th:block th:if="${#lists.isEmpty(coupons)}">
+                <p class="no-coupon-text">사용 가능한 쿠폰이 없습니다.</p>
+            </th:block>
+
+            <!-- 쿠폰 리스트 -->
+            <th:block th:each="c : ${coupons}">
+                <div class="coupon-card">
+
+                    <div class="coupon-left">
+                        <img src="/images/javabean-logo.png" class="coupon-img">
+                    </div>
+
+                    <div class="coupon-right">
+                        <p class="coupon-brand">JavaBean</p>
+                        <p class="coupon-name" th:text="${c.couponName}"></p>
+                        <p class="coupon-expire"
+                           th:text="'유효기간 : ' + ${#temporals.format(c.expireDate, 'yyyy.MM.dd')}"></p>
+                    </div>
+
+                </div>
+            </th:block>
+
+        </section>
+
+
+    </div>
+
+</th:block>
+
+<script src="/js/coupon.js"></script>
+</html>
