@@ -13,4 +13,6 @@ public interface OrderService {
 
     List<RecentOrderVO> getRecentOrders(String memberId);
     List<RecentOrderVO> getAllOrders(String memberId);
+
+    OrderVO getOrderById(Long orderId);
 }

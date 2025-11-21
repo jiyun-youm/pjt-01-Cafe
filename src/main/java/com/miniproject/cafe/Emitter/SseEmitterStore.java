@@ -3,36 +3,64 @@ package com.miniproject.cafe.Emitter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Component
 public class SseEmitterStore {
 
-    // 매장별 관리자에게 메시지를 보내기 위해 key = storeName
-    private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
+    private final Map<String, List<SseEmitter>> storeEmitters = new ConcurrentHashMap<>();
+    private final Map<String, List<SseEmitter>> userEmitters = new ConcurrentHashMap<>();
 
-    public SseEmitter addEmitter(String storeName, SseEmitter emitter) {
-        emitters.put(storeName, emitter);
-        emitter.onCompletion(() -> emitters.remove(storeName));
-        emitter.onTimeout(() -> emitters.remove(storeName));
-        return emitter;
+    public void addAdminEmitter(String storeName, SseEmitter emitter) {
+        storeEmitters
+                .computeIfAbsent(storeName, k -> new CopyOnWriteArrayList<>())
+                .add(emitter);
+
+        emitter.onCompletion(() -> removeEmitter(storeEmitters, storeName, emitter));
+        emitter.onTimeout(() -> removeEmitter(storeEmitters, storeName, emitter));
+        emitter.onError(e -> removeEmitter(storeEmitters, storeName, emitter));
     }
 
-    public SseEmitter getEmitter(String storeName) {
-        return emitters.get(storeName);
+    public void addUserEmitter(String userId, SseEmitter emitter) {
+        userEmitters
+                .computeIfAbsent(userId, k -> new CopyOnWriteArrayList<>())
+                .add(emitter);
+
+        emitter.onCompletion(() -> removeEmitter(userEmitters, userId, emitter));
+        emitter.onTimeout(() -> removeEmitter(userEmitters, userId, emitter));
+        emitter.onError(e -> removeEmitter(userEmitters, userId, emitter));
     }
 
-    public void sendToStore(String storeName, Object data) {
-        SseEmitter emitter = emitters.get(storeName);
-        if (emitter != null) {
+    private void removeEmitter(Map<String, List<SseEmitter>> map,
+                               String key, SseEmitter emitter) {
+        List<SseEmitter> list = map.get(key);
+        if (list != null) list.remove(emitter);
+    }
+
+    public void sendToStore(String storeName, String eventName, Object data) {
+        send(storeEmitters, storeName, eventName, data);
+    }
+
+    public void sendToUser(String userId, String eventName, Object data) {
+        send(userEmitters, userId, eventName, data);
+    }
+
+    private void send(Map<String, List<SseEmitter>> map,
+                      String key, String eventName, Object data) {
+
+        List<SseEmitter> emitters = map.get(key);
+        if (emitters == null) return;
+
+        for (SseEmitter emitter : emitters) {
             try {
-                emitter.send(SseEmitter.event()
-                        .name("order")
-                        .data(data)
-                        .id(String.valueOf(System.currentTimeMillis())));
+                emitter.send(SseEmitter.event().name(eventName).data(data));
             } catch (Exception e) {
-                emitters.remove(storeName);
+                emitter.complete();
+                removeEmitter(map, key, emitter);
             }
         }
     }

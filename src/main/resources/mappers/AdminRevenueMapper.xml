@@ -6,14 +6,27 @@
 <mapper namespace="com.miniproject.cafe.Mapper.AdminRevenueMapper">
     <select id="getOrdersByDate" resultType="com.miniproject.cafe.VO.AdminRevenueVO">
         SELECT
-        DATE_FORMAT(order_time, '%Y-%m-%d') AS viewDate,
-        DATE_FORMAT(order_time, '%H:%i:%s') AS orderTime,
-        order_id AS orderId,
-        total_price AS orderAmount,
-        pickup_method AS orderType
+            DATE_FORMAT(order_time, '%Y-%m-%d') AS viewDate,
+            DATE_FORMAT(order_time, '%H:%i:%s') AS orderTime,
+            order_id AS orderId,
+            total_price AS orderAmount,
+            pickup_method AS orderType
         FROM orders
         WHERE DATE(order_time) = #{date}
-        AND order_status = '주문완료'  <!-- 완료 주문만 가져오기 -->
+          AND order_status = '주문완료'
+        ORDER BY order_time ASC
+    </select>
+
+    <select id="getOrdersByRange" resultType="com.miniproject.cafe.VO.AdminRevenueVO">
+        SELECT
+            DATE_FORMAT(order_time, '%Y-%m-%d') AS viewDate,
+            DATE_FORMAT(order_time, '%H:%i:%s') AS orderTime,
+            order_id AS orderId,
+            total_price AS orderAmount,
+            pickup_method AS orderType
+        FROM orders
+        WHERE DATE(order_time) BETWEEN #{startDate} AND #{endDate}
+          AND order_status = '주문완료'
         ORDER BY order_time ASC
     </select>
 

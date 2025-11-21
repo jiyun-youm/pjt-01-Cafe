@@ -8,4 +8,5 @@ public interface AdminService {
     AdminVO login(AdminVO vo);  // 로그인
 
     int checkId(String id);
+    AdminVO findById(String id);
 }

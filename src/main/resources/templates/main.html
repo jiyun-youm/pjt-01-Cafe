@@ -4,18 +4,40 @@
     <title>Java Coffee</title>
 
     <!-- 로그인 여부 JS 전달 -->
-    <script th:inline="javascript">
-        const IS_LOGGED_IN = [[${IS_LOGGED_IN}]];
-    </script>
+    <th:block th:if="${IS_LOGGED_IN}">
+        <script th:inline="javascript">
+            const IS_LOGGED_IN = true;
+            const USER_ID = [[${#authentication.name}]];
+        </script>
+    </th:block>
 
+    <th:block th:if="${!IS_LOGGED_IN}">
+        <script>
+            const IS_LOGGED_IN = false;
+            const USER_ID = null;
+        </script>
+    </th:block>
+
+    <!-- 로그인 실패 시 메시지 -->
     <script th:if="${loginErrorMessage}">
         alert('[[${loginErrorMessage}]]');
     </script>
 
+    <!-- 로그인 성공 시 메시지 -->
     <script th:if="${loginSuccessType != null}">
         alert('[[${loginMemberName}]]님 환영합니다!');
     </script>
 
+    <!-- 스탬프/쿠폰 데이터 -->
+    <script th:inline="javascript">
+        const rewardData = /*[[${reward}]]*/ {stamps:0};
+        const couponCount = /*[[${couponCount}]]*/ 0;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('stamp-count').innerText = `스탬프 ${rewardData.stamps}/10`;
+            document.getElementById('coupon-count').innerText = `쿠폰 ${couponCount}`;
+        });
+    </script>
 </head>
 
 <th:block th:replace="~{./include/userBaseLayout :: setContent( ~{:: .wrap} ) }">
@@ -29,7 +51,7 @@
 
         <!-- 메인 배너 -->
         <div class="main-banner">
-            <img src="/images/메인배너.png" alt="메인배너">
+            <img src="/images/메인배너교체.png" alt="메인배너">
         </div>
 
         <main class="container">
@@ -49,7 +71,7 @@
                     </th:block>
                     <th:block th:each="item : ${recentOrders}">
                         <a th:href="@{'/home/order_history'}" class="previous-order-item login-required">
-                            <img th:src="@{'/upload/' + ${item.menuImg}}"
+                            <img th:src="@{'/upload/menuImg/' + ${item.menuImg}}"
                                  th:alt="${item.menuName}"
                                  class="menu-image">
                             <p class="item-name" th:text="${item.menuName}"></p>
@@ -62,16 +84,17 @@
             <section class="reward-section">
                 <div class="reward-item">
                     <span class="icon stamp-icon"><i class="fa-solid fa-stamp"></i></span>
-                    <span class="text">스탬프 0/10</span>
+                    <span class="text" id="stamp-count">스탬프 0/10</span>
                 </div>
 
                 <div class="divider"></div>
 
                 <div class="reward-item">
                     <span class="icon coupon-icon">🎟️</span>
-                    <span class="text">쿠폰 0</span>
+                    <span class="text" id="coupon-count">쿠폰 0</span>
                 </div>
             </section>
+
 
             <div class="region">
                 <span class="region-label">구매할 지점을 선택하세요.</span>
@@ -86,6 +109,12 @@
             </div>
 
         </main>
+        <div id="custom-toast" class="toast-hidden">
+            <div class="toast-body">
+                <i class="fa-solid fa-check-circle toast-icon"></i>
+                <span id="toast-text">메시지 내용</span>
+            </div>
+        </div>
 
     </div>
 

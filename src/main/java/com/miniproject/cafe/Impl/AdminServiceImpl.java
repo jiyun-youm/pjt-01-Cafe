@@ -13,24 +13,24 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class AdminServiceImpl implements AdminService {
 
-    private final AdminMapper mapper;
+    private final AdminMapper adminMapper;
     private final PasswordEncoder passwordEncoder;
 
     @Override
     public void register(AdminVO vo) {
 
-        if (mapper.checkId(vo.getId()) > 0) {
+        if (adminMapper.checkId(vo.getId()) > 0) {
             throw new RuntimeException("이미 존재하는 아이디입니다.");
         }
 
         vo.setPassword(passwordEncoder.encode(vo.getPassword()));
-        mapper.insertAdmin(vo);
+        adminMapper.insertAdmin(vo);
     }
 
     @Override
     public AdminVO login(AdminVO adminVO) {
 
-        AdminVO dbVO = mapper.loginAdmin(adminVO);
+        AdminVO dbVO = adminMapper.loginAdmin(adminVO);
 
         if (dbVO == null) {
             return null;
@@ -45,7 +45,12 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public int checkId(String id) {
-        return mapper.checkId(id);
+        return adminMapper.checkId(id);
+    }
+
+    @Override
+    public AdminVO findById(String id) {
+        return adminMapper.findById(id);
     }
 
 }

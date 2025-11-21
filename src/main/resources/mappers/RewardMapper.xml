@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.miniproject.cafe.Mapper.RewardMapper">
+
+    <resultMap id="rewardMap" type="com.miniproject.cafe.VO.RewardVO">
+        <id property="memberId" column="member_id"/>
+        <result property="stamps" column="stamps"/>
+        <result property="coupons" column="coupons"/>
+    </resultMap>
+
+    <select id="findByMemberId" resultMap="rewardMap">
+        SELECT member_id, stamps, coupons
+        FROM reward
+        WHERE member_id = #{memberId}
+    </select>
+
+    <update id="updateReward" parameterType="com.miniproject.cafe.VO.RewardVO">
+        UPDATE reward
+        SET stamps = #{stamps},
+            coupons = #{coupons}
+        WHERE member_id = #{memberId}
+    </update>
+
+    <insert id="insertReward" parameterType="com.miniproject.cafe.VO.RewardVO">
+        INSERT INTO reward (member_id, stamps, coupons)
+        VALUES (#{memberId}, #{stamps}, #{coupons})
+    </insert>
+
+</mapper>

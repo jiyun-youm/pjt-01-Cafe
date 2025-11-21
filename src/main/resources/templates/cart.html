@@ -36,14 +36,15 @@
                              th:data-cart-item-id="${item['CART_ITEM_ID']}"
                              th:data-base-price="${item['MENU_PRICE']}"
                              th:data-option-price="${(item['SHOT_COUNT'] + item['VANILLA_SYRUP_COUNT'] + item['WHIPPED_CREAM_COUNT']) * 500}"
-                             th:data-quantity="${item['QUANTITY']}">
+                             th:data-quantity="${item['QUANTITY']}"
+                             th:data-option-id="${item['OPTION_ID']}">
 
                             <label class="checkbox-container">
                                 <input type="checkbox" class="item-checkbox-input" checked>
                                 <span class="checkmark item-checkbox"></span>
                             </label>
 
-                            <img th:src="@{|/upload/${item['MENU_IMG']}|}"
+                            <img th:src="@{|/upload/menuImg/${item['MENU_IMG']}|}"
                                  th:alt="${item['MENU_NAME']}"
                                  class="menu-image">
 
@@ -117,30 +118,30 @@
                         <div class="request-options">
                             <div class="col">
                                 <label class="checkbox-container small">
-                                    <input type="checkbox" class="request-option-checkbox"> 빨대 빼주세요.
+                                    <input type="checkbox" name="requestOption" class="request-option-checkbox" value="빨대 빼주세요"> 빨대 빼주세요.
                                     <span class="checkmark item-checkbox square"></span>
                                 </label>
                                 <label class="checkbox-container small">
-                                    <input type="checkbox" class="request-option-checkbox"> 얼음 적게 넣어주세요.
+                                    <input type="checkbox" name="requestOption" class="request-option-checkbox" value="얼음 적게 넣어주세요"> 얼음 적게 넣어주세요.
                                     <span class="checkmark item-checkbox square"></span>
                                 </label>
                                 <label class="checkbox-container small">
-                                    <input type="checkbox" class="request-option-checkbox" id="directInputCheck"> 직접입력
+                                    <input type="checkbox" class="request-option-checkbox" id="directInputCheck" value="직접입력"> 직접입력
                                     <span class="checkmark item-checkbox square"></span>
                                 </label>
                             </div>
                             <div class="col">
                                 <label class="checkbox-container small">
-                                    <input type="checkbox" class="request-option-checkbox"> 봉투에 담아갈게요
+                                    <input type="checkbox" name="requestOption" class="request-option-checkbox" value="봉투에 담아갈게요"> 봉투에 담아갈게요
                                     <span class="checkmark item-checkbox square"></span>
                                 </label>
                                 <label class="checkbox-container small">
-                                    <input type="checkbox" class="request-option-checkbox"> 캐리어에 담아갈게요.
+                                    <input type="checkbox" name="requestOption" class="request-option-checkbox" value="캐리어에 담아갈게요"> 캐리어에 담아갈게요.
                                     <span class="checkmark item-checkbox square"></span>
                                 </label>
                             </div>
                         </div>
-                        <textarea id="requestInput" placeholder="직접입력 선택 시 상세 내용을 적어주세요." rows="4"></textarea>
+                        <textarea id="directRequest" placeholder="직접입력 선택 시 상세 내용을 적어주세요." rows="4"></textarea>
                     </div>
 
                     <div class="section-container payment-section">

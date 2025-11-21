@@ -223,8 +223,27 @@ function collectCurrentState() {
     };
 }
 
+function showNotification(message) {
+    const popup = document.getElementById("notification-popup");
+    if (!popup) {
+        alert(message);
+        return;
+    }
+
+    popup.innerHTML = `
+        <div class="popup-arrow"></div>
+        <p>${message}</p>
+    `;
+
+    popup.classList.add('show');
+
+    setTimeout(() => {
+        popup.classList.remove('show');
+    }, 3000);
+}
+
 function initActionButtons() {
-    // [장바구니 담기] 버튼
+    // [장바구니 담기]
     const cartBtn = document.querySelector('.add');
     if (cartBtn) {
         cartBtn.addEventListener('click', addToCart);
@@ -236,84 +255,72 @@ function initActionButtons() {
         orderBtn.addEventListener('click', async (e) => {
             e.preventDefault();
 
-            // 1. HTML에서 필수 정보 추출
-            const storeName = document.getElementById('detailStoreName')?.value || "";
-            const uId = document.getElementById('detailMemberId')?.value || "guest";
-            const menuId = document.getElementById('menuId')?.value;
-
-            // 2. UI에서 값 추출
-            const currentQty = parseInt(document.getElementById('qty').textContent || 1);
-            const total = parseInt(priceEl?.textContent.replace(/[^0-9]/g, '') || 0);
-            const tempValue = document.querySelector('.segmented-btn.active')?.dataset.value || 'ICE';
-
-            // 3. 옵션 데이터 정확히 추출
-            const tumblerEl = document.getElementById('tumbler'); // ✅ 수정: tumblerCheck → tumbler
-            const tumblerUse = tumblerEl ? tumblerEl.checked : false;
-
-            const shotCount = appliedOptionCounts['샷 추가'] || 0;
-            const vanillaSyrupCount = appliedOptionCounts['바닐라 시럽 추가'] || 0;
-            const whippedCreamCount = appliedOptionCounts['휘핑 크림 추가'] || 0;
-
-            console.log("🔍 옵션 데이터 확인:", {
-                shotCount,
-                vanillaSyrupCount,
-                whippedCreamCount,
-                tumblerUse,
-                tempValue
-            });
-
-            // 4. 필수 유효성 검사
-            if (!storeName) {
-                alert("매장 정보가 없습니다.");
-                return;
-            }
-            if (!menuId) {
-                alert("메뉴 정보를 찾을 수 없습니다.");
-                return;
-            }
-
-            // 5. 옵션 데이터 매핑
-            const itemData = {
-                menuId: menuId,
-                menuItemName: document.getElementById('menuName')?.value || "Unknown",
-                quantity: currentQty,
-                temp: tempValue,
-                tumbler: tumblerUse ? 1 : 0,
-                shot: shotCount,
-                vanillaSyrup: vanillaSyrupCount,
-                whippedCream: whippedCreamCount
-            };
-
-            // 6. 최종 페이로드 구성
-            const orderPayload = {
-                totalQuantity: currentQty,
-                totalPrice: total,
-                orderType: "매장",
-                orderStatus: "주문접수",
-                uId: uId,
-                storeName: storeName,
-                orderItemList: [itemData]
-            };
-
-            // 7. API 전송
             try {
+                // 값 안전하게 읽기
+                const storeName = document.getElementById('detailStoreName')?.value || "";
+                const uId = USER_ID || "guest";
+
+                const menuId = document.getElementById('menuId')?.value;
+                const menuName = document.getElementById('menuName')?.textContent || "메뉴";
+                const quantity = parseInt(document.getElementById('qty')?.textContent || "1");
+                const totalPrice = parseInt((priceEl?.textContent || "0").replace(/[^0-9]/g, ''));
+
+                const temp = document.querySelector('.segmented-btn.active')?.dataset.value || "ICE";
+
+                const tumblerUse = document.getElementById('tumbler')?.checked ? 1 : 0;
+                const shot = appliedOptionCounts['샷 추가'] || 0;
+                const vanilla = appliedOptionCounts['바닐라 시럽 추가'] || 0;
+                const cream = appliedOptionCounts['휘핑 크림 추가'] || 0;
+
+                if (!storeName) {
+                    alert("매장을 먼저 선택해주세요.");
+                    return;
+                }
+                if (!menuId) {
+                    alert("메뉴 정보가 없습니다.");
+                    return;
+                }
+
+                const orderPayload = {
+                    totalQuantity: quantity,
+                    totalPrice: totalPrice,
+                    orderType: "매장",
+                    orderStatus: "주문접수",
+                    uId: uId,
+                    storeName: storeName,
+                    orderItemList: [
+                        {
+                            menuId: menuId,
+                            menuItemName: menuName,
+                            quantity: quantity,
+                            temp: temp,
+                            tumbler: tumblerUse,
+                            shot: shot,
+                            vanillaSyrup: vanilla,
+                            whippedCream: cream
+                        }
+                    ]
+                };
+
                 const response = await fetch("/api/orders/create", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(orderPayload)
                 });
 
-                if (response.ok) {
-                    alert("주문이 성공적으로 접수되었습니다!");
-                    window.location.href = "/home/";
-                } else {
-                    const errorText = await response.text();
-                    throw new Error("서버 처리 실패: " + errorText);
+                if (!response.ok) {
+                    throw new Error("서버 오류");
                 }
-            } catch (e) {
-                console.error("❌ 주문 실패:", e.message);
+
+                alert("주문이 성공적으로 접수되었습니다!");
+
+                window.location.href = "/home/";
+
+            } catch (err) {
+                console.error("주문 오류:", err);
                 alert("주문 처리 중 오류가 발생했습니다.");
             }
+
         });
     }
 }

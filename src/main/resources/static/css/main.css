@@ -130,7 +130,7 @@ main.container {
 .top-bar .logo-text img {
     display: block;
 }
-.top-bar .notification-icon {
+.notification-icon {
     font-size: 24px;
     width: 40px;
     height: 40px;
@@ -144,10 +144,19 @@ main.container {
     position: relative;
     cursor: pointer;
 }
-.top-bar .notification-icon img {
+.notification-icon img {
     vertical-align: middle;
     margin-top: -7px;
     margin-left: 2px;
+}
+
+.notification-item {
+    padding: 10px 14px;
+    background: white;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    color: #333;
+    font-size: 14px;
 }
 
 /* 알림 팝업창 스타일 */
@@ -180,6 +189,36 @@ main.container {
     border-right: 10px solid transparent;
     border-bottom: 10px solid #ffffff;
     filter: drop-shadow(0 -1px 0.5px #e0e0e0);
+}
+
+.toast-notification {
+    position: fixed;
+    top: -80px; /* 처음에는 화면 밖 */
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 16px;
+    z-index: 2000;
+    transition: top 0.4s ease;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.toast-notification.show {
+    top: 20px;  /* 화면 안으로 슬라이드 */
+}
+
+.alarm-dot {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    width: 10px;
+    height: 10px;
+    background: red;
+    border-radius: 50%;
+    display: none; /* 기본 숨김 */
 }
 
 /* =================================
@@ -325,7 +364,7 @@ main.container {
 
 /* 리워드 섹션 */
 .reward-section {
-    background-color: rgba(248, 199, 157, 0.85); /* 기존 색상 + 85% 불투명도 */
+    background-color: rgba(213, 185, 164, 0.85); /* 기존 색상 + 85% 불투명도 */
     margin: 20px 15px;
     padding: 15px;
     border-radius: 15px;
@@ -341,6 +380,8 @@ main.container {
     display: flex;
     align-items: center;
     gap: 8px;
+    flex: 1;
+    justify-content: center;
 }
 .reward-item .icon {
     font-size: 20px;
@@ -592,4 +633,173 @@ main.container {
 .region select:focus {
     border-color: #a08978;
     background-color: #fff;
+}
+
+#toast-notification {
+    position: fixed;
+    top: -120px;  /* 처음에는 위로 숨김 */
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 220px;
+    max-width: 80%;
+    padding: 14px 20px;
+    background: rgba(50, 50, 50, 0.92) !important;  /* iOS 스타일 반투명 */
+    color: #ffffff !important;                      /* 글자 안보임 버그 해결 */
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    text-align: center;
+    z-index: 99999;
+    opacity: 0;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.25);
+
+    /* 애니메이션 */
+    transition:
+            top 0.45s cubic-bezier(0.25, 0.8, 0.25, 1),
+            opacity 0.3s ease;
+}
+
+#toast-notification.show {
+    top: 80px; /* 화면 안으로 내려옴 */
+    opacity: 1;
+}
+
+#toast-notification.hide {
+    top: -120px; /* 다시 위로 숨김 */
+    opacity: 0;
+}
+
+/* 토스트 내부 글자 강제 보이게 */
+#toast-notification span#toast-message {
+    color: #ffffff !important;
+    display: block;
+}
+
+.notification-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* 개별 알림 카드 */
+.notification-card {
+    position: relative;
+    background: #fff;
+    padding: 14px 16px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+
+    overflow: hidden;              /* 카드 바깥 삭제 버튼 숨기기 */
+    transition: transform 0.25s ease;
+}
+
+/* 삭제 버튼 – 초기에는 카드 우측 바깥에 100% 숨김 */
+.notification-card .delete-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 60px;
+    height: 100%;
+    background: #ff6b6b;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: none;
+
+    transform: translateX(100%);  /* 카드 밖으로 숨김 */
+    transition: transform 0.25s ease;
+}
+
+/* 스와이프 상태 — 카드 자체를 왼쪽으로 이동 */
+.notification-card.swiped {
+    transform: translateX(-60px);  /* 카드 전체 이동 */
+}
+
+/* 스와이프 상태 — 삭제 버튼 등장 */
+.notification-card.swiped .delete-btn {
+    transform: translateX(0);      /* 오른쪽에서 들어옴 */
+}
+/* =========================================
+   [공통 UI] 토스트 메시지 스타일
+   ========================================= */
+
+/* 토스트 컨테이너 (화면 중앙 정렬) */
+#custom-toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* 정확한 중앙 정렬 */
+    z-index: 9999; /* 다른 모든 요소보다 위에 표시 */
+
+    /* 기본적으로 투명하고 클릭 불가능하게 설정 */
+    opacity: 0;
+    pointer-events: none;
+
+    /* 부드러운 페이드 인/아웃 효과 */
+    transition: opacity 0.5s ease;
+}
+
+/* 토스트가 보일 때 적용되는 클래스 */
+.toast-visible {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+/* 토스트가 숨겨질 때 적용되는 클래스 */
+.toast-hidden {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* 토스트 본체 디자인 */
+.toast-body {
+    /* 배경: 아주 약간 투명한 흰색 */
+    background-color: rgba(255, 255, 255, 0.95);
+
+    /* 글자색: 진한 갈색 (카페 테마) */
+    color: #5A3E2B;
+
+    /* 여백 및 크기 */
+    padding: 25px 40px;
+    min-width: 280px;
+    max-width: 80%; /* 모바일 대응 */
+
+    /* 둥근 모서리 (직사각형 느낌 살림) */
+    border-radius: 12px;
+
+    /* 내용 정렬 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+
+    /* 그림자 (입체감) */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+
+    /* 텍스트 스타일 */
+    font-size: 18px;
+    font-weight: 700;
+    text-align: center;
+
+    /* 줄바꿈 문자(\n)를 실제 줄바꿈으로 인식 */
+    white-space: pre-line;
+}
+
+/* 아이콘 스타일 (체크/경고) */
+.toast-icon {
+    font-size: 36px; /* 아이콘 크기 */
+    margin-bottom: 5px;
+}
+
+/* 성공 아이콘 색상 (초록색) */
+.fa-check-circle {
+    color: #51cf66;
+}
+
+/* 에러 아이콘 색상 (빨간색) */
+.fa-circle-xmark {
+    color: #ff6b6b;
 }

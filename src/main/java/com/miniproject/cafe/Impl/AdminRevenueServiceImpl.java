@@ -23,4 +23,10 @@ public class AdminRevenueServiceImpl implements AdminRevenueService {
     public List<AdminRevenueVO> getOrdersByDate(String date) {
         return adminRevenueMapper.getOrdersByDate(date);
     }
+
+    @Override
+    public List<AdminRevenueVO> getOrdersByRange(String startDate, String endDate) {
+        return adminRevenueMapper.getOrdersByRange(startDate, endDate);
+    }
+
 }

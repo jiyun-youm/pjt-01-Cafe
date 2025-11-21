@@ -11,7 +11,7 @@
         <div class="welcome-box">
             <img src="/images/img/자바빈로고 1.png" class="welcome-logo" alt="">
             <div class="welcome-text">
-                <span th:text="${member.username}"></span>님<br>
+                <span th:if="${member != null}" th:text="${member.username}"></span>님<br>
                 안녕하세요🙌
             </div>
         </div>
@@ -40,20 +40,8 @@
             </a>
 
         </div>
+
+        <a href="/logout" class="logout-btn">로그아웃</a>
     </div>
 </th:block>
-
-
-    <!-- 기서부터 마이페이지 메인 내용 시작 -->
-
-    <!-- 환영 메시지 박스 -->
-
-
-
-
-
-
-
-</div>
-</body>
 </html>

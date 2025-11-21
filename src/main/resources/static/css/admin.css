@@ -1,3 +1,4 @@
+
 * {
     box-sizing: border-box;
     margin: 0;
@@ -10,11 +11,10 @@ html, body {
 
 body {
     font-family: 'Inter', 'Noto Sans KR', sans-serif;
-    background-color: #F5F0E8; /* bg-light-beige */
-    color: #6B4F3B; /* text-main-brown */
+    background-color: #F5F0E8;
+    color: #6B4F3B;
     line-height: 1.5;
     overflow-x: hidden;
-
     display: flex;
     flex-direction: column;
     min-height: 100vh;
@@ -35,32 +35,44 @@ a {
     --hover-orange: #FBC02D;
     --top-bar-bg: #F8C79D;
     --top-bar-text: #5A3E2B;
+    --input-border: #ccc;
+    --input-focus: #b3875a;
+    --button-bg: #b3875a;
+    --button-hover: #a06c3d;
+}
+
+/* --- 레이아웃 --- */
+.wrap {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    background-color: #F5F0E8;
 }
 
 /* --- 레이아웃 --- */
 .content-wrapper {
-    flex: 1;                 /* body의 flex column 안에서 남는 높이 채우기 */
+    flex: 1;
     display: flex;
     flex-direction: column;
+    padding-top: 80px;
 }
-
-.wrap {
-    display: flex;
-    flex-direction: column;
-    height: 100vh; /* 전체 화면 */
-}
-
 
 /* --- 상단 바 --- */
 .top-bar {
-    height: 60px;
-    background-color: #F8C79D;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    padding: 0 15px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    padding: 10px 15px;
+    background-color: var(--top-bar-bg);
+    height: 60px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    z-index: 9999;
 }
-
 
 .logo-section {
     display: flex;
@@ -69,65 +81,29 @@ a {
 }
 
 .logo-icon {
+    font-size: 24px;
     width: 40px;
     height: 40px;
-    background-color: rgba(255,255,255,0.4);
+    background-color: rgba(255, 255, 255, 0.4);
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 22px;
-    border: 1px solid rgba(255,255,255,0.6);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .logo-text {
     font-size: 22px;
-    font-weight: 700;
-    color: #5A3E2B;
-}
-
-.notification-icon {
-    position: absolute;
-    top: 70px;
-    right: 20px;
-    cursor: pointer;
-}
-
-/* 알림 팝업 */
-.notification-popup {
-    position: absolute;
-    top: 30px;
-    right: 0;
-    background: white;
-    border: 1px solid #e0e0e0;
-    padding: 12px;
-    border-radius: 10px;
-    width: 200px;
-    display: none;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-}
-
-.notification-popup.show {
-    display: block;
-}
-
-.notification-popup .popup-arrow {
-    position: absolute;
-    top: -10px;
-    right: 18px;
-    width: 0;
-    height: 0;
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-bottom: 10px solid #ffffff;
-    filter: drop-shadow(0 -1px 0.5px #e0e0e0);
+    font-weight: bold;
+    color: var(--top-bar-text);
 }
 
 /* --- 메인 컨텐츠 --- */
 .main-content {
     flex: 1;
     overflow-y: auto; /* 카드 스크롤 */
-    padding: 20px 16px 120px; /* footer 안 가려지게 아래 padding */
+    padding: 20px 16px 100px; /* footer 안 가려지게 아래 padding */
 }
 
 .main-title {
@@ -213,7 +189,8 @@ a {
 }
 
 .request-text {
-    margin-top: 10px;
+    padding-top: 8px;
+    margin-top: auto;
     font-size: 1rem;
     color: #333;
     white-space: pre-line;
@@ -296,6 +273,16 @@ a {
 .complete { color: #1B7F3A; }
 .cancel { color: #D0342C; }
 
+.order-grid-empty {
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: 40px 0;
+    color: #666;
+    font-size: 20px;
+    font-weight: 500;
+}
+
 /* --- 하단 네비게이션 --- */
 .footer-nav {
     position: fixed;
@@ -303,7 +290,7 @@ a {
     left: 0;
     right: 0;
 
-    height: 90px;
+    height: 65px;
     background-color: #6B4F3B;
 
     display: flex;
@@ -315,11 +302,11 @@ a {
 
 .footer-nav-item {
     color: white;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
     flex: 1;
     text-align: center;
-    padding: 28px 0;
+    padding: 16px 0;
     transition: background 0.2s;
 }
 
@@ -329,4 +316,46 @@ a {
 
 .footer-nav-item:not(.active):hover {
     background-color: #FBC02D;
+}
+
+.admin-toast {
+    position: fixed;
+
+    /* 1. 화면 위쪽에서 시작 (애니메이션 전 위치) */
+    top: -80px;
+
+    /* 2. [핵심] 가로 정중앙 정렬 공식 */
+    left: 50%;                  /* 화면 왼쪽에서 50% 지점으로 이동 */
+    transform: translateX(-50%); /* 요소 크기의 절반만큼 왼쪽으로 이동하여 중앙 맞춤 */
+
+    /* 3. 혹시 있을지 모를 오른쪽 정렬 속성 초기화 */
+    right: auto;
+
+    /* 디자인 속성 (그대로 유지) */
+    background: rgba(50, 50, 50, 0.92);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    z-index: 99999999 !important;
+    opacity: 0;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+
+    /* 애니메이션 효과 */
+    transition: top 0.4s ease, opacity 0.3s ease;
+}
+
+.admin-toast.show {
+    /* 알림이 떴을 때 위치 */
+    /* 상단바(60px)를 가리지 않으려면 80px, 상단바 위에 띄우려면 20px 정도로 설정하세요 */
+    top: 80px;
+    opacity: 1;
+}
+
+.admin-toast.hide {
+    /* 사라질 때 위치 */
+    top: -80px;
+    opacity: 0;
 }

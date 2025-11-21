@@ -12,18 +12,14 @@
 </script>
 
 <th:block th:replace="~{./include/adminBaseLayout :: setContent( ~{:: .wrap} ) }">
-
     <div class="wrap">
-        <div class="notification-icon" id="notification-trigger">
-            <div class="notification-popup" id="notification-popup">
-                <div class="popup-arrow"></div> <p>주문내역이 없습니다.</p>
-            </div>
-        </div>
-
         <main class="main-content">
             <h2 class="main-title">주문 목록</h2>
 
             <div class="order-grid" id="order-grid-container">
+            </div>
+            <div id="empty-orders" class="order-grid-empty">
+                현재 접수된 주문이 없습니다.
             </div>
         </main>
     </div>
@@ -37,8 +33,6 @@
         const API_ENDPOINT_STATUS_UPDATE = `${API_BASE_URL}/status`;
 
         const orderGrid = document.getElementById('order-grid-container');
-        const notificationTrigger = document.getElementById('notification-trigger');
-        const notificationPopup = document.getElementById('notification-popup');
 
         // ✅ 이 세션에서 "완료/취소 처리한 주문" ID를 보관하는 Set
         const removedOrderIds = new Set();
@@ -64,14 +58,12 @@
         // 2. 주문 렌더링 함수
         // ---------------------------
         function renderOrders(orders) {
-            console.log("▶ 초기 주문 데이터:", orders);   // ★ 전체 데이터 확인
-            orders.forEach(o => console.log("개별 주문:", o));
             orderGrid.innerHTML = '';
 
-            if (!orders || orders.length === 0) {
+            /*if (!orders || orders.length === 0) {
                 orderGrid.innerHTML = '<div class="order-grid-empty">현재 접수된 주문이 없습니다.</div>';
                 return;
-            }
+            }*/
             orders.forEach(order => {
                 orderGrid.insertAdjacentHTML('beforeend', createOrderCard(order));
                 const card = document.getElementById(`order-card-${order.orderId}`);
@@ -82,6 +74,19 @@
                     }, 10);
                 }
             });
+            updateEmptyState();
+        }
+
+        //주문이 없을때
+        function updateEmptyState() {
+            const emptyBox = document.getElementById('empty-orders');
+            if (!orderGrid || !emptyBox) return;
+            const hasCards = orderGrid.children.length > 0;
+            if (hasCards) {
+                emptyBox.style.display = "none";
+            } else {
+                emptyBox.style.display = "block";
+            }
         }
 
         // ---------------------------
@@ -89,40 +94,31 @@
         // ---------------------------
         function connectSSE(storeName) {
 
-            console.log("SSE 연결 시작:", storeName);
-
-            const eventSource = new EventSource(`/sse/subscribe/${storeName}`);
-
-            // 연결 확인
-            eventSource.addEventListener("connect", (e) => {
-                console.log("SSE Connected:", e.data);
-            });
+            const encoded = encodeURIComponent(storeName);
+            const eventSource = new EventSource(`/sse/admin/${encoded}`);
 
             // 주문 이벤트
-            eventSource.addEventListener("order", (event) => {
-
-                console.log("▶ SSE 주문 이벤트:", event.data);
+            eventSource.addEventListener("new-order", (event) => {
 
                 const order = JSON.parse(event.data);
                 const idStr = String(order.orderId);
 
                 // ✅ 이 세션에서 이미 완료/취소로 처리한 주문이면 무시
                 if (removedOrderIds.has(idStr)) {
-                    console.log("   → 이미 완료/취소 처리한 주문이라 무시:", idStr);
                     return;
                 }
 
                 // ✅ 이미 화면에 같은 카드가 있다면(중복 방지) 무시
                 if (document.getElementById(`order-card-${order.orderId}`)) {
-                    console.log("   → 이미 존재하는 카드라서 추가하지 않음:", idStr);
                     return;
                 }
 
                 // 화면 최상단에 추가
                 insertCardToTop(createOrderCard(order), order.orderId);
+                updateEmptyState();
 
                 // 팝업 알림 표시
-                showNotification("새로운 주문이 도착했습니다!");
+                showAdminToast("새로운 주문이 도착했습니다!");
             });
 
             // 오류 발생 시 재연결
@@ -147,13 +143,19 @@
 
                 const tumblerTxt = item.tumbler === 1 ? "텀블러" : "일반컵";
                 const tempTxt = item.temp ? item.temp.toUpperCase() : "";
-                const shotTxt = item.shot > 0 ? `${item.shot}샷` : "";
-                const syrupTxt = item.vanillaSyrup === 1 ? "바닐라" : "";
-                const creamTxt = item.whippedCream === 1 ? "휘핑" : "";
+                const shotTxt = item.shot > 0 ? `샷 : ${item.shot}` : "";
+                const syrupTxt = item.vanillaSyrup > 0 ? `시럽 : ${item.vanillaSyrup}` : "";
+                const creamTxt = item.whippedCream > 0 ? `휘핑크림` : "";
 
-                const optionsText = [tumblerTxt, tempTxt, shotTxt, syrupTxt, creamTxt]
+                const optionsText = [
+                    tumblerTxt,
+                    tempTxt,
+                    shotTxt,
+                    syrupTxt,
+                    creamTxt
+                ]
                     .filter(v => v !== "")
-                    .join(", ");
+                    .join("<br>");
 
                 return `
                 <li>
@@ -161,7 +163,7 @@
                         ${item.menuItemName}
                         <span>${item.quantity}</span>
                     </div>
-                    <div class="menu-options">${optionsText}</div>
+                    <div class="menu-options" style="line-height: 1.4">${optionsText}</div>
                 </li>
                 `;
             }).join('');
@@ -195,12 +197,12 @@
                     <ul class="menu-list">
                         ${menuItemsHtml}
                     </ul>
-                    <div class="request-text">
-                        <strong>요청사항:</strong> ${order.requestText ? order.requestText : '없음'}
-                    </div>
                 </div>
 
                 <div>
+                    <div class="request-text">
+                        <strong>요청사항:</strong> ${order.requestText ? order.requestText : '없음'}
+                    </div>
                     <div class="card-footer-row">
                         <span>총 수량</span>
                         <span>${order.totalQuantity}</span>
@@ -223,12 +225,27 @@
         // ---------------------------
         // 5. 알림 팝업
         // ---------------------------
-        function showNotification(message) {
-            notificationPopup.querySelector('p').innerText = message;
-            notificationPopup.classList.add('show');
+        function showAdminToast(message) {
+            const toast = document.getElementById("admin-toast");
+            const msg = document.getElementById("admin-toast-message");
 
+            if (!toast || !msg) return;
+
+            msg.innerText = message;
+
+            // 초기화
+            toast.classList.remove("hide");
+            toast.classList.remove("show");
+
+            // 슬라이드 다운
             setTimeout(() => {
-                notificationPopup.classList.remove('show');
+                toast.classList.add("show");
+            }, 10);
+
+            // 자동으로 사라짐
+            setTimeout(() => {
+                toast.classList.remove("show");
+                toast.classList.add("hide");
             }, 3000);
         }
 
@@ -265,7 +282,11 @@
 
             if (target.classList.contains('card-menu-button')) {
                 event.stopPropagation();
-                const orderId = target.dataset.orderId;
+                const orderId = Number(target.dataset.orderId);
+                if (isNaN(orderId)) {
+                    alert("주문 ID 오류");
+                    return;
+                }
                 const dropdown = document.getElementById(`menu-dropdown-${orderId}`);
 
                 document.querySelectorAll('.card-menu-dropdown.show').forEach(d => {
@@ -278,7 +299,11 @@
             if (target.matches('.card-menu-dropdown button')) {
                 event.stopPropagation();
                 const dropdown = target.closest('.card-menu-dropdown');
-                const orderId = dropdown.previousElementSibling.dataset.orderId;
+                const orderId = Number(dropdown.previousElementSibling.dataset.orderId);
+                if (isNaN(orderId)) {
+                    alert("주문 ID 오류");
+                    return;
+                }
                 const status = target.dataset.status;
 
                 dropdown.classList.remove('show');
@@ -309,6 +334,7 @@
 
             setTimeout(() => {
                 card.remove();
+                updateEmptyState();
             }, 350);
         }
 
@@ -335,6 +361,13 @@
                         alert("주문 완료 처리됨!");
                         // ① 현재 주문관리 페이지 새로고침 또는 업데이트
                         // ② 매출페이지에 반영
+                        // ✅ reward 정보 새로 가져오기
+                        fetch(`/api/reward/${memberId}`)
+                            .then(r => r.json())
+                            .then(data => {
+                                document.getElementById('stamp-count').innerText = `스탬프 ${data.stamps}/10`;
+                                document.getElementById('coupon-count').innerText = `쿠폰 ${data.coupons}`;
+                            });
                         updateRevenuePage();
                     }
                 });

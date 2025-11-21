@@ -33,4 +33,8 @@
         FROM ADMIN
         WHERE ID = #{id}
     </select>
+
+    <select id="findById" parameterType="String" resultType="AdminVO">
+        SELECT * FROM ADMIN WHERE id = #{id}
+    </select>
 </mapper>

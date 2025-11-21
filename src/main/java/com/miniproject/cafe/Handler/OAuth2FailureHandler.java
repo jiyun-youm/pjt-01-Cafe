@@ -17,6 +17,9 @@ public class OAuth2FailureHandler implements AuthenticationFailureHandler {
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
                                         AuthenticationException exception) throws IOException {
 
+        System.out.println("=== OAuth2 로그인 실패 ===");
+        exception.printStackTrace(); // ★ 아주 중요
+
         String msg = exception.getMessage();
         if (msg == null) msg = "";
 
@@ -39,7 +42,7 @@ public class OAuth2FailureHandler implements AuthenticationFailureHandler {
         }
 
         // 루트(/)로 리다이렉트 (ContextPath 포함)
-        String redirectUrl = request.getContextPath() + "/home/?oauthError=" +
+        String redirectUrl = request.getContextPath() + "/home/login?oauthError=" +
                 URLEncoder.encode(alertMsg, StandardCharsets.UTF_8);
 
         response.sendRedirect(redirectUrl);

@@ -125,15 +125,8 @@ public class CartServiceImpl implements CartService {
                          boolean tumblerUse, int shotCount, int vanillaSyrupCount,
                          int whippedCreamCount) {
         try {
-            System.out.println("=== addToCart 디버깅 ===");
-            System.out.println("memberId: " + memberId);
-            System.out.println("menuId: " + menuId);
-            System.out.println("quantity: " + quantity);
-            System.out.println("temp: " + temp);
-
             // 1. 회원 장바구니 조회
             Long cartId = cartMapper.findCartByMemberId(memberId);
-            System.out.println("cartId: " + cartId);
 
             // 2. 장바구니가 없으면 생성
             if (cartId == null) {
@@ -141,7 +134,6 @@ public class CartServiceImpl implements CartService {
                 cartParams.put("memberId", memberId);
                 cartMapper.insertCartByMap(cartParams);
                 cartId = cartMapper.findCartByMemberId(memberId);
-                System.out.println("생성된 cartId: " + cartId);
             }
 
             // 3. 메뉴 옵션 조회
@@ -154,13 +146,11 @@ public class CartServiceImpl implements CartService {
             optionParams.put("whippedCreamCount", whippedCreamCount);
 
             Long menuOptionId = cartMapper.findMenuOption(optionParams);
-            System.out.println("기존 menuOptionId: " + menuOptionId);
 
             // 4. 메뉴 옵션이 없으면 생성
             if (menuOptionId == null) {
                 cartMapper.insertMenuOption(optionParams);
                 menuOptionId = cartMapper.findMenuOption(optionParams);
-                System.out.println("생성된 menuOptionId: " + menuOptionId);
             }
 
             // ✅ 5. 기존에 같은 메뉴옵션이 장바구니에 있는지 확인

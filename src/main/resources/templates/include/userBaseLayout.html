@@ -12,33 +12,46 @@
         <link rel="stylesheet" th:href="@{/css/loginModal.css}">
         <link rel="stylesheet" th:href="@{/css/main.css}">
     </head>
+    <th:block th:if="${IS_LOGGED_IN == true}">
+        <script th:inline="javascript">
+            const IS_LOGGED_IN = true;
+            const USER_ID = /*[[${LOGIN_USER_ID}]]*/ null;
+        </script>
+    </th:block>
 
+    <th:block th:if="${IS_LOGGED_IN != true}">
+        <script>
+            const IS_LOGGED_IN = false;
+            const USER_ID = null;
+        </script>
+    </th:block>
     <body>
-
     <div class="mobile-frame">
 
         <!-- 상단 고정 헤더 -->
         <div class="fixed-top">
             <header class="top-bar">
                 <div class="logo-section">
-                    <span class="logo-icon"><img src="/images/자바빈로고 2.png" alt=""></span>
-                    <span class="logo-text"><img src="/images/자바빈로고 1.png" alt=""></span>
-                </div>
-
-                <div class="header-icons"
-                     style="display:flex; align-items:center; gap:10px;">
-
-                    <!-- 로그인 필요 -->
                     <a href="/home/mypick" class="login-required">
                         <img src="/images/heart.png" width="23" height="23" alt="찜">
                     </a>
+                    <span class="logo-text"><img src="/images/자바빈로고 1.png" alt=""></span>
+                </div>
+
+                <div class="header-icons" style="display:flex; align-items:center; gap:10px;">
+                    <div id="toast-notification" class="toast-notification">
+                        <span id="toast-message"></span>
+                    </div>
 
                     <span class="notification-icon" id="notification-trigger">
                         <a href="/home/mypage"><img src="/images/알림.png" width="23" height="23" alt="알림"></a>
                         <div class="notification-popup" id="notification-popup">
-                            <div class="popup-arrow"></div>
-                            <p>주문내역이 없습니다.</p>
+                            <div id="notification-list" class="notification-list"></div>
+                            <div id="no-notification" style="display:none; text-align:center; color:#777; padding:20px;">
+                                주문 알림이 없습니다.
+                            </div>
                         </div>
+                        <span id="alarm-dot" class="alarm-dot"></span>
                     </span>
                 </div>
             </header>
@@ -106,84 +119,6 @@
             </nav>
         </div>
     </div>
-
-    <!-- 로그인 모달 -->
-    <div id="login-modal-overlay" class="login-modal-overlay">
-        <div class="login-modal-content">
-            <span id="login-modal-close" class="login-modal-close">&times;</span>
-
-            <div class="modal-logo">
-                <img src="/images/자바빈로고 1.png" th:src="@{/images/자바빈로고 1.png}" alt="JavaBean Logo">
-            </div>
-
-            <form id="modalLoginForm" method="post" th:action="@{/login}" class="login-form">
-                <input type="text" name="username" placeholder="이메일" required>
-                <input type="password" name="password" placeholder="비밀번호" required>
-
-                <div th:if="${param.error}" class="login-error">
-                    이메일 또는 비밀번호가 잘못되었습니다.
-                </div>
-
-                <div class="social-section">
-                    <div class="social-icons">
-                        <a href="/oauth2/authorization/naver"><img src="/images/naver.png" class="sns-icon"></a>
-                        <a href="/oauth2/authorization/kakao"><img src="/images/kakako.png" class="sns-icon"></a>
-                        <a href="/oauth2/authorization/google"><img src="/images/google.png" class="sns-icon"></a>
-                    </div>
-
-                    <label class="remember-me">
-                        <input type="checkbox" name="remember-me"> 자동로그인
-                    </label>
-                </div>
-
-                <div class="button-group">
-                    <button type="submit" class="btn">로그인</button>
-                    <button type="button" id="switch-to-signup-trigger" class="btn">회원가입</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- 회원가입 모달 -->
-    <div id="signup-modal-overlay" class="login-modal-overlay">
-        <div class="login-modal-content">
-            <span id="signup-modal-close" class="login-modal-close">&times;</span>
-
-            <div class="modal-logo">
-                <img src="/images/자바빈로고 1.png" th:src="@{/images/자바빈로고 1.png}" alt="JavaBean Logo">
-            </div>
-
-            <form id="modalSignupForm" class="login-form">
-
-                <div class="form-field-group">
-                    <div class="input-with-button">
-                        <input type="email" name="email" id="signup-email" placeholder="이메일" required>
-                        <button type="button" id="check-email-button" class="btn-check-duplicate">중복확인</button>
-                    </div>
-                    <div class="error-message" data-field="email"></div>
-                    <div class="success-message" data-field="email"></div>
-                </div>
-
-                <div class="form-field-group">
-                    <input type="text" name="username" placeholder="이름(닉네임)" required>
-                </div>
-                <div class="form-field-group">
-                    <input type="password" name="password" id="signup-password" placeholder="비밀번호" required>
-                </div>
-
-                <div class="form-field-group">
-                    <input type="password" name="passwordCheck" id="signup-password-check" placeholder="비밀번호 확인" required>
-                    <div class="error-message" data-field="passwordCheck"></div>
-                    <div class="success-message" data-field="passwordCheck"></div>
-                </div>
-
-                <div class="button-group">
-                    <button type="submit" class="btn">회원가입</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <script src="/js/main.js"></script>
     </body>
 </th:block>

@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/sign")
 public class SignController {
 
-    @GetMapping("/sign")
-    public String sign(){
-        return "sign";
-    }
+//    @GetMapping("/sign")
+//    public String sign(){
+//        return "sign";
+//    }
 }

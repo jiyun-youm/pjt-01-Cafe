@@ -1,7 +1,9 @@
 package com.miniproject.cafe.Controller;
 
+import com.miniproject.cafe.Emitter.SseEmitterStore;
 import com.miniproject.cafe.VO.OrderVO;
 import com.miniproject.cafe.Service.OrderService;
+import com.miniproject.cafe.VO.RecentOrderVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +23,6 @@ public class OrderApiController {
     //주문 생성
     @PostMapping("/create")
     public ResponseEntity<OrderVO> createOrder(@RequestBody OrderVO order) {
-        System.out.println("🚀 [주문 접수] 매장명: " + order.getStoreName() + " / 주문자: " + order.getUId());
         try {
             OrderVO createdOrder = orderService.createOrder(order);
             return ResponseEntity.ok(createdOrder);
@@ -46,7 +47,7 @@ public class OrderApiController {
             @PathVariable Long orderId,
             @RequestBody Map<String, String> payload) {
 
-        String newStatus = payload.get("status"); // "주문완료" 또는 "주문취소"
+        String newStatus = payload.get("status");
 
         if (newStatus == null || newStatus.isEmpty()) {
             return ResponseEntity.badRequest().build();
@@ -55,9 +56,19 @@ public class OrderApiController {
         try {
             orderService.updateOrderStatus(newStatus, orderId);
             return ResponseEntity.ok().build();
+
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
     }
+
+    @GetMapping("/user-list")
+    public ResponseEntity<List<RecentOrderVO>> getUserOrders(
+            @RequestParam("memberId") String memberId) {
+
+        List<RecentOrderVO> list = orderService.getAllOrders(memberId);
+        return ResponseEntity.ok(list);
+    }
+
 }

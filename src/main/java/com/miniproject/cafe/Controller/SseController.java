@@ -13,20 +13,28 @@ public class SseController {
 
     private final SseEmitterStore emitterStore;
 
-    @GetMapping("/sse/subscribe/{storeName}")
-    public SseEmitter subscribe(@PathVariable String storeName) {
-
-        SseEmitter emitter = new SseEmitter(1000L * 60 * 30); // 30분 타임아웃
-
-        emitterStore.addEmitter(storeName, emitter);
+    // 관리자 전용 SSE 구독
+    @GetMapping("/sse/admin/{storeName}")
+    public SseEmitter subscribeAdmin(@PathVariable String storeName) {
+        SseEmitter emitter = new SseEmitter(1000L * 60 * 30);
+        emitterStore.addAdminEmitter(storeName, emitter);
 
         try {
-            emitter.send(SseEmitter.event()
-                    .name("connect")
-                    .data("connected"));
-        } catch (Exception e) {
-            emitter.complete();
-        }
+            emitter.send(SseEmitter.event().name("connect").data("admin-connected"));
+        } catch (Exception ignored) {}
+
+        return emitter;
+    }
+
+    // 사용자 전용 SSE 구독
+    @GetMapping("/sse/user/{userId}")
+    public SseEmitter subscribeUser(@PathVariable String userId) {
+        SseEmitter emitter = new SseEmitter(1000L * 60 * 30);
+        emitterStore.addUserEmitter(userId, emitter);
+
+        try {
+            emitter.send(SseEmitter.event().name("connect").data("user-connected"));
+        } catch (Exception ignored) {}
 
         return emitter;
     }

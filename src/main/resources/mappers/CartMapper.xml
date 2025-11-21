@@ -94,4 +94,23 @@
         WHERE CART_ITEM_ID = #{cartItemId}
     </select>
 
+    <select id="getCartItemWithOption" resultType="map">
+        SELECT
+            CI.CART_ITEM_ID,
+            CI.QUANTITY,
+            MO.OPTION_ID,
+            MO.TEMP,
+            MO.TUMBLER_USE,
+            MO.SHOT_COUNT,
+            MO.VANILLA_SYRUP_COUNT,
+            MO.WHIPPED_CREAM_COUNT,
+            M.MENU_ID,
+            M.MENU_NAME,
+            M.MENU_PRICE
+        FROM CART_ITEM CI
+                 JOIN MENU_OPTION MO ON CI.MENU_OPTION_ID = MO.OPTION_ID
+                 JOIN MENU M ON MO.MENU_ID = M.MENU_ID
+        WHERE CI.CART_ITEM_ID = #{cartItemId}
+    </select>
+
 </mapper>

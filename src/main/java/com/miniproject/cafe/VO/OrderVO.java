@@ -1,5 +1,6 @@
 package com.miniproject.cafe.VO;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
@@ -17,6 +18,7 @@ import java.util.List;
 public class OrderVO {
 
     private Long orderId;      // 주문 번호 (#0001)
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss", timezone="Asia/Seoul")
     private Date orderTime;     // 주문 시간
     private int totalQuantity;    // 총 수량
     private int totalPrice;       // 총 금액
