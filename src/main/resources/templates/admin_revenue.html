@@ -13,11 +13,37 @@
 <th:block th:replace="~{./include/adminBaseLayout :: setContent( ~{:: .wrap} ) }">
     <div class="wrap">
          <div class="container">
-         <div class="controls">
-         <label for="date">조회날짜:</label>
-         <input type="date" id="date">
-         <button onclick="loadData()">조회하기</button>
-         </div>
+             <div class="controls">
+                 <label for="criterion">조회기준:</label>
+                 <select id="criterion" onchange="onCriterionChange()">
+                     <option value="day" selected>일</option>
+                     <option value="month">월</option>
+                     <option value="quarter">분기</option>
+                 </select>
+
+                 <!-- 동적 입력: 일 -->
+                 <input type="date" id="date" th:value="${selectedDate}"
+                        min="2023-01-01" max="${selectedDate}" style="margin-left:10px;">
+
+                 <!-- 동적 입력: 월 (년 + 월 선택) -->
+                 <div id="monthControls" style="display:none; margin-left:10px;">
+                     <select id="monthYear"></select>
+                     <select id="monthSelect"></select>
+                 </div>
+
+                 <!-- 동적 입력: 분기 (년 + 분기 선택) -->
+                 <div id="quarterControls" style="display:none; margin-left:10px;">
+                     <select id="quarterYear"></select>
+                     <select id="quarterSelect">
+                         <option value="Q1">12~02 (겨울)</option>
+                         <option value="Q2">03~05 (봄)</option>
+                         <option value="Q3">06~08 (여름)</option>
+                         <option value="Q4">09~11 (가을)</option>
+                     </select>
+                 </div>
+
+                 <button onclick="loadData()">조회하기</button>
+             </div>
 
          <div class="total-revenue" id="totalRevenue">총 매출 금액: 0원</div>
          <table>
@@ -39,56 +65,129 @@
 </th:block>
 
 <script>
-    function loadData() {
+    window.addEventListener("DOMContentLoaded", function() {
+        initYearMonthQuarterControls();
+        // 기본: today로 설정
+        const dateInput = document.getElementById("date");
+        const today = new Date().toISOString().slice(0,10);
+        if(!dateInput.value) dateInput.value = today;
 
-        const date = document.getElementById("date").value; // yyyy-MM-dd
+        // 입력 자리수 제한(기존 기능 유지)
+        dateInput.addEventListener("input", function() {
+            const parts = this.value.split("-");
+            if(parts[0] && parts[0].length > 4) parts[0] = parts[0].slice(0, 4);
+            if(parts[1] && parts[1].length > 2) parts[1] = parts[1].slice(0, 2);
+            if(parts[2] && parts[2].length > 2) parts[2] = parts[2].slice(0, 2);
+            this.value = parts.join("-");
+        });
 
-        fetch("/admin/revenue/orders?date=" + date)
-            .then(res => res.json())
-            .then(data => {
-                const tbody = document.getElementById("orderTableBody");
-                tbody.innerHTML = "";
+        // 페이지 로드 시 자동조회
+        loadData();
+    });
 
-                let total = 0;
+    function initYearMonthQuarterControls() {
+        // 연도 드롭다운: (현재연도 -3) ~ (현재연도 +1) 정도
+        const now = new Date();
+        const year = now.getFullYear();
+        const startYear = year - 3;
+        const endYear = year + 1;
 
-                data.forEach(order => {
-                    const amount=Number(order.orderAmount);
-                    total += amount;
+        const monthYear = document.getElementById("monthYear");
+        const monthSelect = document.getElementById("monthSelect");
+        const quarterYear = document.getElementById("quarterYear");
 
-                    const row = `
-                        <tr>
-                            <td>${order.orderTime}</td>
-                            <td>${order.orderId}</td>
-                            <td>${order.orderAmount.toLocaleString()}원</td>
-                            <td>${order.orderType}</td>
-                        </tr>
-                    `;
-                    tbody.innerHTML += row;
-                });
+        for(let y = startYear; y<=endYear; y++) {
+            const opt1 = document.createElement("option");
+            opt1.value = y; opt1.text = y + "년";
+            monthYear.appendChild(opt1);
 
-                document.getElementById("totalRevenue").innerText =
-                    "총 매출 금액: " + total.toLocaleString() + "원";
-            });
+            const opt2 = document.createElement("option");
+            opt2.value = y; opt2.text = y + "년";
+            quarterYear.appendChild(opt2);
+        }
+        // 기본 선택: 현재 연도
+        monthYear.value = year;
+        quarterYear.value = year;
+
+        // monthSelect: 1~12
+        for(let m=1; m<=12; m++) {
+            const opt = document.createElement("option");
+            opt.value = m;
+            opt.text = m + "월";
+            monthSelect.appendChild(opt);
+        }
+        monthSelect.value = (now.getMonth() + 1);
+
+        // criterion 변경 시 입력 토글
+        onCriterionChange();
     }
 
-    function updateRevenuePage() {
-        // admin_revenue.html에 loadData() 함수와 동일한 역할
-        const dateInput = document.getElementById("date");
-        const date = dateInput ? dateInput.value : ""; // 날짜 선택값 가져오기
+    function onCriterionChange() {
+        const c = document.getElementById("criterion").value;
+        document.getElementById("date").style.display = (c === "day") ? "inline-block" : "none";
+        document.getElementById("monthControls").style.display = (c === "month") ? "inline-block" : "none";
+        document.getElementById("quarterControls").style.display = (c === "quarter") ? "inline-block" : "none";
+    }
 
-        let url = "/admin/revenue/orders";
-        if(date) url += "?date=" + date;
+    function loadData() {
+        const criterion = document.getElementById("criterion").value;
+        let startDate = null;
+        let endDate = null;
+
+        if(criterion === "day") {
+            const date = document.getElementById("date").value;
+            const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+            if(!dateRegex.test(date)) { alert("날짜 형식이 올바르지 않습니다. YYYY-MM-DD 형식으로 입력해주세요."); return; }
+            startDate = date;
+            endDate = date;
+        } else if(criterion === "month") {
+            const y = Number(document.getElementById("monthYear").value);
+            const m = Number(document.getElementById("monthSelect").value);
+            // 시작일: yyyy-mm-01, 종료일: yyyy-mm-last
+            const mm = String(m).padStart(2,'0');
+            startDate = `${y}-${mm}-01`;
+            const last = new Date(y, m, 0).getDate(); // JS trick: day 0 of next month
+            endDate = `${y}-${mm}-${String(last).padStart(2,'0')}`;
+        } else if(criterion === "quarter") {
+            const y = Number(document.getElementById("quarterYear").value);
+            const q = document.getElementById("quarterSelect").value;
+            // 사용자가 분기를 선택하면 JS에서 정확한 start/end 계산 (분기는 사용자의 정의: Q1=12~02, Q2=03~05, Q3=06~08, Q4=09~11)
+            if(q === "Q1") {
+                // 12~02 : start = (y-1)-12-01, end = y-02-last
+                const startY = y - 1;
+                startDate = `${startY}-12-01`;
+                const endLast = new Date(y, 2, 0).getDate(); // y-02 마지막일
+                endDate = `${y}-02-${String(endLast).padStart(2,'0')}`;
+            } else if(q === "Q2") {
+                startDate = `${y}-03-01`;
+                const last = new Date(y, 5, 0).getDate();
+                endDate = `${y}-05-${String(last).padStart(2,'0')}`;
+            } else if(q === "Q3") {
+                startDate = `${y}-06-01`;
+                const last = new Date(y, 8, 0).getDate();
+                endDate = `${y}-08-${String(last).padStart(2,'0')}`;
+            } else if(q === "Q4") {
+                startDate = `${y}-09-01`;
+                const last = new Date(y, 11, 0).getDate();
+                endDate = `${y}-11-${String(last).padStart(2,'0')}`;
+            } else {
+                alert("알 수 없는 분기입니다."); return;
+            }
+        }
+
+        // fetch로 startDate, endDate 전달
+        const url = `/admin/revenue/orders?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`;
 
         fetch(url)
             .then(res => res.json())
             .then(data => {
                 const tbody = document.getElementById("orderTableBody");
-                if(!tbody) return; // admin_revenue.html이 열려있지 않으면 스킵
                 tbody.innerHTML = "";
-
                 let total = 0;
+
                 data.forEach(order => {
-                    total += Number(order.orderAmount);
+                    const amount = Number(order.orderAmount);
+                    total += amount;
                     const row = `
                     <tr>
                         <td>${order.orderTime}</td>
@@ -100,12 +199,23 @@
                     tbody.innerHTML += row;
                 });
 
-                const totalRevenue = document.getElementById("totalRevenue");
-                if(totalRevenue) totalRevenue.innerText = "총 매출 금액: " + total.toLocaleString() + "원";
+                document.getElementById("totalRevenue").innerText = "총 매출 금액: " + total.toLocaleString() + "원";
+            })
+            .catch(err => {
+                console.error(err);
+                alert("데이터를 불러오는 중 오류가 발생했습니다.");
             });
     }
 
+    // 기존 updateRevenuePage도 같은 방식으로 변경 (period 기준 사용)
+    function updateRevenuePage() {
+        // 페이지가 열려 있을 때 동일한 동작 실행
+        const criterion = document.getElementById("criterion") ? document.getElementById("criterion").value : "day";
+        // 재사용: 단순히 loadData 호출하면 동작하므로
+        loadData();
+    }
 </script>
+
 
 
 </body>

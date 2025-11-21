@@ -17,6 +17,17 @@
     font-size: 16px;
 }
 
+.controls select, .controls input[type="date"], .controls button {
+    font-size: 15px;
+    margin-right: 8px;
+    padding: 6px 8px;
+}
+#monthControls select, #quarterControls select {
+    padding: 6px 8px;
+    margin-right: 6px;
+}
+
+
 .container .control .view {
     padding-left: 10px;
 }
