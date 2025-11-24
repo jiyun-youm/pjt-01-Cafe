@@ -12,15 +12,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // 2. "메뉴 보러가기" 버튼 지점 선택 체크
     // ==========================================
 
-    const goToMenuBtn = document.querySelector('.go-to-menu-btn');
+    let goToMenuBtn = document.querySelector('.go-to-menu-btn');
 
     if (goToMenuBtn) {
         goToMenuBtn.addEventListener('click', async function(e) {
             e.preventDefault();
 
             try {
-                const resp = await fetch("/home/getRegion");
-                const storeName = await resp.text();
+                let resp = await fetch("/home/getRegion");
+                let storeName = await resp.text();
 
                 if (!storeName || storeName === "null" || storeName.trim() === "") {
                     alert("주문할 매장을 먼저 선택해주세요.");
@@ -71,6 +71,34 @@ document.addEventListener('DOMContentLoaded', function() {
         if (priceDisplayElement) {
             priceDisplayElement.textContent = `${itemTotalPrice.toLocaleString('ko-KR')}원`;
         }
+    }
+
+    // ==========================================
+    // 직접입력 체크박스 활성/비활성 제어
+    // ==========================================
+
+    let directInputCheck = document.getElementById('directInputCheck');
+    let directRequest = document.getElementById('directRequest');
+
+    // 초기 상태: 비활성화
+    if (directRequest) {
+        directRequest.disabled = true;
+        directRequest.style.opacity = "0.5";  // 시각적으로 비활성화 느낌
+    }
+
+    if (directInputCheck && directRequest) {
+        directInputCheck.addEventListener('change', function() {
+            if (this.checked) {
+                // 활성화
+                directRequest.disabled = false;
+                directRequest.style.opacity = "1";
+            } else {
+                // 비활성화 + 내용 삭제
+                directRequest.disabled = true;
+                directRequest.value = "";
+                directRequest.style.opacity = "0.5";
+            }
+        });
     }
 
     // 하단 주문 정보(총액, 배달비) 업데이트
@@ -270,7 +298,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let qty = parseInt(item.querySelector('.item-quantity').dataset.quantity);
 
             //옵션 ID
-            const optionId = parseInt(item.dataset.optionId);
+            let optionId = parseInt(item.dataset.optionId);
             console.log('[CHECK] cart item optionId =', optionId);
 
             // 메뉴 ID

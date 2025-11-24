@@ -15,6 +15,8 @@ public interface MemberMapper {
 
     MemberVO findByEmail(String email);
 
+    MemberVO findById(String id);
+
     void insertOAuthMember(MemberVO vo);
 
     void updateUser(MemberVO vo);

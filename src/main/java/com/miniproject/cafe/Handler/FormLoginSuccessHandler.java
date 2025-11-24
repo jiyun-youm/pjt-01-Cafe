@@ -4,6 +4,7 @@ import com.miniproject.cafe.Mapper.MemberMapper;
 import com.miniproject.cafe.VO.MemberVO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -28,14 +29,21 @@ public class FormLoginSuccessHandler implements AuthenticationSuccessHandler {
         String email = authentication.getName();
         MemberVO member = memberMapper.findByEmail(email);
 
+        HttpSession session = request.getSession();
+
         if (member != null) {
-            request.getSession().setAttribute("member", member);
+            session.setAttribute("member", member);
+            session.setAttribute("LOGIN_USER_ID", member.getId());
         }
 
         // 로그인 성공 후 redirect + 파라미터 전달
         try {
+            String username = (member != null && member.getUsername() != null)
+                    ? member.getUsername()
+                    : email;
+
             response.sendRedirect("/home/?loginSuccess=true&username=" +
-                    java.net.URLEncoder.encode(member.getUsername(), "UTF-8"));
+                    java.net.URLEncoder.encode(username, "UTF-8"));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

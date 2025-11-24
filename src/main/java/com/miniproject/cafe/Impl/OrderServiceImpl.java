@@ -82,17 +82,18 @@ public class OrderServiceImpl implements OrderService {
         // 변경된 주문 불러오기
         OrderVO updatedOrder = orderMapper.findOrderById(orderId, storeName);
 
-        // ⭐ 관리자에게 상태 변경 이벤트
-        emitterStore.sendToStore(storeName, "order-update", updatedOrder);
+        if ("주문완료".equals(status) && updatedOrder.getUId() != null) {
+            rewardService.addStamps(updatedOrder.getUId(), updatedOrder.getTotalQuantity());
+        }
 
-        // ⭐ 고객에게 주문완료 SSE 전달
-        if ("주문완료".equals(status)) {
-            emitterStore.sendToUser(updatedOrder.getUId(), "order-complete", updatedOrder);
+        try {
+            emitterStore.sendToStore(storeName, "order-update", updatedOrder);
 
-            // 스탬프 적립
-            if (updatedOrder.getUId() != null) {
-                rewardService.addStamps(updatedOrder.getUId(), updatedOrder.getTotalQuantity());
+            if ("주문완료".equals(status)) {
+                emitterStore.sendToUser(updatedOrder.getUId(), "order-complete", updatedOrder);
             }
+        } catch (Exception e) {
+            System.out.println("⚠️ 주문 상태 변경 알림 전송 실패(무시됨): " + e.getMessage());
         }
     }
 

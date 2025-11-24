@@ -8,7 +8,9 @@
 </head>
 
 <script th:inline="javascript">
-    const storeName = /*[[${#authentication.principal.storeName}]]*/ "";
+    let storeName = /*[[${storeName}]]*/ "";
+    let eventSource = null;
+    let reconnectTimer = null;
 </script>
 
 <th:block th:replace="~{./include/adminBaseLayout :: setContent( ~{:: .wrap} ) }">
@@ -27,7 +29,6 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-
         const API_BASE_URL = '/api/orders';
         const API_ENDPOINT_LIST = `${API_BASE_URL}/admin-list?storeName=${storeName}`;
         const API_ENDPOINT_STATUS_UPDATE = `${API_BASE_URL}/status`;
@@ -92,24 +93,37 @@
         // ---------------------------
         // 3. SSE 연결
         // ---------------------------
-        function connectSSE(storeName) {
+        function connectSSE(targetStoreName) {
+            // 기존 연결 정리
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+            }
+            if (reconnectTimer) {
+                clearTimeout(reconnectTimer);
+                reconnectTimer = null;
+            }
 
-            const encoded = encodeURIComponent(storeName);
-            const eventSource = new EventSource(`/sse/admin/${encoded}`);
+            const encoded = encodeURIComponent(targetStoreName);
+            // ⚠️ 경로 확인: 컨트롤러 설정에 맞게 사용 (/sse/admin/... 또는 /api/orders/connect...)
+            const sseUrl = `/sse/admin/${encoded}`;
 
-            // 주문 이벤트
+            console.log(`🔌 SSE 연결 시도: ${sseUrl}`);
+            eventSource = new EventSource(sseUrl);
+
+            // ✅ [핵심] 연결 성공 시 주문 목록 새로고침 (F5 효과)
+            eventSource.onopen = function(e) {
+                console.log("🟢 서버와 SSE 연결 성공! 데이터 동기화를 시작합니다.");
+                loadInitialOrders(); // 서버가 살아났으므로 최신 데이터 긁어오기
+            };
+
+            // 주문 이벤트 수신
             eventSource.addEventListener("new-order", (event) => {
-
                 const order = JSON.parse(event.data);
                 const idStr = String(order.orderId);
 
-                // ✅ 이 세션에서 이미 완료/취소로 처리한 주문이면 무시
-                if (removedOrderIds.has(idStr)) {
-                    return;
-                }
-
-                // ✅ 이미 화면에 같은 카드가 있다면(중복 방지) 무시
-                if (document.getElementById(`order-card-${order.orderId}`)) {
+                // 이미 처리한 주문이나 중복 카드 무시
+                if (removedOrderIds.has(idStr) || document.getElementById(`order-card-${order.orderId}`)) {
                     return;
                 }
 
@@ -121,11 +135,22 @@
                 showAdminToast("새로운 주문이 도착했습니다!");
             });
 
-            // 오류 발생 시 재연결
+            // 상태 변경 이벤트 수신 (다른 관리자가 처리했을 경우 등 대비)
+            eventSource.addEventListener("order-update", (event) => {
+                console.log("상태 변경 감지, 목록 갱신");
+                loadInitialOrders();
+            });
+
+            // ❌ 오류 발생 및 연결 끊김 감지
             eventSource.onerror = () => {
-                console.error("SSE 오류 발생 → 3초 후 재연결 시도");
-                eventSource.close();
-                setTimeout(() => connectSSE(storeName), 3000);
+                console.error("🔴 SSE 연결 끊김/오류. 3초 후 재연결 시도...");
+
+                if(eventSource) {
+                    eventSource.close();
+                    eventSource = null;
+                }
+
+                reconnectTimer = setTimeout(() => connectSSE(targetStoreName), 3000);
             };
         }
 
@@ -261,12 +286,15 @@
                     body: JSON.stringify({ status })
                 });
 
+                if (response.status === 409) {
+                    alert("이미 처리된 주문입니다.");
+                    removeOrderCard(orderId);
+                    return;
+                }
+
                 if (!response.ok) throw new Error(response.status);
 
-                // ✅ 이 세션에서 제거된 주문으로 표시
                 removedOrderIds.add(String(orderId));
-
-                // ✅ 카드 제거 애니메이션
                 removeOrderCard(orderId);
 
             } catch (e) {

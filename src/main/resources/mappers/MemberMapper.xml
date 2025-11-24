@@ -28,6 +28,12 @@
         WHERE email = #{email}
     </select>
 
+    <select id="findById" resultType="com.miniproject.cafe.VO.MemberVO">
+        SELECT *
+        FROM member
+        WHERE id = #{id}
+    </select>
+
     <insert id="insertOAuthMember" parameterType="com.miniproject.cafe.VO.MemberVO">
         INSERT INTO member(id,email,username,password,provider)
         VALUES(

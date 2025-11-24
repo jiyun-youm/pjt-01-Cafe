@@ -1,10 +1,7 @@
 package com.miniproject.cafe.Config;
 
 import com.miniproject.cafe.Filter.SessionSetupFilter;
-import com.miniproject.cafe.Handler.FormLoginFailureHandler;
-import com.miniproject.cafe.Handler.FormLoginSuccessHandler;
-import com.miniproject.cafe.Handler.OAuth2FailureHandler;
-import com.miniproject.cafe.Handler.OAuthLoginSuccessHandler;
+import com.miniproject.cafe.Handler.*;
 import com.miniproject.cafe.Mapper.AdminMapper;
 import com.miniproject.cafe.Mapper.MemberMapper;
 import com.miniproject.cafe.Service.AdminUserDetailsService;
@@ -47,11 +44,13 @@ public class SecurityConfig {
     private final MemberMapper memberMapper;
     private final AdminMapper adminMapper;
 
+    private final RememberMeSuccessHandler rememberMeSuccessHandler;
+
     private static final String REMEMBER_KEY = "secure-key";
 
-    /* ======================
-       Authentication Providers
-    ======================= */
+    /* ==========================
+        Authentication Providers
+    =========================== */
     @Bean
     public AuthenticationProvider userProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -86,16 +85,18 @@ public class SecurityConfig {
     }
 
     /* ======================
-         Remember-Me
+         Remember-Me 설정
     ======================= */
-    private RememberMeServices memberRememberMe() {
+    @Bean
+    public RememberMeServices memberRememberMe() {
         TokenBasedRememberMeServices s =
                 new TokenBasedRememberMeServices(REMEMBER_KEY, customUserDetailsService);
         s.setTokenValiditySeconds(60 * 60 * 24 * 14);
         return s;
     }
 
-    private RememberMeServices oauthRememberMe() {
+    @Bean
+    public RememberMeServices oauthRememberMe() {
         TokenBasedRememberMeServices s =
                 new TokenBasedRememberMeServices(REMEMBER_KEY, customUserDetailsService);
         s.setAlwaysRemember(true);
@@ -103,16 +104,17 @@ public class SecurityConfig {
         return s;
     }
 
-    private RememberMeServices adminRememberMeServices() {
-        TokenBasedRememberMeServices services =
+    @Bean
+    public RememberMeServices adminRememberMeServices() {
+        TokenBasedRememberMeServices s =
                 new TokenBasedRememberMeServices("secure-key", adminUserDetailsService);
-        services.setCookieName("remember-me-admin");
-        services.setTokenValiditySeconds(60 * 60 * 24 * 14);
-        return services;
+        s.setCookieName("remember-me-admin");
+        s.setTokenValiditySeconds(60 * 60 * 24 * 14);
+        return s;
     }
 
     /* ======================
-         관리자 Security
+        관리자 Security
     ======================= */
     @Bean
     @Order(1)
@@ -133,7 +135,7 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-                .formLogin(form -> form
+                .formLogin(f -> f
                         .loginPage("/admin/login")
                         .loginProcessingUrl("/admin/perform_login_process")
                         .usernameParameter("id")
@@ -141,15 +143,13 @@ public class SecurityConfig {
                         .defaultSuccessUrl("/admin/orders", false)
                         .failureHandler(formLoginFailureHandler)
                 )
-                .logout(logout -> logout
+                .logout(l -> l
                         .logoutUrl("/admin/logout")
                         .logoutSuccessUrl("/admin/login")
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID", "remember-me-admin")
                 )
-                .rememberMe(r -> r
-                        .rememberMeServices(adminRememberMeServices())
-                )
+                .rememberMe(r -> r.rememberMeServices(adminRememberMeServices()))
                 .addFilterAfter(new SessionSetupFilter(memberMapper, adminMapper),
                         RememberMeAuthenticationFilter.class);
 
@@ -167,7 +167,6 @@ public class SecurityConfig {
                 .authenticationProvider(userProvider())
                 .authenticationProvider(oauth2Provider())
                 .authenticationProvider(oidcProvider())
-
                 .csrf(csrf -> csrf.disable())
 
                 .authorizeHttpRequests(auth -> auth
@@ -201,7 +200,10 @@ public class SecurityConfig {
                         .invalidateHttpSession(true)
                 )
 
-                .rememberMe(r -> r.rememberMeServices(memberRememberMe()))
+                .rememberMe(r -> r
+                        .rememberMeServices(memberRememberMe())
+                        .authenticationSuccessHandler(rememberMeSuccessHandler)
+                )
 
                 .addFilterAfter(new SessionSetupFilter(memberMapper, adminMapper),
                         RememberMeAuthenticationFilter.class);
@@ -209,6 +211,9 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /* =======================
+        패스워드 인코더
+    ======================= */
     @Bean
     public static BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

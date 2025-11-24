@@ -6,6 +6,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -52,16 +53,22 @@ public class SseEmitterStore {
     private void send(Map<String, List<SseEmitter>> map,
                       String key, String eventName, Object data) {
 
-        List<SseEmitter> emitters = map.get(key);
-        if (emitters == null) return;
+        CompletableFuture.runAsync(() -> {
+            List<SseEmitter> emitters = map.get(key);
+            if (emitters == null) return;
 
-        for (SseEmitter emitter : emitters) {
-            try {
-                emitter.send(SseEmitter.event().name(eventName).data(data));
-            } catch (Exception e) {
-                emitter.complete();
-                removeEmitter(map, key, emitter);
+            for (SseEmitter emitter : emitters) {
+                try {
+                    emitter.send(SseEmitter.event().name(eventName).data(data));
+                } catch (Exception e) {
+                    removeEmitter(map, key, emitter);
+                    try {
+                        emitter.complete();
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
             }
-        }
+        });
     }
 }

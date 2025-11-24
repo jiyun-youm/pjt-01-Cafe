@@ -1,5 +1,6 @@
 package com.miniproject.cafe.Controller;
 
+import com.miniproject.cafe.Mapper.MemberMapper;
 import com.miniproject.cafe.Service.CouponService;
 import com.miniproject.cafe.Service.OrderService;
 import com.miniproject.cafe.Service.RewardService;
@@ -28,6 +29,7 @@ public class HomeController {
     private final OrderService orderService;
     private final RewardService rewardService;
     private final CouponService couponService;
+    private final MemberMapper memberMapper;
 
     // 로그인 체크 유틸리티 메서드
     private boolean isLoggedIn(Authentication auth) {
@@ -115,20 +117,23 @@ public class HomeController {
     }
 
     @GetMapping("/account")
-    public String account(Authentication auth, HttpSession session, Model model) {
-        boolean isLoggedIn = isLoggedIn(auth);
-        model.addAttribute("IS_LOGGED_IN", isLoggedIn);
+    public String account(Authentication auth, Model model) {
 
-        if(!isLoggedIn(auth)) {
-            return "redirect:/home/";
+        // remember-me 포함 모든 인증 처리
+        if (auth == null || !auth.isAuthenticated()) {
+            return "redirect:/home/login";
         }
 
-        MemberVO member = (MemberVO) session.getAttribute("member");
+        String email = auth.getName();
+        MemberVO member = memberMapper.findByEmail(email);
+
         if (member == null) {
             return "redirect:/home/login";
         }
 
+        model.addAttribute("IS_LOGGED_IN", true);
         model.addAttribute("member", member);
+
         return "mypage";
     }
 

@@ -19,6 +19,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.security.Principal;
 import java.util.Collections;
 
 @Controller
@@ -62,10 +63,17 @@ public class AdminController {
     }
 
     @GetMapping("/orders")
-    public String adminOrders(HttpSession session, Model model) {
-//        if (session.getAttribute("admin") == null) {
-//            return "redirect:/admin/login";
-//        }
+    public String adminOrders(Model model, Principal principal) {
+
+        // 1. 현재 로그인한 사용자 확인 (Spring Security)
+        if (principal != null) {
+            String loginId = principal.getName();
+            AdminVO admin = adminService.findById(loginId);
+            // 3. 모델에 storeName 담기
+            if (admin != null) {
+                model.addAttribute("storeName", admin.getStoreName());
+            }
+        }
         model.addAttribute("isLoggedIn", true);
         model.addAttribute("activePage", "orders");
         return "admin_orders";

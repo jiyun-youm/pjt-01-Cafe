@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const menuName = order.orderItemList?.[0]?.menuItemName || "";
             const dailyNum = String(order.dailyOrderNum).padStart(4, "0");
 
-            showToast(`'${menuName}' 주문이 완료되었습니다.`);
+            showToast(`${menuName} 주문이 완료되었습니다.\n음식을 찾아가세요!`);
             showAlarmDot();
             addNotificationCard(dailyNum, menuName);
             await loadUserOrders();

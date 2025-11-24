@@ -28,7 +28,6 @@ public class CartServiceImpl implements CartService {
     public Map<String, Object> getCartList(String memberId) {
         List<Map<String, Object>> cartItems = cartMapper.getCartList(memberId);
 
-        // ✅ 빈 리스트 또는 null 체크 강화
         if (cartItems == null || cartItems.isEmpty()) {
             Map<String, Object> result = new HashMap<>();
             result.put("cartItems", new ArrayList<>());
@@ -38,13 +37,11 @@ public class CartServiceImpl implements CartService {
 
         int totalPrice = 0;
         for (Map<String, Object> item : cartItems) {
-            // ✅ NULL 체크 강화
             if (item == null) continue;
 
             int menuPrice = parseIntSafe(item.get("MENU_PRICE"));
             int quantity = parseIntSafe(item.get("QUANTITY"));
 
-            // ✅ 옵션 값 NULL 체크
             Object shotCountObj = item.get("SHOT_COUNT");
             Object vanillaSyrupCountObj = item.get("VANILLA_SYRUP_COUNT");
             Object whippedCreamCountObj = item.get("WHIPPED_CREAM_COUNT");
@@ -58,7 +55,6 @@ public class CartServiceImpl implements CartService {
             int itemTotalPrice = (menuPrice + (optionCount * 500)) * quantity;
             totalPrice += itemTotalPrice;
 
-            // ✅ 각 아이템의 총 가격을 미리 계산해서 추가
             item.put("ITEM_TOTAL_PRICE", itemTotalPrice);
         }
 
@@ -76,28 +72,22 @@ public class CartServiceImpl implements CartService {
         try {
             String strValue = value.toString().trim();
 
-            // 빈 문자열 체크
             if (strValue.isEmpty()) {
                 return 0;
             }
 
-            // 소수점 제거 (3.000 -> 3000)
             if (strValue.contains(".")) {
                 strValue = strValue.split("\\.")[0];
             }
 
-            // 쉼표 제거 (3,000 -> 3000)
             strValue = strValue.replace(",", "");
-
-            // 숫자만 추출
             strValue = strValue.replaceAll("[^0-9-]", "");
 
             if (strValue.isEmpty() || strValue.equals("-")) {
                 return 0;
             }
 
-            int result = Integer.parseInt(strValue);
-            return result;
+            return Integer.parseInt(strValue);
 
         } catch (NumberFormatException e) {
             return 0;
@@ -124,6 +114,12 @@ public class CartServiceImpl implements CartService {
     public int addToCart(String memberId, String menuId, int quantity, String temp,
                          boolean tumblerUse, int shotCount, int vanillaSyrupCount,
                          int whippedCreamCount) {
+
+        // ✅ 방어 로직: memberId가 없으면 바로 실패 처리 (FK 오류 방지)
+        if (memberId == null || memberId.isBlank()) {
+            throw new IllegalArgumentException("memberId is null or empty in addToCart()");
+        }
+
         try {
             // 1. 회원 장바구니 조회
             Long cartId = cartMapper.findCartByMemberId(memberId);
@@ -153,16 +149,14 @@ public class CartServiceImpl implements CartService {
                 menuOptionId = cartMapper.findMenuOption(optionParams);
             }
 
-            // ✅ 5. 기존에 같은 메뉴옵션이 장바구니에 있는지 확인
+            // 5. 기존에 같은 메뉴 옵션이 장바구니에 있는지 확인
             Long existingCartItemId = cartMapper.findExistingCartItem(cartId, menuOptionId);
 
             if (existingCartItemId != null) {
-                // ✅ 기존 아이템이 있으면 수량 증가
                 CartItemVO existingItem = cartMapper.getCartItem(existingCartItemId);
                 int newQuantity = existingItem.getQuantity() + quantity;
                 return cartMapper.changeQuantityCartItem(existingCartItemId, newQuantity);
             } else {
-                // ✅ 새 아이템 추가
                 CartItemVO cartItemVO = new CartItemVO();
                 cartItemVO.setCartId(cartId);
                 cartItemVO.setMenuOptionId(menuOptionId);

@@ -5,6 +5,7 @@ import com.miniproject.cafe.VO.OrderVO;
 import com.miniproject.cafe.Service.OrderService;
 import com.miniproject.cafe.VO.RecentOrderVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -43,23 +44,29 @@ public class OrderApiController {
 
     //주문 상태 업데이트 (완료, 취소)
     @PutMapping("/status/{orderId}")
-    public ResponseEntity<Void> updateOrderStatus(
+    public ResponseEntity<?> updateOrderStatus(
             @PathVariable Long orderId,
-            @RequestBody Map<String, String> payload) {
-
-        String newStatus = payload.get("status");
-
-        if (newStatus == null || newStatus.isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
+            @RequestBody Map<String, String> body) {
 
         try {
-            orderService.updateOrderStatus(newStatus, orderId);
-            return ResponseEntity.ok().build();
+            String status = body.get("status");
+            OrderVO order = orderService.getOrderById(orderId);
+            if (order == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("주문을 찾을 수 없습니다.");
+            }
 
+            if (!order.getOrderStatus().equals("주문접수")) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body("이미 처리된 주문입니다.");
+            }
+
+            orderService.updateOrderStatus(status, orderId);
+            return ResponseEntity.ok("success");
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("서버 오류");
         }
     }
 
