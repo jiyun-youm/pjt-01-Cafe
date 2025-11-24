@@ -27,6 +27,7 @@ public class OAuthLoginSuccessHandler implements AuthenticationSuccessHandler {
         MemberVO member = memberMapper.findByEmail(email);
 
         if (member != null) {
+            request.changeSessionId();
             request.getSession().setAttribute("member", member);
             request.getSession().setAttribute("LOGIN_USER_ID", member.getId());
         }

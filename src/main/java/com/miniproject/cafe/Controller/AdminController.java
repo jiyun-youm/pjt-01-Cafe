@@ -39,16 +39,13 @@ public class AdminController {
 
     @GetMapping("/login")
     public String adminLogin(HttpSession session, Model model, Authentication auth) {
-
-        // ⭐ [수정 1] 로그인 했더라도 '관리자' 권한이 있는지 확인
         if (auth != null && auth.isAuthenticated()) {
             boolean isAdmin = auth.getAuthorities().stream()
                     .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
             if (isAdmin) {
-                return "redirect:/admin/orders"; // 관리자만 통과
+                return "redirect:/admin/orders";
             }
-            // 일반 회원이면 로그인 페이지를 그대로 보여줌 (혹은 메인으로 튕겨내도 됨)
         }
 
         if (session.getAttribute("loginError") != null) {

@@ -18,28 +18,29 @@ public class UserLikeController {
 
     // 찜 토글
     @PostMapping("/toggle")
-    public boolean toggleLike(@RequestParam("menuId") String menuId, Authentication auth) {
+    public boolean toggleLike(@RequestParam("menuId") String menuId, Authentication auth, HttpSession session) {
 
-        System.out.println("### 로그인 사용자 확인: " + (auth != null ? auth.getName() : "NULL"));
-        if (auth == null || !auth.isAuthenticated()) {
+        String sessionUserId = (String) session.getAttribute("LOGIN_USER_ID");
+
+        System.out.println("### 로그인 사용자 확인: auth = " + (auth != null ? auth.getName() : "NULL") + ", session.LOGIN_USER_ID = " + sessionUserId);
+        if (auth == null) {
+            System.out.println("### 회원 세션이 없어서 찜 불가");
             return false;
         }
 
-        String userId = auth.getName(); // 로그인 ID 가져오기
-        System.out.println("### 인증된 userId = " + userId);
+        String userId = sessionUserId;
+        System.out.println("### 최종 사용 ID = " + userId);
+
         return userLikeService.toggleLike(userId, menuId);
     }
 
     @GetMapping("/list")
-    public List<MenuVO> getLikedMenus(Authentication auth) {
+    public List<MenuVO> getLikedMenus(Authentication auth, HttpSession session) {
 
-        if (auth == null || !auth.isAuthenticated()) {
+        String sessionUserId = (String) session.getAttribute("LOGIN_USER_ID");
+        if (sessionUserId == null) {
             return null;
         }
-
-        String userId = auth.getName();
-        return userLikeService.getLikedMenus(userId);
+        return userLikeService.getLikedMenus(sessionUserId);
     }
-
-
 }
