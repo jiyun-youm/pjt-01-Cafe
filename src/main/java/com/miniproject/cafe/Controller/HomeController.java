@@ -11,7 +11,9 @@ import com.miniproject.cafe.VO.RecentOrderVO;
 import com.miniproject.cafe.VO.RewardVO;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -31,78 +33,106 @@ public class HomeController {
     private final CouponService couponService;
     private final MemberMapper memberMapper;
 
-    // 로그인 체크 유틸리티 메서드
-    private boolean isLoggedIn(Authentication auth) {
-        return auth != null && auth.isAuthenticated();
-    }
+    private MemberVO getMemberFromAuth(Authentication auth, HttpSession session) {
+        // 1. 로그인 안 된 상태면 null 반환
+        if (auth == null || !auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken) {
+            return null;
+        }
 
-    private String getMemberId(Authentication auth) {
-        return isLoggedIn(auth) ? auth.getName() : null;
+        // 2. 세션에서 먼저 찾기 (가장 빠름)
+        MemberVO member = (MemberVO) session.getAttribute("member");
+
+        // 3. 세션에 없으면 DB에서 다시 조회 (Remember-Me 복구)
+        if (member == null) {
+            String loginId = null;
+            Object principal = auth.getPrincipal();
+
+            if (principal instanceof UserDetails) {
+                loginId = ((UserDetails) principal).getUsername(); // 일반/소셜 로그인 객체
+            } else {
+                loginId = auth.getName(); // 문자열 ID인 경우
+            }
+
+            // DB 조회
+            member = memberMapper.findByEmail(loginId);
+
+            // 4. 찾았으면 세션에 다시 저장 (다음 요청부터는 DB 조회 안 함)
+            if (member != null) {
+                session.setAttribute("member", member);
+                session.setAttribute("LOGIN_USER_ID", member.getId());
+                // System.out.println("✅ [HomeController] 사용자 세션 복구 완료: " + member.getEmail());
+            }
+        }
+        return member;
     }
 
     @GetMapping("/")
     public String home(Model model, Authentication auth, HttpSession session) {
 
-        boolean isLoggedIn = auth != null && auth.isAuthenticated();
+        // 헬퍼 메서드를 통해 회원 정보 가져오기 (세션 없으면 DB에서 가져옴)
+        MemberVO member = getMemberFromAuth(auth, session);
+        boolean isLoggedIn = (member != null);
+
         model.addAttribute("IS_LOGGED_IN", isLoggedIn);
 
         if (isLoggedIn) {
-            String email = auth.getName();
+            String memberId = member.getId();
 
-            // 세션에 member가 없으면 자동 로그인 상황 → DB에서 재조회
-            MemberVO sessionMember = (MemberVO) session.getAttribute("member");
-            if (sessionMember == null) {
-                sessionMember = memberMapper.findByEmail(email);
-                session.setAttribute("member", sessionMember);
-            }
-
-            if (sessionMember != null) {
-                String memberId = sessionMember.getId();
-
-                model.addAttribute("recentOrders", orderService.getRecentOrders(memberId));
-                model.addAttribute("reward", rewardService.getReward(memberId));
-                model.addAttribute("couponCount", couponService.getCouponsByUser(memberId).size());
-            }
+            // 데이터 조회해서 모델에 담기 (이제 null 에러 안 남)
+            model.addAttribute("recentOrders", orderService.getRecentOrders(memberId));
+            model.addAttribute("reward", rewardService.getReward(memberId));
+            model.addAttribute("couponCount", couponService.getCouponsByUser(memberId).size());
+            model.addAttribute("member", member);
         }
 
         return "main";
     }
 
     @GetMapping("/order_history")
-    public String order_history(Model model, Authentication auth) {
-        boolean isLoggedIn = isLoggedIn(auth);
-        model.addAttribute("IS_LOGGED_IN", isLoggedIn);
+    public String order_history(Model model, Authentication auth, HttpSession session) {
 
-        if (!isLoggedIn(auth)) {
-            return "redirect:/home/";
+        MemberVO member = getMemberFromAuth(auth, session);
+
+        // 로그인이 풀렸거나 회원 정보가 없으면 로그인 페이지로
+        if (member == null) {
+            return "redirect:/home/login";
         }
 
-        String memberId = getMemberId(auth);
-        List<RecentOrderVO> allOrders = orderService.getAllOrders(memberId);
-        model.addAttribute("allOrders", allOrders);
+        model.addAttribute("IS_LOGGED_IN", true);
+        model.addAttribute("allOrders", orderService.getAllOrders(member.getId()));
 
         return "order_history";
     }
 
-    @GetMapping("/coffee")
-    public String food() {
-        return "redirect:/menu/coffee";
-    }
-
     @GetMapping("/mypick")
-    public String myPickPage(Model model, Authentication auth) {
-        boolean isLoggedIn = isLoggedIn(auth);
-        model.addAttribute("IS_LOGGED_IN", isLoggedIn);
+    public String myPickPage(Model model, Authentication auth, HttpSession session) {
 
-        if(!isLoggedIn(auth)) {
-            return "redirect:/home/";
+        MemberVO member = getMemberFromAuth(auth, session);
+
+        if (member == null) {
+            return "redirect:/home/login";
         }
 
-        String userId = getMemberId(auth);
-        List<MenuVO> likedMenus = userLikeService.getLikedMenus(userId);
-        model.addAttribute("likedMenus", likedMenus);
+        model.addAttribute("IS_LOGGED_IN", true);
+        model.addAttribute("likedMenus", userLikeService.getLikedMenus(member.getId()));
 
         return "mypick";
+    }
+
+    @GetMapping("/account")
+    public String account(Authentication auth, Model model, HttpSession session) {
+
+        MemberVO member = getMemberFromAuth(auth, session);
+
+        // 여기서 member가 null이 아니면(세션 복구됨) 튕기지 않고 마이페이지로 감
+        if (member == null) {
+            return "redirect:/home/login";
+        }
+
+        model.addAttribute("IS_LOGGED_IN", true);
+        model.addAttribute("member", member);
+
+        return "mypage";
     }
 
     @PostMapping("/saveRegion")
@@ -124,27 +154,6 @@ public class HomeController {
     public String getRegion(HttpSession session) {
         Object storeName = session.getAttribute("storeName");
         return storeName != null ? storeName.toString() : null;
-    }
-
-    @GetMapping("/account")
-    public String account(Authentication auth, Model model) {
-
-        // remember-me 포함 모든 인증 처리
-        if (auth == null || !auth.isAuthenticated()) {
-            return "redirect:/home/login";
-        }
-
-        String email = auth.getName();
-        MemberVO member = memberMapper.findByEmail(email);
-
-        if (member == null) {
-            return "redirect:/home/login";
-        }
-
-        model.addAttribute("IS_LOGGED_IN", true);
-        model.addAttribute("member", member);
-
-        return "mypage";
     }
 
     @GetMapping("/login")

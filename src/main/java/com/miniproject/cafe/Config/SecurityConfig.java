@@ -145,7 +145,6 @@ public class SecurityConfig {
                         .rememberMeParameter("remember-me")
                         .tokenValiditySeconds(60 * 60 * 24 * 14)
                         .userDetailsService(adminUserDetailsService)
-                        .authenticationSuccessHandler(rememberMeSuccessHandler)
                         .rememberMeCookieName("remember-me-admin")
                 )
                 .addFilterAfter(new SessionSetupFilter(memberMapper, adminMapper),

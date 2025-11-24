@@ -8,6 +8,7 @@
 </head>
 
 <script th:inline="javascript">
+    /* Thymeleaf 변수 처리 수정 */
     let storeName = /*[[${storeName}]]*/ "";
     let eventSource = null;
     let reconnectTimer = null;
@@ -30,12 +31,10 @@
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const API_BASE_URL = '/api/orders';
-        const API_ENDPOINT_LIST = `${API_BASE_URL}/admin-list?storeName=${storeName}`;
+        const API_ENDPOINT_LIST = `${API_BASE_URL}/admin-list?storeName=${encodeURIComponent(storeName)}`;
         const API_ENDPOINT_STATUS_UPDATE = `${API_BASE_URL}/status`;
 
         const orderGrid = document.getElementById('order-grid-container');
-
-        // ✅ 이 세션에서 "완료/취소 처리한 주문" ID를 보관하는 Set
         const removedOrderIds = new Set();
 
         // ---------------------------
@@ -51,7 +50,9 @@
 
             } catch (e) {
                 console.error('초기 주문 로딩 실패:', e);
-                orderGrid.innerHTML = `<div class="order-grid-empty">주문 목록 로딩 실패 (${e.message})</div>`;
+                if(orderGrid.children.length === 0) {
+                    orderGrid.innerHTML = `<div class="order-grid-empty">주문 목록 로딩 실패 (${e.message})</div>`;
+                }
             }
         }
 
@@ -60,41 +61,29 @@
         // ---------------------------
         function renderOrders(orders) {
             orderGrid.innerHTML = '';
-
-            /*if (!orders || orders.length === 0) {
-                orderGrid.innerHTML = '<div class="order-grid-empty">현재 접수된 주문이 없습니다.</div>';
-                return;
-            }*/
             orders.forEach(order => {
+                if(removedOrderIds.has(String(order.orderId))) return;
+
                 orderGrid.insertAdjacentHTML('beforeend', createOrderCard(order));
                 const card = document.getElementById(`order-card-${order.orderId}`);
-
                 if (card) {
-                    setTimeout(() => {
-                        card.classList.add('show');
-                    }, 10);
+                    setTimeout(() => { card.classList.add('show'); }, 10);
                 }
             });
             updateEmptyState();
         }
 
-        //주문이 없을때
         function updateEmptyState() {
             const emptyBox = document.getElementById('empty-orders');
             if (!orderGrid || !emptyBox) return;
-            const hasCards = orderGrid.children.length > 0;
-            if (hasCards) {
-                emptyBox.style.display = "none";
-            } else {
-                emptyBox.style.display = "block";
-            }
+            const hasCards = orderGrid.querySelectorAll('.order-card:not(.hide)').length > 0;
+            emptyBox.style.display = hasCards ? "none" : "block";
         }
 
         // ---------------------------
         // 3. SSE 연결
         // ---------------------------
         function connectSSE(targetStoreName) {
-            // 기존 연결 정리
             if (eventSource) {
                 eventSource.close();
                 eventSource = null;
@@ -105,82 +94,62 @@
             }
 
             const encoded = encodeURIComponent(targetStoreName);
-            // ⚠️ 경로 확인: 컨트롤러 설정에 맞게 사용 (/sse/admin/... 또는 /api/orders/connect...)
             const sseUrl = `/sse/admin/${encoded}`;
 
             console.log(`🔌 SSE 연결 시도: ${sseUrl}`);
             eventSource = new EventSource(sseUrl);
 
-            // ✅ [핵심] 연결 성공 시 주문 목록 새로고침 (F5 효과)
             eventSource.onopen = function(e) {
                 console.log("🟢 서버와 SSE 연결 성공! 데이터 동기화를 시작합니다.");
-                loadInitialOrders(); // 서버가 살아났으므로 최신 데이터 긁어오기
+                loadInitialOrders();
             };
 
-            // 주문 이벤트 수신
             eventSource.addEventListener("new-order", (event) => {
                 const order = JSON.parse(event.data);
                 const idStr = String(order.orderId);
 
-                // 이미 처리한 주문이나 중복 카드 무시
                 if (removedOrderIds.has(idStr) || document.getElementById(`order-card-${order.orderId}`)) {
                     return;
                 }
 
-                // 화면 최상단에 추가
                 insertCardToTop(createOrderCard(order), order.orderId);
                 updateEmptyState();
-
-                // 팝업 알림 표시
                 showAdminToast("새로운 주문이 도착했습니다!");
             });
 
-            // 상태 변경 이벤트 수신 (다른 관리자가 처리했을 경우 등 대비)
             eventSource.addEventListener("order-update", (event) => {
                 console.log("상태 변경 감지, 목록 갱신");
                 loadInitialOrders();
             });
 
-            // ❌ 오류 발생 및 연결 끊김 감지
             eventSource.onerror = () => {
                 console.error("🔴 SSE 연결 끊김/오류. 3초 후 재연결 시도...");
-
                 if(eventSource) {
                     eventSource.close();
                     eventSource = null;
                 }
-
                 reconnectTimer = setTimeout(() => connectSSE(targetStoreName), 3000);
             };
         }
 
         // ---------------------------
-        // 4. 주문 카드 생성
+        // 4. 주문 카드 생성 (HTML)
         // ---------------------------
         function createOrderCard(order) {
-
             let cardTypeClass = 'type-default';
             if (order.orderType === '매장') cardTypeClass = 'type-store';
             else if (order.orderType === '포장') cardTypeClass = 'type-takeout';
             else if (order.orderType === '배달') cardTypeClass = 'type-delivery';
 
             const menuItemsHtml = (order.orderItemList || []).map(item => {
-
                 const tumblerTxt = item.tumbler === 1 ? "텀블러" : "일반컵";
                 const tempTxt = item.temp ? item.temp.toUpperCase() : "";
                 const shotTxt = item.shot > 0 ? `샷 : ${item.shot}` : "";
                 const syrupTxt = item.vanillaSyrup > 0 ? `시럽 : ${item.vanillaSyrup}` : "";
                 const creamTxt = item.whippedCream > 0 ? `휘핑크림` : "";
 
-                const optionsText = [
-                    tumblerTxt,
-                    tempTxt,
-                    shotTxt,
-                    syrupTxt,
-                    creamTxt
-                ]
-                    .filter(v => v !== "")
-                    .join("<br>");
+                const optionsText = [tumblerTxt, tempTxt, shotTxt, syrupTxt, creamTxt]
+                    .filter(v => v !== "").join("<br>");
 
                 return `
                 <li>
@@ -189,8 +158,7 @@
                         <span>${item.quantity}</span>
                     </div>
                     <div class="menu-options" style="line-height: 1.4">${optionsText}</div>
-                </li>
-                `;
+                </li>`;
             }).join('');
 
             let formattedTime = '00:00';
@@ -198,32 +166,23 @@
                 try {
                     const date = new Date(order.orderTime);
                     formattedTime = `${date.getHours()}시 ${String(date.getMinutes()).padStart(2, '0')}분`;
-                } catch {
-                    formattedTime = "시간 오류";
-                }
+                } catch { formattedTime = "시간 오류"; }
             }
-
             const formattedDailyId = `#${String(order.dailyOrderNum).padStart(4, '0')}`;
             const nickname = order.username || "이름없음";
 
             return `
             <div class="order-card ${cardTypeClass}" id="order-card-${order.orderId}">
-
                 <div>
                     <div class="card-header">
                         <span class="order-id">${formattedDailyId}</span>
                         <span class="order-time">${formattedTime}</span>
                     </div>
-
                     <div class="option-info">
                         <div><strong>주문자:</strong> ${nickname}</div>
                     </div>
-
-                    <ul class="menu-list">
-                        ${menuItemsHtml}
-                    </ul>
+                    <ul class="menu-list">${menuItemsHtml}</ul>
                 </div>
-
                 <div>
                     <div class="request-text">
                         <strong>요청사항:</strong> ${order.requestText ? order.requestText : '없음'}
@@ -232,13 +191,11 @@
                         <span>총 수량</span>
                         <span>${order.totalQuantity}</span>
                     </div>
-
                     <div class="card-footer-total">
                         <span>${order.orderType}</span>
                         <span>${order.totalPrice.toLocaleString('ko-KR')}원</span>
                     </div>
                 </div>
-
                 <button class="card-menu-button" data-order-id="${order.orderId}">⋮</button>
                 <div class="card-menu-dropdown" id="menu-dropdown-${order.orderId}">
                     <button class="complete" data-status="주문완료">✔ 완료</button>
@@ -253,21 +210,13 @@
         function showAdminToast(message) {
             const toast = document.getElementById("admin-toast");
             const msg = document.getElementById("admin-toast-message");
-
             if (!toast || !msg) return;
 
             msg.innerText = message;
-
-            // 초기화
             toast.classList.remove("hide");
             toast.classList.remove("show");
 
-            // 슬라이드 다운
-            setTimeout(() => {
-                toast.classList.add("show");
-            }, 10);
-
-            // 자동으로 사라짐
+            setTimeout(() => toast.classList.add("show"), 10);
             setTimeout(() => {
                 toast.classList.remove("show");
                 toast.classList.add("hide");
@@ -275,10 +224,9 @@
         }
 
         // ---------------------------
-        // 6. 주문 상태 변경
+        // 6. 주문 상태 변경 (함수 정의)
         // ---------------------------
         async function handleUpdateStatus(orderId, status) {
-
             try {
                 const response = await fetch(`${API_ENDPOINT_STATUS_UPDATE}/${orderId}`, {
                     method: 'PUT',
@@ -286,16 +234,19 @@
                     body: JSON.stringify({ status })
                 });
 
+                // 409 에러 (이미 처리됨)
                 if (response.status === 409) {
                     alert("이미 처리된 주문입니다.");
                     removeOrderCard(orderId);
                     return;
                 }
 
+                // 그 외 에러
                 if (!response.ok) throw new Error(response.status);
 
+                // ✅ [성공 시 처리] 여기가 빠져있어서 안 사라졌던 것입니다!
                 removedOrderIds.add(String(orderId));
-                removeOrderCard(orderId);
+                removeOrderCard(orderId); // 즉시 삭제
 
             } catch (e) {
                 alert(`상태 변경 실패 (${e.message})`);
@@ -303,63 +254,64 @@
         }
 
         // ---------------------------
-        // 7. 이벤트 위임(버튼 클릭)
+        // 7. 이벤트 위임 (여기가 실제 버튼 클릭 처리하는 곳)
         // ---------------------------
         orderGrid.addEventListener('click', event => {
             const target = event.target;
 
+            // 메뉴 버튼 (...)
             if (target.classList.contains('card-menu-button')) {
                 event.stopPropagation();
                 const orderId = Number(target.dataset.orderId);
-                if (isNaN(orderId)) {
-                    alert("주문 ID 오류");
-                    return;
-                }
                 const dropdown = document.getElementById(`menu-dropdown-${orderId}`);
 
                 document.querySelectorAll('.card-menu-dropdown.show').forEach(d => {
                     if (d !== dropdown) d.classList.remove('show');
                 });
-
                 dropdown.classList.toggle('show');
             }
 
+            // 완료/취소 버튼 클릭 시 handleUpdateStatus 호출
             if (target.matches('.card-menu-dropdown button')) {
                 event.stopPropagation();
                 const dropdown = target.closest('.card-menu-dropdown');
                 const orderId = Number(dropdown.previousElementSibling.dataset.orderId);
-                if (isNaN(orderId)) {
-                    alert("주문 ID 오류");
-                    return;
-                }
                 const status = target.dataset.status;
 
                 dropdown.classList.remove('show');
+
+                // ⭐ 여기서 위에서 정의한 handleUpdateStatus를 사용합니다.
                 handleUpdateStatus(orderId, status);
             }
         });
 
+        // 드롭다운 외부 클릭 닫기
+        document.addEventListener('click', (e) => {
+            if(!e.target.closest('.card-menu-button')) {
+                document.querySelectorAll('.card-menu-dropdown.show').forEach(d => d.classList.remove('show'));
+            }
+        });
+
         // ---------------------------
-        // 8. 카드 상단 삽입 (새 주문)
+        // 8. 카드 상단 삽입
         // ---------------------------
         function insertCardToTop(html, orderId) {
-            orderGrid.insertAdjacentHTML('afterbegin', html);
+            // 중복 방지 삭제
+            const existingCard = document.getElementById(`order-card-${orderId}`);
+            if (existingCard) existingCard.remove();
 
+            orderGrid.insertAdjacentHTML('afterbegin', html);
             const card = document.getElementById(`order-card-${orderId}`);
-            setTimeout(() => {
-                card.classList.add("show");
-            }, 10);
+            if(card) setTimeout(() => card.classList.add("show"), 10);
         }
 
         // ---------------------------
-        // 9. 카드 제거 애니메이션
+        // 9. 카드 제거
         // ---------------------------
         function removeOrderCard(orderId) {
             const card = document.getElementById(`order-card-${orderId}`);
             if (!card) return;
-
             card.classList.add("hide");
-
             setTimeout(() => {
                 card.remove();
                 updateEmptyState();
@@ -369,40 +321,12 @@
         // ---------------------------
         // 10. 초기 실행
         // ---------------------------
-        loadInitialOrders();      // 초기 목록 1회 로딩
-        connectSSE(storeName);    // SSE 연결
-
-    });
-
-    document.querySelectorAll(".complete").forEach(button => {
-        button.addEventListener("click", function() {
-            const orderId = this.closest(".card-menu-dropdown").id.split("-")[2]; // dropdown-${orderId}에서 orderId 추출
-            const status = this.dataset.status; // "주문완료"
-
-            fetch(`/api/orders/status/${orderId}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status: status })
-            })
-                .then(res => {
-                    if(res.ok){
-                        alert("주문 완료 처리됨!");
-                        // ① 현재 주문관리 페이지 새로고침 또는 업데이트
-                        // ② 매출페이지에 반영
-                        // ✅ reward 정보 새로 가져오기
-                        fetch(`/api/reward/${memberId}`)
-                            .then(r => r.json())
-                            .then(data => {
-                                document.getElementById('stamp-count').innerText = `스탬프 ${data.stamps}/10`;
-                                document.getElementById('coupon-count').innerText = `쿠폰 ${data.coupons}`;
-                            });
-                        updateRevenuePage();
-                    }
-                });
-        });
+        if(storeName) {
+            connectSSE(storeName);
+        } else {
+            console.error("매장명 정보가 없습니다.");
+        }
     });
 
 </script>
-
-
 </html>

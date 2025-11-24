@@ -33,7 +33,19 @@ public class AdminController {
     }
 
     @GetMapping("/login")
-    public String adminLogin(HttpSession session, Model model) {
+    public String adminLogin(HttpSession session, Model model, Authentication auth) {
+
+        // ⭐ [수정 1] 로그인 했더라도 '관리자' 권한이 있는지 확인
+        if (auth != null && auth.isAuthenticated()) {
+            boolean isAdmin = auth.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+            if (isAdmin) {
+                return "redirect:/admin/orders"; // 관리자만 통과
+            }
+            // 일반 회원이면 로그인 페이지를 그대로 보여줌 (혹은 메인으로 튕겨내도 됨)
+        }
+
         if (session.getAttribute("loginError") != null) {
             model.addAttribute("loginError", session.getAttribute("loginError"));
             session.removeAttribute("loginError");
@@ -64,32 +76,27 @@ public class AdminController {
 
     @GetMapping("/orders")
     public String adminOrders(HttpSession session, Model model, Principal principal) {
-
-        AdminVO admin = null;
-
-        // 1) 세션에서 먼저 찾기 (SessionSetupFilter가 세팅했을 경우)
-        admin = (AdminVO) session.getAttribute("admin");
-
-        // 2) 세션에 없으면 principal에서 가져와서 DB 재조회
-        if (admin == null && principal != null) {
-            String loginId = principal.getName();
-            admin = adminService.findById(loginId);
-
-            // 찾았다면 세션에 다시 넣어 데이터 유지
-            if (admin != null) {
-                session.setAttribute("admin", admin);
-            }
-        }
-
-        // 최종적으로도 null이면 로그인 페이지로
-        if (admin == null) {
+        if (principal == null) {
             return "redirect:/admin/login";
         }
 
-        // storeName 모델에 주입
-        model.addAttribute("storeName", admin.getStoreName());
+        AdminVO admin = (AdminVO) session.getAttribute("admin");
 
-        // UI 표시용
+        if (admin == null) {
+            String loginId = principal.getName();
+            admin = adminService.findById(loginId); // DB 조회
+
+            if (admin != null) {
+                session.setAttribute("admin", admin); // 세션 복구
+                session.setAttribute("STORE_NAME", admin.getStoreName());
+                System.out.println("♻️ 관리자 세션 자동 복구 완료: " + loginId);
+            } else {
+                // DB에도 없으면 로그아웃
+                return "redirect:/admin/logout";
+            }
+        }
+
+        model.addAttribute("storeName", admin.getStoreName());
         model.addAttribute("isLoggedIn", true);
         model.addAttribute("activePage", "orders");
 
