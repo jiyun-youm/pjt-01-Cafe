@@ -38,7 +38,12 @@
                              th:data-option-price="${(item['SHOT_COUNT'] + item['VANILLA_SYRUP_COUNT'] + item['WHIPPED_CREAM_COUNT']) * 500}"
                              th:data-quantity="${item['QUANTITY']}"
                              th:data-option-id="${item['OPTION_ID']}"
-                             th:data-category="${item['CATEGORY']}">
+                             th:data-category="${item['CATEGORY']}"
+
+                             th:data-shot="${item['SHOT_COUNT']}"
+                             th:data-vanilla-syrup="${item['VANILLA_SYRUP_COUNT']}"
+                             th:data-whipped-cream="${item['WHIPPED_CREAM_COUNT']}"
+                             th:data-tumbler="${item['TUMBLER_USE'] == true or item['TUMBLER_USE'] == 1 ? 1 : 0}">
 
                             <label class="checkbox-container">
                                 <input type="checkbox" class="item-checkbox-input" checked>

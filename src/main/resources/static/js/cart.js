@@ -432,18 +432,30 @@ document.addEventListener('DOMContentLoaded', function () {
             let item = cb.closest('.cart-item');
             let qty = parseInt(item.querySelector('.item-quantity').dataset.quantity);
 
+            // 🔥 [핵심 수정] HTML dataset에서 옵션 값을 꺼내와야 합니다.
+            // (HTML에 data-shot, data-vanilla-syrup, data-whipped-cream 속성이 있어야 함)
+            let shotVal = parseInt(item.dataset.shot) || 0;
+            let syrupVal = parseInt(item.dataset.vanillaSyrup) || 0;
+            let creamVal = parseInt(item.dataset.whippedCream) || 0;
+
             orderItemList.push({
                 menuId: item.dataset.menuId,
                 menuItemName: item.querySelector('.item-name').textContent.trim(),
                 quantity: qty,
                 optionId: parseInt(item.dataset.optionId),
                 temp: item.querySelector('.item-temp')?.textContent.trim() ?? 'ICE',
-                tumbler: item.querySelector('.item-options')?.textContent.includes('텀블러') ? 1 : 0
+                tumbler: item.querySelector('.item-options')?.textContent.includes('텀블러') ? 1 : 0,
+
+                // 🔥 [추가] 자바 VO 이름과 똑같이 맞춰서 넣어줍니다.
+                shot: shotVal,
+                vanillaSyrup: syrupVal,
+                whippedCream: creamVal
             });
 
             totalQty += qty;
         });
 
+        // ... (아래 로직은 기존과 동일) ...
         let deliveryBtn = document.querySelector('.delivery-btn.active-delivery');
         let orderType = "포장";
 
