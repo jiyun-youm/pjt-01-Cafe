@@ -150,4 +150,9 @@ public class OrderServiceImpl implements OrderService {
     public void useCoupons(List<Integer> couponIds) {
         couponMapper.markUsedMultiple(couponIds);
     }
+
+    @Override
+    public List<OrderItemVO> getOrderItems(Long orderId) {
+        return orderMapper.getOrderItems(orderId);
+    }
 }

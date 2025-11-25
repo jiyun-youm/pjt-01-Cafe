@@ -178,6 +178,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /* ============================================================
+       6-2. 이전 주문 내역 클릭 시 해당 매장의 구매페이지로 이동
+    ============================================================ */
+    // document.querySelectorAll(".order-item").forEach(item => {
+    //     item.addEventListener("click", async () => {
+    //
+    //         const store = item.dataset.store;  // ex. "강남중앙점"
+    //         if (!store) return;
+    //
+    //         // 1) 지점을 세션에 저장
+    //         await fetch("/home/saveRegion", {
+    //             method: "POST",
+    //             headers: { "Content-Type": "application/json" },
+    //             body: JSON.stringify({ region: store })
+    //         });
+    //
+    //         // 2) 장바구니로 이동
+    //         window.location.href = "/home/cart";
+    //     });
+    // });
+
+    /* ============================================================
        7. 지역 선택 변경 시 세션에 저장
     ============================================================ */
     if (userRegion) {

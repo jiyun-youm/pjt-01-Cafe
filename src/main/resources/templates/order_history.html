@@ -24,7 +24,9 @@
 
                 <!-- 주문 반복 -->
                 <th:block th:each="item : ${allOrders}">
-                    <div class="order-item">
+                    <div class="order-item"
+                         th:onclick="'location.href=\'/home/jumpToCart?orderId=' + ${item.orderId} + '\';'"
+                         style="cursor:pointer;">
 
                         <div class="order-item-image">
                             <img th:src="@{'/upload/menuImg/' + ${item.menuImg}}"

@@ -169,4 +169,9 @@ public class CartServiceImpl implements CartService {
             return 0;
         }
     }
+
+    @Override
+    public void clearCart(String memberId) {
+        cartMapper.deleteAll(memberId);
+    }
 }

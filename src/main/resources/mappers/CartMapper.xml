@@ -113,4 +113,9 @@
         WHERE CI.CART_ITEM_ID = #{cartItemId}
     </select>
 
+    <delete id="deleteAll">
+        DELETE FROM cart
+        WHERE member_id = #{memberId}
+    </delete>
+
 </mapper>

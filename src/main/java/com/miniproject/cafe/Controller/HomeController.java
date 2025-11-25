@@ -1,14 +1,9 @@
 package com.miniproject.cafe.Controller;
 
 import com.miniproject.cafe.Mapper.MemberMapper;
-import com.miniproject.cafe.Service.CouponService;
-import com.miniproject.cafe.Service.OrderService;
-import com.miniproject.cafe.Service.RewardService;
-import com.miniproject.cafe.Service.UserLikeService;
-import com.miniproject.cafe.VO.MemberVO;
-import com.miniproject.cafe.VO.MenuVO;
-import com.miniproject.cafe.VO.RecentOrderVO;
-import com.miniproject.cafe.VO.RewardVO;
+import com.miniproject.cafe.Mapper.OrderMapper;
+import com.miniproject.cafe.Service.*;
+import com.miniproject.cafe.VO.*;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -33,6 +28,8 @@ public class HomeController {
     private final RewardService rewardService;
     private final CouponService couponService;
     private final MemberMapper memberMapper;
+    private final CartService cartService;
+    private final OrderMapper orderMapper;
 
     private MemberVO getMemberFromAuth(Authentication auth, HttpSession session) {
         // 1. 로그인 안 된 상태면 null 반환
@@ -182,5 +179,46 @@ public class HomeController {
         }
 
         return "login"; // login.html
+    }
+
+    @GetMapping("/jumpToCart")
+    public String jumpToCart(@RequestParam("orderId") Long orderId,
+                             Authentication auth,
+                             HttpSession session) {
+
+        // 1) 로그인 확인
+        MemberVO member = getMemberFromAuth(auth, session);
+        if (member == null) return "redirect:/home/login";
+
+        String memberId = member.getId();
+
+        // 2) 주문 아이템 가져오기
+        List<OrderItemVO> items = orderMapper.getOrderItems(orderId);
+        if (items == null || items.isEmpty()) {
+            return "redirect:/home/cart"; // 데이터 없으면 그냥 이동
+        }
+
+        // 3) 주문이 어떤 매장에서 발생했는지 추출
+        String storeName = orderMapper.findStoreNameByOrderId(orderId);
+        if (storeName != null) {
+            session.setAttribute("storeName", storeName);
+        }
+
+        // 4) 주문에 포함된 모든 아이템을 장바구니에 추가 (기존 장바구니는 유지)
+        for (OrderItemVO item : items) {
+            cartService.addToCart(
+                    memberId,
+                    item.getMenuId(),
+                    item.getQuantity(),
+                    item.getTemp(),
+                    item.getTumbler() == 1,
+                    item.getShot(),
+                    item.getVanillaSyrup(),
+                    item.getWhippedCream()
+            );
+        }
+
+        // 5) 장바구니 페이지로 이동
+        return "redirect:/home/cart";
     }
 }

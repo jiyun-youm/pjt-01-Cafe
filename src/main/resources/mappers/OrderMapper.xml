@@ -177,7 +177,8 @@
     <!-- 최근 주문내역 조회 -->
     <select id="getRecentOrders" resultType="com.miniproject.cafe.VO.RecentOrderVO">
         SELECT
-            od.menu_id,
+            od.order_id AS orderId,
+            od.menu_id AS menuId,
             m.menu_name AS menuName,
             m.menu_img AS menuImg
         FROM order_detail od
@@ -189,6 +190,7 @@
 
     <select id="getAllOrders" resultType="RecentOrderVO">
         SELECT
+            o.order_id AS orderId,
             od.menu_id,
             m.menu_name AS menuName,
             m.menu_img AS menuImg,
@@ -205,9 +207,28 @@
             LIMIT 10
     </select>
 
-    <select id="selectOrderById" resultType="com.miniproject.cafe.VO.OrderVO">
+    <select id="selectOrderById" resultType="OrderVO">
         SELECT *
         FROM orders
         WHERE order_id = #{orderId}
     </select>
+
+    <select id="getOrderItems" resultType="OrderItemVO">
+        SELECT
+            od.order_detail_id AS orderItemId,
+            od.order_id AS orderId,
+            od.menu_id AS menuId,
+            m.menu_name AS menuItemName,
+            od.amount AS quantity,
+            od.temp,
+            od.tumbler AS tumbler,
+            od.shot,
+            od.vanilla_syrup AS vanillaSyrup,
+            od.whipped_cream AS whippedCream,
+            od.member_id AS memberId
+        FROM order_detail od
+                 JOIN menu m ON od.menu_id = m.menu_id
+        WHERE od.order_id = #{orderId}
+    </select>
+
 </mapper>

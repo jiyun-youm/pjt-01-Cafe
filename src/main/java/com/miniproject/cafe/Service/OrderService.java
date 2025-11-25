@@ -1,5 +1,6 @@
 package com.miniproject.cafe.Service;
 
+import com.miniproject.cafe.VO.OrderItemVO;
 import com.miniproject.cafe.VO.OrderVO;
 import com.miniproject.cafe.VO.RecentOrderVO;
 
@@ -17,4 +18,6 @@ public interface OrderService {
     OrderVO getOrderById(Long orderId);
 
     void useCoupons(List<Integer> couponIds);
+
+    List<OrderItemVO> getOrderItems(Long orderId);
 }

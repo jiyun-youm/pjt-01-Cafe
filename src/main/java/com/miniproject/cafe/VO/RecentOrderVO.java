@@ -10,6 +10,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RecentOrderVO {
+    private Long orderId;
     private String menuId;
     private String menuName;
     private String menuImg;

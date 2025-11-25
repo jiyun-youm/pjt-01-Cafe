@@ -362,6 +362,11 @@ main.container {
     text-overflow: ellipsis;
 }
 
+.order-item {
+    text-decoration: none;
+    color: inherit;
+}
+
 /* 리워드 섹션 */
 .reward-section {
     background-color: rgba(213, 185, 164, 0.85); /* 기존 색상 + 85% 불투명도 */

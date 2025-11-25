@@ -28,4 +28,6 @@ public interface OrderMapper {
     List<RecentOrderVO> getAllOrders(@Param("memberId") String memberId);
 
     OrderVO selectOrderById(@Param("orderId") Long orderId);
+
+    List<OrderItemVO> getOrderItems(@Param("orderId") Long orderId);
 }

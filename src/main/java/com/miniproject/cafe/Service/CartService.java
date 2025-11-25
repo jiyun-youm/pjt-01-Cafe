@@ -21,4 +21,5 @@ public interface CartService {
                   int vanillaSyrupCount,
                   int whippedCreamCount
     );
+    void clearCart(String memberId);
 }

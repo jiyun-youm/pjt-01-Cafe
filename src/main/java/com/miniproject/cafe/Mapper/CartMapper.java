@@ -24,4 +24,5 @@ public interface CartMapper {
     int insertMenuOption(Map<String, Object> optionParams);
     Long findExistingCartItem(@Param("cartId") Long cartId, @Param("menuOptionId") Long menuOptionId);
     CartItemVO getCartItem(@Param("cartItemId") Long cartItemId);
+    void deleteAll(@Param("memberId") String memberId);
 }

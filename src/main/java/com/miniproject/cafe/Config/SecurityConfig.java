@@ -1,7 +1,6 @@
 package com.miniproject.cafe.Config;
 
 import com.miniproject.cafe.Filter.AdminSessionSetupFilter;
-import com.miniproject.cafe.Filter.SessionSetupFilter;
 import com.miniproject.cafe.Filter.UserSessionSetupFilter;
 import com.miniproject.cafe.Handler.*;
 import com.miniproject.cafe.Mapper.*;
