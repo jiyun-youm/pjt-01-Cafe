@@ -3,7 +3,10 @@ package com.miniproject.cafe.Config;
 import com.miniproject.cafe.Filter.AdminSessionSetupFilter;
 import com.miniproject.cafe.Filter.UserSessionSetupFilter;
 import com.miniproject.cafe.Handler.*;
-import com.miniproject.cafe.Mapper.*;
+import com.miniproject.cafe.Mapper.AdminMapper;
+import com.miniproject.cafe.Mapper.MemberMapper;
+import com.miniproject.cafe.Repository.AdminSecurityContextRepository;
+import com.miniproject.cafe.Repository.UserSecurityContextRepository;
 import com.miniproject.cafe.Service.AdminUserDetailsService;
 import com.miniproject.cafe.Service.CustomOAuth2UserService;
 import com.miniproject.cafe.Service.CustomUserDetailsService;
@@ -26,8 +29,8 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.RememberMeServices;
-import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
 import org.springframework.security.web.authentication.rememberme.RememberMeAuthenticationFilter;
+import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
 
 @Configuration
 @EnableWebSecurity
@@ -37,16 +40,12 @@ public class SecurityConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
     private final CustomUserDetailsService customUserDetailsService;
     private final AdminUserDetailsService adminUserDetailsService;
-
     private final OAuth2FailureHandler oAuth2FailureHandler;
     private final FormLoginFailureHandlerForAdmin formLoginFailureHandlerForAdmin;
     private final FormLoginFailureHandlerForUser formLoginFailureHandlerForUser;
 
     private final MemberMapper memberMapper;
     private final AdminMapper adminMapper;
-    private final RewardMapper rewardMapper;
-    private final CouponMapper couponMapper;
-    private final OrderMapper orderMapper;
 
     private final RememberMeSuccessHandler rememberMeSuccessHandler;
 
@@ -100,6 +99,16 @@ public class SecurityConfig {
     }
 
     @Bean
+    public RememberMeServices adminRememberMe() {
+        TokenBasedRememberMeServices s =
+                new TokenBasedRememberMeServices("admin-secure-key", adminUserDetailsService);
+        s.setTokenValiditySeconds(60 * 60 * 24 * 14);
+        s.setParameter("remember-me-admin");
+        s.setCookieName("remember-me-admin");
+        return s;
+    }
+
+    @Bean
     public RememberMeServices oauthRememberMe() {
         TokenBasedRememberMeServices s =
                 new TokenBasedRememberMeServices(REMEMBER_KEY, customUserDetailsService);
@@ -109,16 +118,35 @@ public class SecurityConfig {
     }
 
     /* ======================
+        SecurityContextRepository Bean
+    ======================= */
+    @Bean
+    public AdminSecurityContextRepository adminSecurityContextRepository() {
+        return new AdminSecurityContextRepository();
+    }
+
+    @Bean
+    public UserSecurityContextRepository userSecurityContextRepository() {
+        return new UserSecurityContextRepository();
+    }
+
+    /* ======================
         관리자 Security
     ======================= */
     @Bean
     @Order(1)
-    public SecurityFilterChain adminFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain adminFilterChain(HttpSecurity http,
+                                                AdminSecurityContextRepository adminSecRepo) throws Exception {
 
         http
                 .securityMatcher("/admin/**")
                 .csrf(csrf -> csrf.disable())
                 .authenticationProvider(adminProvider())
+
+                .securityContext(sc -> sc
+                        .securityContextRepository(adminSecRepo)
+                )
+
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/admin/login",
@@ -130,27 +158,28 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
+
                 .formLogin(f -> f
                         .loginPage("/admin/login")
                         .loginProcessingUrl("/admin/perform_login_process")
                         .usernameParameter("id")
                         .passwordParameter("pw")
-                        .defaultSuccessUrl("/admin/orders", false)
+                        .successHandler(new AdminLoginSuccessHandler(adminMapper, adminRememberMe()))
                         .failureHandler(formLoginFailureHandlerForAdmin)
                 )
+
                 .logout(l -> l
                         .logoutUrl("/admin/logout")
                         .logoutSuccessUrl("/admin/login")
-                        .invalidateHttpSession(true)
-                        .deleteCookies("JSESSIONID", "remember-me-admin")
+                        .deleteCookies("remember-me-admin")
                 )
+
                 .rememberMe(r -> r
-                        .key("admin-secure-key")
+                        .rememberMeServices(adminRememberMe())
                         .rememberMeParameter("remember-me-admin")
-                        .tokenValiditySeconds(60 * 60 * 24 * 14)
-                        .userDetailsService(adminUserDetailsService)
-                        .rememberMeCookieName("remember-me-admin")
+                        .key("admin-secure-key")
                 )
+
                 .addFilterAfter(new AdminSessionSetupFilter(adminMapper),
                         RememberMeAuthenticationFilter.class);
 
@@ -162,13 +191,18 @@ public class SecurityConfig {
     ======================= */
     @Bean
     @Order(2)
-    public SecurityFilterChain userChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain userChain(HttpSecurity http,
+                                         UserSecurityContextRepository userSecRepo) throws Exception {
 
         http
                 .authenticationProvider(userProvider())
                 .authenticationProvider(oauth2Provider())
                 .authenticationProvider(oidcProvider())
                 .csrf(csrf -> csrf.disable())
+
+                .securityContext(sc -> sc
+                        .securityContextRepository(userSecRepo)
+                )
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/css/**", "/js/**", "/images/**", "/upload/**").permitAll()
@@ -197,8 +231,7 @@ public class SecurityConfig {
                 .logout(l -> l
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/home/login")
-                        .deleteCookies("JSESSIONID", "remember-me")
-                        .invalidateHttpSession(true)
+                        .deleteCookies("remember-me")
                 )
 
                 .rememberMe(r -> r
@@ -211,24 +244,24 @@ public class SecurityConfig {
 
         return http.build();
     }
+
+    /* ======================
+        SSE Security (별도 체인)
+    ======================= */
     @Bean
     @Order(0)
-    public SecurityFilterChain sseFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain sseChain(HttpSecurity http) throws Exception {
         http
                 .securityMatcher("/sse/**")
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
-                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(a -> a.anyRequest().permitAll())
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .securityContext(sc -> sc.disable())
-                .requestCache(cache -> cache.disable())
+                .requestCache(c -> c.disable())
                 .anonymous(a -> a.disable());
-
         return http.build();
     }
 
-    /* =======================
-        패스워드 인코더
-    ======================= */
     @Bean
     public static BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

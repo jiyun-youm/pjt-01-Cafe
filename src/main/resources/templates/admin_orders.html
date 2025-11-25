@@ -117,13 +117,16 @@
             eventSource = new EventSource(sseUrl);
 
             eventSource.onopen = function(e) {
+                lastEventTime = Date.now();
                 console.log("🟢 서버와 SSE 연결 성공! 데이터 동기화를 시작합니다.");
                 loadInitialOrders();
+                startHeartbeat();
             };
 
             eventSource.addEventListener("new-order", (event) => {
                 const order = JSON.parse(event.data);
                 const idStr = String(order.orderId);
+                lastEventTime = Date.now();
 
                 if (removedOrderIds.has(idStr) || document.getElementById(`order-card-${order.orderId}`)) {
                     return;
@@ -132,9 +135,11 @@
                 insertCardToTop(createOrderCard(order), order.orderId);
                 updateEmptyState();
                 showAdminToast("새로운 주문이 도착했습니다!");
+
             });
 
             eventSource.addEventListener("order-update", (event) => {
+                lastEventTime = Date.now();
                 console.log("상태 변경 감지, 목록 갱신");
                 loadInitialOrders();
             });
@@ -149,6 +154,23 @@
             };
         }
 
+        let lastEventTime = Date.now();
+        let heartbeatTimer = null;
+
+        function startHeartbeat() {
+            if (heartbeatTimer) clearInterval(heartbeatTimer);
+
+            heartbeatTimer = setInterval(() => {
+                const diff = Date.now() - lastEventTime;
+
+                if (diff > 20000) {
+                    console.warn("⚠ SSE 정지 감지 → 강제 재연결");
+                    if(eventSource) eventSource.close();
+                    connectSSE(storeName);
+                }
+            }, 5000);
+        }
+
         // ---------------------------
         // 4. 주문 카드 생성 (HTML)
         // ---------------------------
@@ -156,16 +178,44 @@
             let cardTypeClass = 'type-default';
             if (order.orderType === '매장') cardTypeClass = 'type-store';
             else if (order.orderType === '포장') cardTypeClass = 'type-takeout';
+            else if (order.orderType === '배달') cardTypeClass = 'type-delivery';
 
-            const menuItemsHtml = (order.orderItemList || []).map(item => {
-                const tumblerTxt = item.tumbler === 1 ? "텀블러" : "일반컵";
-                const tempTxt = item.temp ? item.temp.toUpperCase() : "";
-                const shotTxt = item.shot > 0 ? `샷 : ${item.shot}` : "";
-                const syrupTxt = item.vanillaSyrup > 0 ? `시럽 : ${item.vanillaSyrup}` : "";
-                const creamTxt = item.whippedCream > 0 ? `휘핑크림` : "";
+            // 1. 메뉴 리스트 HTML 생성
+            const menuItemsHtml = (order.orderItemList || []).map((item, index) => {
 
-                const optionsText = [tumblerTxt, tempTxt, shotTxt, syrupTxt, creamTxt]
-                    .filter(v => v !== "").join("<br>");
+                // 🔥 [디버깅] 콘솔에서 이 로그를 확인해보세요! (옵션 이름이 뭔지 알 수 있습니다)
+                if (index === 0) console.log("📦 주문 아이템 데이터 확인:", item);
+
+                // 텀블러 여부
+                const tumblerTxt =
+                    (item.tumbler === 1 || item.isTumbler === 1 || item.tumblerYn === 'Y') ? "텀블러" : "";
+
+                // 온도 (HOT/ICE)
+                const tempTxt =
+                    item.temp || item.temperature || item.tempType || "";
+
+                // 샷 추가 (변수명 후보들을 다 뒤져봄)
+                const shotVal = item.shot || item.shotCount || item.extraShot || item.addShot || 0;
+                const shotTxt = shotVal > 0 ? `샷 : ${shotVal}` : "";
+
+                // 시럽 추가
+                const syrupVal = item.vanillaSyrup || item.syrup || item.syrupCount || item.addSyrup || 0;
+                const syrupTxt = syrupVal > 0 ? `시럽 : ${syrupVal}` : "";
+
+                // 휘핑크림 추가
+                const whipVal = item.whippedCream || item.whip || item.cream || item.addWhip || 0;
+                const creamTxt = whipVal > 0 ? `휘핑크림` : "";
+
+                // 옵션 텍스트 합치기
+                const optionsText = [
+                    tumblerTxt,
+                    tempTxt,
+                    shotTxt,
+                    syrupTxt,
+                    creamTxt
+                ]
+                    .filter(v => v !== "") // 빈 값 제거
+                    .join("<br>"); // 줄바꿈으로 연결
 
                 return `
                 <li>
@@ -177,6 +227,7 @@
                 </li>`;
             }).join('');
 
+            // 2. 시간 포맷팅
             let formattedTime = '00:00';
             if (order.orderTime) {
                 try {
@@ -184,9 +235,14 @@
                     formattedTime = `${date.getHours()}시 ${String(date.getMinutes()).padStart(2, '0')}분`;
                 } catch { formattedTime = "시간 오류"; }
             }
+
+            // 3. 주문번호 포맷팅
             const formattedDailyId = `#${String(order.dailyOrderNum).padStart(4, '0')}`;
+
+            // 4. 닉네임 처리
             const nickname = order.username || "이름없음";
 
+            // HTML 반환
             return `
             <div class="order-card ${cardTypeClass}" id="order-card-${order.orderId}">
                 <div>
