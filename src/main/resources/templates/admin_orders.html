@@ -120,7 +120,6 @@
                 lastEventTime = Date.now();
                 console.log("🟢 서버와 SSE 연결 성공! 데이터 동기화를 시작합니다.");
                 loadInitialOrders();
-                startHeartbeat();
             };
 
             eventSource.addEventListener("new-order", (event) => {
@@ -154,23 +153,6 @@
             };
         }
 
-        let lastEventTime = Date.now();
-        let heartbeatTimer = null;
-
-        function startHeartbeat() {
-            if (heartbeatTimer) clearInterval(heartbeatTimer);
-
-            heartbeatTimer = setInterval(() => {
-                const diff = Date.now() - lastEventTime;
-
-                if (diff > 20000) {
-                    console.warn("⚠ SSE 정지 감지 → 강제 재연결");
-                    if(eventSource) eventSource.close();
-                    connectSSE(storeName);
-                }
-            }, 5000);
-        }
-
         // ---------------------------
         // 4. 주문 카드 생성 (HTML)
         // ---------------------------
@@ -182,9 +164,6 @@
 
             // 1. 메뉴 리스트 HTML 생성
             const menuItemsHtml = (order.orderItemList || []).map((item, index) => {
-
-                // 🔥 [디버깅] 콘솔에서 이 로그를 확인해보세요! (옵션 이름이 뭔지 알 수 있습니다)
-                if (index === 0) console.log("📦 주문 아이템 데이터 확인:", item);
 
                 // 텀블러 여부
                 const tumblerTxt =
