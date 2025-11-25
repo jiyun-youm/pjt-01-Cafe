@@ -98,13 +98,13 @@ document.addEventListener('DOMContentLoaded', () => {
         let es = new EventSource(url);
         userEventSource = es;
 
-        es.onopen = () => console.log("🟢 [SSE] 사용자 알림 서비스 연결됨");
+        es.onopen = () => {
+            console.log("🟢 [SSE] 사용자 알림 서비스 연결됨");
+            checkMissedNotifications();
+        };
 
-        // 에러 발생 시 재연결 로직
         es.onerror = () => {
-            // console.log("🔴 [SSE] 연결 끊김. 재연결 시도...");
             es.close();
-            // 3초 후 재연결 (initUserSSE 다시 호출)
             setTimeout(initUserSSE, 3000);
         };
 
@@ -113,21 +113,16 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("🔔 주문 완료 알림 도착:", event.data);
             const order = JSON.parse(event.data);
 
-            // 메뉴 이름 추출 (없으면 기본값)
             const menuName = order.orderItemList?.[0]?.menuItemName || "메뉴";
             const extraCount = (order.orderItemList?.length || 1) - 1;
             const title = extraCount > 0 ? `${menuName} 외 ${extraCount}건` : menuName;
-
             const dailyNum = String(order.dailyOrderNum).padStart(4, "0");
 
-            // 토스트 메시지 띄우기
-            showToast(`주문번호 ${dailyNum}\n${title} 이(가) 준비되었어요!\n픽업대에서 메뉴를 픽업해주세요!`);
+            localStorage.setItem(`notified_order_${order.orderId}`, "true");
 
-            // 알림창 업데이트
+            showToast(`주문번호 ${dailyNum}\n${title} 이(가) 준비되었어요!\n픽업대에서 메뉴를 픽업해주세요!`);
             showAlarmDot();
             addNotificationCard(dailyNum, title);
-
-            // 주문 내역 새로고침
             await loadUserOrders();
         });
 
@@ -143,13 +138,79 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     function initUserSSE() {
-        if (typeof IS_LOGGED_IN === 'undefined' || !IS_LOGGED_IN) return;
-        if (typeof USER_ID === 'undefined' || !USER_ID) return;
-        connectSSE(`/sse/user/${USER_ID}`);
+        // 1. 비로그인 상태면 중단
+        if (typeof IS_LOGGED_IN === 'undefined' || !IS_LOGGED_IN) {
+            return;
+        }
+
+        if (typeof USER_ID === 'undefined' || !USER_ID) {
+            console.error("❌ [SSE] USER_ID가 없습니다! (세션 로딩 문제 가능성)");
+            return;
+        }
+        const safeUserId = encodeURIComponent(USER_ID);
+
+        console.log(`🔌 [SSE] 초기화 시도. 원본ID: ${USER_ID}, 전송ID: ${safeUserId}`);
+        connectSSE(`/sse/user/${safeUserId}`);
     }
 
     // 페이지 로드 시 즉시 실행
     initUserSSE();
+
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+            console.log("👀 화면 활성화됨. SSE 연결 상태 점검...");
+            if (!userEventSource || userEventSource.readyState === EventSource.CLOSED) {
+                console.log("🔄 SSE 재연결 시도...");
+                initUserSSE();
+            }
+        }
+    });
+
+    /* ============================================================
+       [추가] 놓친 알림 체크
+       - SSE 연결이 끊긴 사이에 완료된 주문이 있는지 확인합니다.
+       - 이미 알림을 본 주문은 localStorage에 저장해 중복을 막습니다.
+    ============================================================ */
+    async function checkMissedNotifications() {
+        if (typeof USER_ID === 'undefined' || !USER_ID) return;
+
+        try {
+            // 기존에 사용하시던 주문 내역 조회 API 활용
+            const resp = await fetch(`/api/orders/user-list?memberId=${USER_ID}`);
+            if (!resp.ok) return;
+
+            const list = await resp.json();
+
+            // "제조완료(COMPLETED)" 상태인데, 아직 알림을 안 본 주문 찾기
+            list.forEach(order => {
+                // 주문 상태가 '제조완료' 인지 확인 (서버의 상태값에 맞춰 수정 필요: COMPLETED, 제조완료 등)
+                // 예시: order.orderStatus가 한글 "제조완료" 혹은 영문 "COMPLETED" 라고 가정
+                if (order.orderStatus === '제조완료' || order.orderStatus === 'COMPLETED') {
+
+                    const storageKey = `notified_order_${order.orderId}`;
+
+                    // 로컬 스토리지에 기록이 없으면 -> 알림을 못 받은 것임!
+                    if (!localStorage.getItem(storageKey)) {
+                        console.log(`🔎 놓친 주문 발견! ID: ${order.orderId}`);
+
+                        // 1. 토스트 띄우기
+                        const menuName = order.orderItemList?.[0]?.menuItemName || "메뉴";
+                        const dailyNum = String(order.dailyOrderNum).padStart(4, "0");
+                        showToast(`주문번호 ${dailyNum}\n${menuName} 메뉴가 준비되어 있습니다!\n(미수신 알림)`);
+
+                        // 2. 알림창(종모양) 업데이트
+                        showAlarmDot();
+                        addNotificationCard(dailyNum, menuName);
+
+                        // 3. "나 이거 봤음" 도장 찍기 (다음에 또 안 뜨게)
+                        localStorage.setItem(storageKey, "true");
+                    }
+                }
+            });
+        } catch (e) {
+            console.error("놓친 알림 체크 중 오류:", e);
+        }
+    }
 
     /* ============================================================
        6. 이전 주문 내역 로딩

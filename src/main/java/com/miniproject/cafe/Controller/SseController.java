@@ -17,44 +17,34 @@ public class SseController {
 
     private final SseEmitterStore emitterStore;
 
-    // 관리자 전용 SSE 구독
-    @GetMapping(value = "/sse/admin/{storeName}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    // 관리자 SSE 연결
+    @GetMapping(value = "/sse/admin/{storeName:.+}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter subscribeAdmin(@PathVariable String storeName) {
-
-        // 2. 타임아웃 설정 (30분)
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
-
-        // 3. 저장소에 "디코딩된 이름"으로 저장
         emitterStore.addAdminEmitter(storeName, emitter);
 
-        // 4. 연결 즉시 더미 데이터 전송 (503 에러 방지용)
-        safeSend(emitter, "connect", "admin-connected");
-
+        try {
+            String dummyData = "admin-connected" + " ".repeat(1000);
+            emitter.send(SseEmitter.event().name("connect").data(dummyData));
+        } catch (Exception e) {
+            emitter.completeWithError(e);
+        }
         return emitter;
     }
 
-    // 사용자 전용 SSE 구독
-    @GetMapping(value = "/sse/user/{userId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    // 사용자 SSE 연결
+    @GetMapping(value = "/sse/user/{userId:.+}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter subscribeUser(@PathVariable String userId) {
-
-        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
-
+        SseEmitter emitter = new SseEmitter(3600_000L);
         emitterStore.addUserEmitter(userId, emitter);
 
-        safeSend(emitter, "connect", "user-connected");
+        try {
+            String dummyData = "user-connect" + " ".repeat(1000); // 공백 1000개 추가
+            emitter.send(SseEmitter.event().name("connect").data(dummyData));
+        } catch (Exception e) {
+            emitter.completeWithError(e);
+        }
 
         return emitter;
-    }
-
-    private void safeSend(SseEmitter emitter, String event, Object data) {
-        try {
-            emitter.send(SseEmitter.event().name(event).data(data));
-        } catch (Exception e) {
-            try {
-                emitter.complete();
-            } catch (Exception ignored) {
-                ignored.printStackTrace();
-            }
-        }
     }
 }

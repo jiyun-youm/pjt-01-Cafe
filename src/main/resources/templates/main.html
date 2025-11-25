@@ -54,7 +54,8 @@
                         <p style="font-size:14px; color:#555">최근 주문내역이 없습니다.</p>
                     </th:block>
                     <th:block th:each="item : ${recentOrders}">
-                        <a th:href="@{'/home/order_history'}" class="previous-order-item login-required">
+                        <a th:href="@{'/home/jumpToCart?orderId=' + ${item.orderId}}"
+                           class="previous-order-item login-required">
                             <img th:src="@{'/upload/menuImg/' + ${item.menuImg}}"
                                  th:alt="${item.menuName}"
                                  class="menu-image">

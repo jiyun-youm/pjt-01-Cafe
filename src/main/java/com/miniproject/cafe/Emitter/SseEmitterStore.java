@@ -53,6 +53,12 @@ public class SseEmitterStore {
         send(userEmitters, userId, eventName, data);
     }
 
+    public void sendToAllUsers(String eventName, Object data) {
+        userEmitters.keySet().forEach(userId -> {
+            send(userEmitters, userId, eventName, data);
+        });
+    }
+
     /* =======================================
         핵심 수정: send() 완전 안정화 버전
     ======================================= */

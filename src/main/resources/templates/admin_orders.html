@@ -43,13 +43,30 @@
         async function loadInitialOrders() {
             try {
                 const response = await fetch(API_ENDPOINT_LIST, { cache: 'no-store' });
-                if (!response.ok) throw new Error(response.status);
 
-                const orders = await response.json();
-                renderOrders(orders);
+                // 🔥 [추가] 세션 만료 체크 (리다이렉트 발생 시)
+                if (response.redirected || response.url.includes('/login')) {
+                    alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+                    window.location.href = '/admin/login';
+                    return;
+                }
+
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+                // 🔥 [수정] JSON 파싱 시도 (HTML이 넘어오면 catch로 이동)
+                const text = await response.text();
+                try {
+                    const orders = JSON.parse(text);
+                    renderOrders(orders);
+                } catch (jsonError) {
+                    console.error("JSON 파싱 에러 (세션 만료 가능성):", jsonError);
+                    // JSON이 아니라 HTML(로그인창)이 왔을 확률이 높음
+                    window.location.href = '/admin/login';
+                }
 
             } catch (e) {
                 console.error('초기 주문 로딩 실패:', e);
+                // 네트워크 에러 등 진짜 에러일 때만 표시
                 if(orderGrid.children.length === 0) {
                     orderGrid.innerHTML = `<div class="order-grid-empty">주문 목록 로딩 실패 (${e.message})</div>`;
                 }
@@ -139,7 +156,6 @@
             let cardTypeClass = 'type-default';
             if (order.orderType === '매장') cardTypeClass = 'type-store';
             else if (order.orderType === '포장') cardTypeClass = 'type-takeout';
-            else if (order.orderType === '배달') cardTypeClass = 'type-delivery';
 
             const menuItemsHtml = (order.orderItemList || []).map(item => {
                 const tumblerTxt = item.tumbler === 1 ? "텀블러" : "일반컵";
@@ -234,6 +250,13 @@
                     body: JSON.stringify({ status })
                 });
 
+                // 🔥 [추가] 상태 변경 시에도 세션 만료 체크
+                if (response.redirected || response.url.includes('/login')) {
+                    alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+                    window.location.href = '/admin/login';
+                    return;
+                }
+
                 // 409 에러 (이미 처리됨)
                 if (response.status === 409) {
                     alert("이미 처리된 주문입니다.");
@@ -244,9 +267,8 @@
                 // 그 외 에러
                 if (!response.ok) throw new Error(response.status);
 
-                // ✅ [성공 시 처리] 여기가 빠져있어서 안 사라졌던 것입니다!
                 removedOrderIds.add(String(orderId));
-                removeOrderCard(orderId); // 즉시 삭제
+                removeOrderCard(orderId);
 
             } catch (e) {
                 alert(`상태 변경 실패 (${e.message})`);

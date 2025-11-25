@@ -15,6 +15,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationProvider;
 import org.springframework.security.oauth2.client.endpoint.DefaultAuthorizationCodeTokenResponseClient;
@@ -207,6 +208,20 @@ public class SecurityConfig {
 
                 .addFilterAfter(new UserSessionSetupFilter(memberMapper),
                         RememberMeAuthenticationFilter.class);
+
+        return http.build();
+    }
+    @Bean
+    @Order(0)
+    public SecurityFilterChain sseFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher("/sse/**")
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .securityContext(sc -> sc.disable())
+                .requestCache(cache -> cache.disable())
+                .anonymous(a -> a.disable());
 
         return http.build();
     }

@@ -31,14 +31,13 @@ public class UserSessionSetupFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        String uri = request.getRequestURI();
-        if (uri.startsWith("/sse/")) {
+        if (response.isCommitted()) {
             filterChain.doFilter(request, response);
             return;
         }
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        
+
         if(auth != null && auth.isAuthenticated() && !(auth instanceof AnonymousAuthenticationToken)) {
             HttpSession session = request.getSession(true);
             Object principal = auth.getPrincipal();
@@ -64,9 +63,6 @@ public class UserSessionSetupFilter extends OncePerRequestFilter {
                     System.out.println("✅ [UserFilter] 사용자 세션 복구 완료: " + member.getEmail());
                 }
             }
-            session.removeAttribute("reward");
-            session.removeAttribute("coupon");
-            session.removeAttribute("recentOrder");
         }
         filterChain.doFilter(request, response);
     }
