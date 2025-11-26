@@ -8,13 +8,13 @@
     <!-- 단일 날짜 조회 -->
     <select id="getOrdersByDate" resultType="com.miniproject.cafe.VO.AdminRevenueVO">
         SELECT
-        DATE_FORMAT(order_time, '%Y-%m-%d') AS viewDate,
-        DATE_FORMAT(order_time, '%H:%i:%s') AS orderTime,
+        DATE_FORMAT(order_time + INTERVAL 9 HOUR, '%Y-%m-%d') AS viewDate,
+        DATE_FORMAT(order_time + INTERVAL 9 HOUR, '%H:%i:%s') AS orderTime,
         order_id AS orderId,
         total_price AS orderAmount,
         pickup_method AS orderType
         FROM orders
-        WHERE DATE(order_time) = #{date}
+        WHERE DATE(order_time + INTERVAL 9 HOUR) = #{date}
         AND order_status = '주문완료'
 
         <!-- 지점 필터 -->
@@ -29,8 +29,8 @@
     <!-- 기간 조회 -->
     <select id="getOrdersByRange" resultType="com.miniproject.cafe.VO.AdminRevenueVO">
         SELECT
-        DATE_FORMAT(order_time, '%Y-%m-%d') AS viewDate,
-        DATE_FORMAT(order_time, '%H:%i:%s') AS orderTime,
+        DATE_FORMAT(order_time + INTERVAL 9 HOUR, '%Y-%m-%d') AS viewDate,
+        DATE_FORMAT(order_time + INTERVAL 9 HOUR, '%H:%i:%s') AS orderTime,
         order_id AS orderId,
         total_price AS orderAmount,
         pickup_method AS orderType
@@ -50,8 +50,8 @@
     <!-- 전체 조회 -->
     <select id="getAllOrders" resultType="com.miniproject.cafe.VO.AdminRevenueVO">
         SELECT
-        DATE_FORMAT(order_time, '%Y-%m-%d') AS viewDate,
-        DATE_FORMAT(order_time, '%H:%i:%s') AS orderTime,
+        DATE_FORMAT(order_time + INTERVAL 9 HOUR, '%Y-%m-%d') AS viewDate,
+        DATE_FORMAT(order_time + INTERVAL 9 HOUR, '%H:%i:%s') AS orderTime,
         order_id AS orderId,
         total_price AS orderAmount,
         pickup_method AS orderType
